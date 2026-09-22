@@ -1,0 +1,83 @@
+[
+    {
+        "EventId": "6a6cc57f-0a08-44b0-964e-454e31b71996",
+        "EventName": "ExecuteChangeSet",
+        "EventTime": "2026-09-22T02:15:25-03:00",
+        "Username": "aws-cdk-augus",
+        "EventSource": "cloudformation.amazonaws.com",
+        "ResourceType": "AWS::CloudFormation::Stack",
+        "ResourceName": "RumboACasa"
+    },
+    {
+        "EventId": "0028e95a-2e3a-4ef7-b6a4-c252453f9026",
+        "EventName": "CreateChangeSet",
+        "EventTime": "2026-09-22T02:15:02-03:00",
+        "Username": "aws-cdk-augus",
+        "EventSource": "cloudformation.amazonaws.com",
+        "ResourceType": "AWS::CloudFormation::Stack",
+        "ResourceName": "RumboACasa"
+    },
+    {
+        "EventId": "61cca44c-93a9-44b3-962b-17318c9002b1",
+        "EventName": "DeleteStack",
+        "EventTime": "2026-09-22T02:11:02-03:00",
+        "Username": "aws-cdk-augus",
+        "EventSource": "cloudformation.amazonaws.com",
+        "ResourceType": "AWS::CloudFormation::Stack",
+        "ResourceName": "RumboACasa"
+    },
+    {
+        "EventId": "977192e3-f09b-4f25-a38d-984c0155b3a7",
+        "EventName": "DeleteChangeSet",
+        "EventTime": "2026-09-22T02:11:01-03:00",
+        "Username": "aws-cdk-augus",
+        "EventSource": "cloudformation.amazonaws.com",
+        "ResourceType": "AWS::CloudFormation::Stack",
+        "ResourceName": "RumboACasa"
+    },
+    {
+        "EventId": "ac0cfe45-1b3b-4a80-a0c0-6a32a710ecbc",
+        "EventName": "CreateChangeSet",
+        "EventTime": "2026-09-22T02:10:52-03:00",
+        "Username": "aws-cdk-augus",
+        "EventSource": "cloudformation.amazonaws.com",
+        "ResourceType": "AWS::CloudFormation::Stack",
+        "ResourceName": "RumboACasa"
+    },
+    {
+        "EventId": "c6ee0652-076d-465d-9c86-2c952dae4943",
+        "EventName": "DeleteStack",
+        "EventTime": "2026-09-22T02:07:48-03:00",
+        "Username": "aws-cdk-augus",
+        "EventSource": "cloudformation.amazonaws.com",
+        "ResourceType": "AWS::CloudFormation::Stack",
+        "ResourceName": "RumboACasa"
+    },
+    {
+        "EventId": "bded2bd9-dd6d-4c7d-a619-d195816541f8",
+        "EventName": "DeleteChangeSet",
+        "EventTime": "2026-09-22T02:07:47-03:00",
+        "Username": "aws-cdk-augus",
+        "EventSource": "cloudformation.amazonaws.com",
+        "ResourceType": "AWS::CloudFormation::Stack",
+        "ResourceName": "RumboACasa"
+    },
+    {
+        "EventId": "2aaedb75-76fe-4e04-87b0-16179153df7c",
+        "EventName": "CreateChangeSet",
+        "EventTime": "2026-09-22T02:07:39-03:00",
+        "Username": "aws-cdk-augus",
+        "EventSource": "cloudformation.amazonaws.com",
+        "ResourceType": "AWS::CloudFormation::Stack",
+        "ResourceName": "RumboACasa"
+    },
+    {
+        "EventId": "2172d551-82a2-4943-bcd9-1cb68f1126ba",
+        "EventName": "CreateChangeSet",
+        "EventTime": "2026-09-22T02:03:49-03:00",
+        "Username": "aws-cdk-augus",
+        "EventSource": "cloudformation.amazonaws.com",
+        "ResourceType": "AWS::CloudFormation::Stack",
+        "ResourceName": "RumboACasa"
+    }
+]
