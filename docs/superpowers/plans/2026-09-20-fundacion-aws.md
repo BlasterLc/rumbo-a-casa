@@ -8,7 +8,7 @@
 
 **Architecture:** CloudFront sirve la SPA desde S3 (ruta `/*`) y reenvía `/api/*` a una Lambda con Function URL. La infraestructura es un solo stack CDK en TypeScript, en `us-east-1`. Es el esqueleto sobre el que después se montan el motor de reglas y el chat.
 
-**Tech Stack:** Node 20+, TypeScript, npm workspaces, Vitest, AWS CDK v2 (`aws-cdk-lib`), AWS CLI v2, React + Vite, IAM Identity Center (SSO).
+**Tech Stack:** Node 20+, TypeScript, npm workspaces, Vitest, AWS CDK v2 (`aws-cdk-lib`), AWS CLI v2, React + Vite, usuarios IAM (access keys).
 
 **Spec:** `docs/superpowers/specs/2026-09-20-rumbo-a-casa-design.md`
 
@@ -25,7 +25,8 @@
 
 ## Desviaciones conocidas respecto al spec
 
-- **Permisos:** el spec pedía permisos acotados. Para `cdk bootstrap` y los primeros despliegues se usa el permission set `AdministratorAccess` en esta cuenta dedicada, con alarma de presupuesto. Se acota después, cuando el conjunto de servicios esté estable.
+- **Permisos:** el spec pedía permisos acotados. Para `cdk bootstrap` y los primeros despliegues se adjunta la policy `AdministratorAccess` directamente a cada usuario IAM en esta cuenta dedicada, con alarma de presupuesto. Se acota después, cuando el conjunto de servicios esté estable.
+- **IAM Identity Center vs. usuarios IAM:** se usan usuarios IAM individuales en vez de IAM Identity Center porque habilitar Identity Center fuerza la creación de una AWS Organization, y esta cuenta tiene créditos gratuitos (de la hackathon) que se quieren evitar arriesgar. La contra es que las access keys de IAM no caducan solas como las credenciales de SSO, así que hay que cuidarlas más.
 - **AWS Budgets:** el spec lo lista en `infra`. Aquí se crea a mano en la consola (Task 1) porque es un buen primer contacto con la consola. Pasarlo a CDK es opcional.
 - **Function URL pública:** la Lambda queda con `AuthType NONE`, así que también se puede llamar directo sin pasar por CloudFront. Es aceptable para el "hola mundo". El plan del chat debe añadir un secreto compartido desde CloudFront y el tope de uso, antes de exponer Bedrock.
 
@@ -62,14 +63,14 @@ hackathonAWS/
 
 ### Task 1: Cuenta AWS segura y presupuesto [Augusto, guiado]
 
-**Quién la ejecuta:** Augusto, dueño de la cuenta AWS del proyecto, hace esta tarea de punta a punta como dueño del usuario raíz. El resto del equipo se suma en el Step 5 como usuario adicional de Identity Center. Nada de esta tarea requiere pegar contraseñas ni claves de acceso en ningún archivo del repo.
+**Quién la ejecuta:** Augusto, dueño de la cuenta AWS del proyecto, hace esta tarea de punta a punta como dueño del usuario raíz. El resto del equipo se suma en el Step 5 como usuario IAM adicional. Nada de esta tarea requiere pegar contraseñas ni claves de acceso en ningún archivo del repo.
 
-**Concepto:** una cuenta AWS tiene un *usuario raíz* (el correo con el que se registró) con poder total. Se protege con MFA y no se usa para el trabajo diario. Para trabajar se usa **IAM Identity Center**, que entrega credenciales temporales por SSO: si se filtran, caducan solas. **AWS Budgets** envía un correo cuando el gasto pasa un umbral, y es la red de seguridad contra sorpresas.
+**Concepto:** una cuenta AWS tiene un *usuario raíz* (el correo con el que se registró) con poder total. Se protege con MFA y no se usa para el trabajo diario. Para trabajar se usan **usuarios IAM individuales**: cada persona tiene su propio usuario, contraseña y MFA propios, y sus propias access keys para la CLI. No se usa IAM Identity Center porque habilitarlo exige crear una AWS Organization, lo que puede afectar los créditos gratuitos de la cuenta. A diferencia de las credenciales de SSO, las access keys de IAM no caducan solas, así que cada quien las guarda en un gestor de contraseñas y nunca las comparte ni las commitea. **AWS Budgets** envía un correo cuando el gasto pasa un umbral, y es la red de seguridad contra sorpresas.
 
 **Files:** ninguno (consola AWS).
 
 **Interfaces:**
-- Produces: un perfil SSO llamado `rumbo` que Task 2 configura en la CLI, y el ID de cuenta de 12 dígitos.
+- Produces: un usuario IAM por integrante con access keys propias, que Task 2 configura en la CLI como perfil `rumbo`, y el ID de cuenta de 12 dígitos.
 
 - [ ] **Step 1: Crear la cuenta [USUARIO]**
 
@@ -91,37 +92,42 @@ Esperado: el presupuesto aparece en la lista con estado "OK".
 
 Selector de región (arriba a la derecha) → **US East (N. Virginia) us-east-1**. Se usa siempre esta región.
 
-- [ ] **Step 5: Habilitar IAM Identity Center [USUARIO]**
+- [ ] **Step 5: Crear usuarios IAM para el equipo [USUARIO]**
 
-Consola → buscar *IAM Identity Center* → *Enable* (elegir crear una instancia de organización si lo pregunta). Luego:
-1. *Users* → *Add user*, **una vez por integrante del equipo** (dos personas): nombre, correo. Cada uno acepta su invitación por correo y fija su propia contraseña + MFA. Nadie comparte credenciales.
-2. *Permission sets* → *Create permission set* → predefinido `AdministratorAccess`.
-3. *AWS accounts* → seleccionar la cuenta → *Assign users or groups* → **ambos usuarios** + el permission set.
-4. En el panel de Identity Center, copiar la **AWS access portal URL** (algo como `https://d-xxxxxxxxxx.awsapps.com/start`).
+Consola → buscar *IAM* → *Users* → *Create user*, **una vez por integrante del equipo** (dos personas):
+1. Nombre de usuario. Marcar *Provide user access to the AWS Management Console*, contraseña personalizada o autogenerada, con *User must create a new password at next sign-in*.
+2. En *Set permissions* → *Attach policies directly* → buscar y marcar `AdministratorAccess`.
+3. Crear el usuario y anotar la URL de acceso a la consola (`https://<ID_DE_CUENTA>.signin.aws.amazon.com/console`).
 
-Esperado: al abrir la access portal URL e iniciar sesión, aparece la cuenta con el rol `AdministratorAccess`. Cada integrante debe comprobarlo con su propio usuario.
+Luego, cada integrante (no Augusto por ellos) entra con su propio usuario y:
+1. Cambia su contraseña temporal.
+2. Activa su propio **MFA** (*Security credentials* → *Assign MFA device*).
+3. Genera sus propias **access keys** (*Security credentials* → *Create access key* → caso de uso *Command Line Interface (CLI)*) para usarlas en Task 2.
+
+Esperado: cada integrante puede iniciar sesión en la consola con su propio usuario y ve `AdministratorAccess`. Nadie comparte ni pega access keys ajenas; cada quien guarda las suyas en un gestor de contraseñas, nunca en el repo.
 
 - [ ] **Step 6: Acordar reglas de trabajo en equipo [USUARIO]**
 
 - La cuenta la crea y administra **una** persona (dueña del usuario raíz y del presupuesto). Nadie más usa el usuario raíz.
 - Solo una persona ejecuta `cdk deploy` a la vez: avisarse por chat antes de desplegar, porque dos despliegues simultáneos sobre el mismo stack se rechazan.
 - Antes de desplegar, cada quien hace `git pull` para tener el mismo código.
+- Las access keys de cada usuario IAM son personales e intransferibles: no se comparten, no se pegan en el chat ni se suben al repo (`.gitignore` ya bloquea `.env`).
 
 - [ ] **Step 7: Pausa de revisión**
 
-Confirmar con ambos que entienden: usuario raíz vs. usuario SSO, qué es una región, qué hace el presupuesto. Anotar el ID de cuenta y la access portal URL para Task 2. Cada integrante repite Task 2 en su propia máquina.
+Confirmar con ambos que entienden: usuario raíz vs. usuario IAM, qué es una región, qué hace el presupuesto. Anotar el ID de cuenta para Task 2. Cada integrante repite Task 2 en su propia máquina con sus propias access keys.
 
 ---
 
-### Task 2: Herramientas locales y login por SSO
+### Task 2: Herramientas locales y configuración de la CLI
 
-**Concepto:** la **AWS CLI** es el programa que habla con AWS desde la terminal. Un *perfil* guarda a qué cuenta y rol conectarse. Con SSO, `aws sso login` abre el navegador, apruebas el acceso y la CLI obtiene credenciales temporales (duran unas horas). CDK usa esas mismas credenciales.
+**Concepto:** la **AWS CLI** es el programa que habla con AWS desde la terminal. Un *perfil* guarda con qué credenciales conectarse. Acá cada quien usa su **access key** y **secret key** de IAM (Task 1) para configurar su perfil local. A diferencia de las credenciales de SSO, estas no caducan solas: si se sospecha una filtración hay que desactivarlas y crear otras desde IAM de inmediato. CDK usa esas mismas credenciales.
 
 **Files:**
-- Modify: `~/.aws/config` (lo escribe `aws configure sso`)
+- Modify: `~/.aws/config` y `~/.aws/credentials` (los escribe `aws configure`)
 
 **Interfaces:**
-- Consumes: ID de cuenta y access portal URL de Task 1.
+- Consumes: ID de cuenta y access key/secret key propias de Task 1.
 - Produces: perfil `rumbo` funcional. Todos los comandos AWS posteriores usan `AWS_PROFILE=rumbo`.
 
 - [ ] **Step 1: Verificar versiones instaladas**
@@ -129,16 +135,15 @@ Confirmar con ambos que entienden: usuario raíz vs. usuario SSO, qué es una re
 Run: `node --version && npm --version && aws --version`
 Expected: Node 20 o superior, npm 10 o superior, `aws-cli/2.x`. Si falta algo, instalarlo antes de seguir (AWS CLI v2: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
 
-- [ ] **Step 2: Configurar el perfil SSO [USUARIO]**
+- [ ] **Step 2: Configurar el perfil con access keys [USUARIO]**
 
-Run: `! aws configure sso`
-Responder: nombre de sesión `rumbo`, start URL = la access portal URL, región SSO `us-east-1`, scopes por defecto, elegir la cuenta y el rol `AdministratorAccess`, región por defecto `us-east-1`, formato `json`, nombre de perfil `rumbo`.
+Run: `! aws configure --profile rumbo`
+Responder: `AWS Access Key ID` y `AWS Secret Access Key` (las generadas en Task 1, Step 5), región por defecto `us-east-1`, formato `json`.
 
-- [ ] **Step 3: Iniciar sesión y comprobar la identidad**
+- [ ] **Step 3: Comprobar la identidad**
 
-Run: `! aws sso login --profile rumbo`
 Run: `AWS_PROFILE=rumbo aws sts get-caller-identity`
-Expected: JSON con `Account` = el ID de cuenta y un `Arn` que contiene `AWSReservedSSO_AdministratorAccess`.
+Expected: JSON con `Account` = el ID de cuenta y un `Arn` que contiene `:user/` seguido del nombre de usuario IAM creado en Task 1.
 
 - [ ] **Step 4: Pausa de revisión**
 
@@ -218,7 +223,7 @@ git remote add origin git@github.com:<usuario>/<repositorio>.git
 git push -u origin main
 ```
 
-Esperado: el compañero puede clonarlo con `git clone` y ejecutar `npm install`. El repositorio queda privado hasta decidir si se hace público para la hackathon. Nunca se suben credenciales: `.env` ya está en `.gitignore` y AWS usa SSO, así que no hay claves que guardar.
+Esperado: el compañero puede clonarlo con `git clone` y ejecutar `npm install`. El repositorio queda privado hasta decidir si se hace público para la hackathon. Nunca se suben credenciales: `.env` ya está en `.gitignore`, y las access keys de cada quien viven solo en `~/.aws/credentials`, fuera del repo.
 
 ---
 
@@ -734,9 +739,10 @@ git commit -m "feat: stack CDK con S3, CloudFront y Lambda"
 - Consumes: perfil `rumbo` (Task 2), `web/dist/` (Task 5), stack (Task 6).
 - Produces: output `SiteUrl` y un stack `RumboACasa` en CloudFormation.
 
-- [ ] **Step 1: Renovar la sesión si caducó [USUARIO]**
+- [ ] **Step 1: Confirmar que las credenciales siguen vigentes**
 
-Run: `! aws sso login --profile rumbo`
+Run: `AWS_PROFILE=rumbo aws sts get-caller-identity`
+Expected: responde sin error. Si falla, revisar en IAM que la access key del perfil siga activa (no se haya rotado o desactivado).
 
 - [ ] **Step 2: Bootstrap**
 
@@ -788,7 +794,7 @@ Abrir la página de la hackathon y copiar al chat el texto exacto sobre qué cue
 - [ ] **Step 2: Extraer los eventos de despliegue de CloudTrail**
 
 Run: `AWS_PROFILE=rumbo aws cloudtrail lookup-events --region us-east-1 --lookup-attributes AttributeKey=EventName,AttributeValue=CreateStack --max-results 5 > docs/evidence/cloudtrail-createstack.json`
-Expected: el archivo contiene al menos un evento `CreateStack` con el `Username` del usuario SSO. Los eventos pueden tardar hasta unos 15 minutos en aparecer. Si sale vacío, reintentar más tarde.
+Expected: el archivo contiene al menos un evento `CreateStack` con el `Username` del usuario IAM que desplegó. Los eventos pueden tardar hasta unos 15 minutos en aparecer. Si sale vacío, reintentar más tarde.
 
 - [ ] **Step 3: Capturar la sesión del agente [USUARIO]**
 
