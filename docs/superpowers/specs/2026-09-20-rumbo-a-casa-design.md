@@ -98,7 +98,11 @@ Claude Code opera con credenciales de AWS y cada llamada queda en CloudTrail. Se
 - **Días 1-3 (hasta el 23 de septiembre):** cuenta, CDK, esqueleto SPA + Lambda y URL pública viva. Es el requisito eliminatorio.
 - **Semana 1:** motor de reglas con los 4 programas y sus citas, chat con herramientas, tarjetas de resultado.
 - **Semana 2:** `.ics`, modo demo, límites de uso, pulido visual (paleta pendiente) y artículo en inglés para Builder Center (~2 h).
-- **Extras:** email SES, voz (Transcribe y Polly), dominio propio.
+- **Extras:** email SES, voz (Transcribe y Polly), dominio propio, integración con `simuladorsubsidiods49.minvu.cl` para el monto exacto de DS49 en las 4 zonas extremas sin cifra publicada (ver nota abajo).
+
+## Backlog técnico (si sobra tiempo)
+
+- **Scraping del simulador oficial de DS49** (`simuladorsubsidiods49.minvu.cl`) para las 4 zonas sin cifra publicada (Palena, Aysén, Magallanes, Antártica). Investigado 2026-09-22: es ASP.NET MVC 5 (server-rendered, no SPA), así que en teoría se le puede hacer POST con región/comuna/m²/precio/ahorro y parsear el HTML de vuelta. **No se puede embeber en iframe** — el servidor manda `X-Frame-Options: SAMEORIGIN` y CSP `frame-ancestors 'self'`. Probablemente el formulario trae token anti-falsificación (patrón típico de ASP.NET MVC), que habría que extraer primero con un GET. Descartado para el MVP por frágil y de bajo impacto (solo 4 zonas); si sobra tiempo en la semana 2, retomar aquí.
 
 ## Riesgos
 
