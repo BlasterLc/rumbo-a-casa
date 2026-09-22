@@ -60,4 +60,10 @@ describe('evaluarDS49', () => {
   it('cita el decreto D.S. N°49 de 2011', () => {
     expect(evaluarDS49(base).regla.decreto).toBe('D.S. N°49 (V. y U.) de 2011');
   });
+
+  it('falta_dato si postula solo y no se conoce si tiene excepción', () => {
+    const r = evaluarDS49({ ...base, integrantesGrupoFamiliar: [], excepcionPostulacionIndividualDS49: 'desconocido' });
+    expect(r.estado).toBe('falta_dato');
+    expect(r.camposFaltantes).toContain('excepcionPostulacionIndividualDS49');
+  });
 });

@@ -34,6 +34,9 @@ export function evaluarDS49(perfil: Perfil): ResultadoPrograma {
   if (ahorroUF < 10) {
     return resultadoDecision('DS49', false, 'Se requiere un ahorro mínimo de 10 UF.', REGLA_DS49);
   }
+  if (integrantes.length === 0 && perfil.excepcionPostulacionIndividualDS49 === 'desconocido') {
+    return resultadoFaltaDato('DS49', ['excepcionPostulacionIndividualDS49'], REGLA_DS49);
+  }
   if (integrantes.length === 0 && perfil.excepcionPostulacionIndividualDS49 !== true) {
     return resultadoDecision(
       'DS49',
