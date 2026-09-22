@@ -60,7 +60,9 @@ hackathonAWS/
 
 ---
 
-### Task 1: Cuenta AWS segura y presupuesto [USUARIO, guiado]
+### Task 1: Cuenta AWS segura y presupuesto [Augusto, guiado]
+
+**Quién la ejecuta:** Augusto, dueño de la cuenta AWS del proyecto, hace esta tarea de punta a punta como dueño del usuario raíz. El resto del equipo se suma en el Step 5 como usuario adicional de Identity Center. Nada de esta tarea requiere pegar contraseñas ni claves de acceso en ningún archivo del repo.
 
 **Concepto:** una cuenta AWS tiene un *usuario raíz* (el correo con el que se registró) con poder total. Se protege con MFA y no se usa para el trabajo diario. Para trabajar se usa **IAM Identity Center**, que entrega credenciales temporales por SSO: si se filtran, caducan solas. **AWS Budgets** envía un correo cuando el gasto pasa un umbral, y es la red de seguridad contra sorpresas.
 

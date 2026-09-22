@@ -17,6 +17,7 @@ Usuario principal: la familia. La vista para asistentes sociales queda fuera del
 - Cuando falta un dato, el motor devuelve `falta dato` con la lista de pendientes. Nunca adivina.
 - Interfaz en español con opción en inglés. Sin logos de MINVU ni Serviu.
 - Repositorio nuevo, sin código copiado de proyectos previos.
+- **Es una web app, no una app móvil nativa.** SPA React responsive, mobile-first (la mayoría de las familias van a entrar desde el navegador del teléfono), pero sin empaquetado para App Store/Play Store — eso no entra en el presupuesto de ~20 h. Decidido 2026-09-21.
 
 ## Stack
 

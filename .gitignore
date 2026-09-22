@@ -1,0 +1,11 @@
+node_modules/
+dist/
+cdk.out/
+.env
+.DS_Store
+
+# Documentos internos de trabajo (reglas del concurso pegadas verbatim,
+# roadmap de equipo): útiles localmente, no forman parte del repo que se
+# adjunta para revisión.
+docs/reglas-hackathon.md
+docs/superpowers/plans/2026-09-21-roadmap-hackathon.md

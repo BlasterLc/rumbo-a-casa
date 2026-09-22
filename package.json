@@ -1,0 +1,10 @@
+{
+  "name": "rumbo-a-casa",
+  "private": true,
+  "workspaces": ["backend", "infra", "web"],
+  "scripts": {
+    "test": "npm test --workspaces --if-present",
+    "build:web": "npm run build -w web",
+    "deploy": "npm run build:web && npm run deploy -w infra"
+  }
+}
