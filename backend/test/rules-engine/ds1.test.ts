@@ -76,4 +76,26 @@ describe('evaluarDS1', () => {
   it('cita el decreto D.S. N°1 de 2011', () => {
     expect(evaluarDS1(base).regla.decreto).toBe('D.S. N°1 de 2011, Res. Ex. N°669/2026');
   });
+
+  it('falta_dato si ingresoFamiliarMensualCLP es desconocido y RSH excede pero ahorro califica para Tramo 3', () => {
+    const r = evaluarDS1({
+      ...base,
+      tramoRSH: 95,
+      ahorroUF: 85,
+      ingresoFamiliarMensualCLP: 'desconocido',
+    });
+    expect(r.estado).toBe('falta_dato');
+    expect(r.camposFaltantes).toContain('ingresoFamiliarMensualCLP');
+  });
+
+  it('falta_dato si integrantesGrupoFamiliar es desconocido y RSH excede pero ahorro califica para Tramo 3', () => {
+    const r = evaluarDS1({
+      ...base,
+      tramoRSH: 95,
+      ahorroUF: 85,
+      integrantesGrupoFamiliar: 'desconocido',
+    });
+    expect(r.estado).toBe('falta_dato');
+    expect(r.camposFaltantes).toContain('integrantesGrupoFamiliar');
+  });
 });

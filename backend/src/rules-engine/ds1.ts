@@ -70,6 +70,18 @@ export function evaluarDS1(perfil: Perfil): ResultadoPrograma {
   for (const tramo of TRAMOS) {
     if (ahorroUF < tramo.ahorroMinUF) continue;
     const rshMaxEfectivo = esAdultoMayor ? 90 : tramo.rshMax;
+
+    // For Tramo 3: if RSH exceeds the cap, check if income fallback could apply
+    if (tramo.tramo === 3 && tramoRSH > rshMaxEfectivo) {
+      // Income fallback is the only remaining path; verify we have the data
+      const faltantesTramo3 = [];
+      if (perfil.ingresoFamiliarMensualCLP === 'desconocido') faltantesTramo3.push('ingresoFamiliarMensualCLP');
+      if (perfil.integrantesGrupoFamiliar === 'desconocido') faltantesTramo3.push('integrantesGrupoFamiliar');
+      if (faltantesTramo3.length > 0) {
+        return resultadoFaltaDato('DS1', faltantesTramo3, REGLA_DS1);
+      }
+    }
+
     const califica = tramoRSH <= rshMaxEfectivo || (tramo.tramo === 3 && cumpleTramo3PorIngreso);
     if (califica) {
       const zona = obtenerZonaDS1(perfil);
