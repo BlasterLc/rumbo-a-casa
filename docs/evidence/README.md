@@ -14,7 +14,7 @@ Verificada 2026-09-22: `GET /` → 200. `GET /api/hello` → `{"message":"Hola d
 ## Evidencia de conexión del coding agent
 
 - **CloudTrail:** `docs/evidence/cloudtrail-createstack.json` — eventos `CreateChangeSet`/`ExecuteChangeSet`/`DeleteStack` sobre el stack `RumboACasa`, usuario `aws-cdk-augus` (identidad propia del agente para desplegar, vía el rol de despliegue de CDK), con MFA. IP y ID de cuenta redactados; solo se guardaron campos no sensibles.
-- **Pendiente:** capturas de pantalla de la sesión de Claude Code ejecutando `cdk deploy` y de la consola de CloudFormation mostrando el stack `RumboACasa`. Como el deploy lo corrió Augusto, le corresponde a él tomarlas.
+- **Capturas** (Augusto): `deploy-terminal.png` (log de `cdk deploy` completando el stack `RumboACasa`, recortado para no mostrar el Stack ARN/ID de cuenta) y `site-live.png` (el sitio ya cargando en el navegador desde la URL de CloudFront).
 
 ## Bedrock
 
