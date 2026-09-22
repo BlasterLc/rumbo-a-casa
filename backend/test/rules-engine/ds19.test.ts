@@ -63,4 +63,10 @@ describe('evaluarDS19', () => {
       'D.S. N°19 (V. y U.) de 2016, mod. D.S. N°16 (V. y U.) de 2020',
     );
   });
+
+  it('Ruta B: elegible con RSH exactamente en el borde de 90%', () => {
+    const r = evaluarDS19({ ...base, subsidioPrevio: 'ninguno', tramoRSH: 90 });
+    expect(r.estado).toBe('elegible');
+    expect(r.detalle?.ruta).toBe('B');
+  });
 });

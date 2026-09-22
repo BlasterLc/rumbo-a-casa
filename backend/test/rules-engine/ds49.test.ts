@@ -66,4 +66,16 @@ describe('evaluarDS49', () => {
     expect(r.estado).toBe('falta_dato');
     expect(r.camposFaltantes).toContain('excepcionPostulacionIndividualDS49');
   });
+
+  it('elegible con tramo RSH exactamente en 40% (borde superior permitido)', () => {
+    expect(evaluarDS49({ ...base, tramoRSH: 40 }).estado).toBe('elegible');
+  });
+
+  it('elegible con ahorro exactamente en 10 UF (borde mínimo permitido)', () => {
+    expect(evaluarDS49({ ...base, ahorroUF: 10 }).estado).toBe('elegible');
+  });
+
+  it('elegible con postulante de exactamente 18 años (borde mínimo permitido)', () => {
+    expect(evaluarDS49({ ...base, postulanteEdad: 18 }).estado).toBe('elegible');
+  });
 });

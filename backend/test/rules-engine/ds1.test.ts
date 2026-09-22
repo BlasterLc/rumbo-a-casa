@@ -98,4 +98,57 @@ describe('evaluarDS1', () => {
     expect(r.estado).toBe('falta_dato');
     expect(r.camposFaltantes).toContain('integrantesGrupoFamiliar');
   });
+
+  it('elegible Tramo 1 con RSH exactamente en el borde 60% (Tramo 1/2)', () => {
+    const r = evaluarDS1({ ...base, tramoRSH: 60 });
+    expect(r.estado).toBe('elegible');
+    expect(r.detalle?.tramo).toBe(1);
+  });
+
+  it('elegible Tramo 2 con RSH exactamente en el borde 80% (Tramo 2/3)', () => {
+    const r = evaluarDS1({ ...base, tramoRSH: 80, ahorroUF: 45 });
+    expect(r.estado).toBe('elegible');
+    expect(r.detalle?.tramo).toBe(2);
+  });
+
+  it('adulto mayor con RSH exactamente en 90% igual accede a Tramo 1', () => {
+    const r = evaluarDS1({ ...base, postulanteEdad: 60, tramoRSH: 90 });
+    expect(r.estado).toBe('elegible');
+    expect(r.detalle?.tramo).toBe(1);
+  });
+
+  it('elegible Tramo 1 con ahorro exactamente en el mínimo de 30 UF', () => {
+    const r = evaluarDS1({ ...base, ahorroUF: 30, tramoRSH: 50 });
+    expect(r.estado).toBe('elegible');
+    expect(r.detalle?.tramo).toBe(1);
+  });
+
+  it('elegible Tramo 2 con ahorro exactamente en el mínimo de 40 UF', () => {
+    const r = evaluarDS1({ ...base, ahorroUF: 40, tramoRSH: 70 });
+    expect(r.estado).toBe('elegible');
+    expect(r.detalle?.tramo).toBe(2);
+  });
+
+  it('elegible Tramo 3 con ahorro exactamente en el mínimo de 80 UF', () => {
+    const r = evaluarDS1({ ...base, ahorroUF: 80, tramoRSH: 85 });
+    expect(r.estado).toBe('elegible');
+    expect(r.detalle?.tramo).toBe(3);
+  });
+
+  it('elegible con la cuenta de ahorro con exactamente 12 meses de antigüedad', () => {
+    const r = evaluarDS1({ ...base, antiguedadCuentaAhorroMeses: 12 });
+    expect(r.estado).toBe('elegible');
+  });
+
+  it('elegible Tramo 3 por tope de ingreso familiar exactamente en el límite de $3.386.546 para grupo de 2', () => {
+    const r = evaluarDS1({
+      ...base,
+      tramoRSH: 95,
+      ahorroUF: 85,
+      integrantesGrupoFamiliar: [{ edad: 28, discapacidadCertificada: false }],
+      ingresoFamiliarMensualCLP: 3_386_546,
+    });
+    expect(r.estado).toBe('elegible');
+    expect(r.detalle?.tramo).toBe(3);
+  });
 });

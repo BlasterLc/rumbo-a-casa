@@ -82,4 +82,20 @@ describe('evaluarDS52', () => {
   it('cita el decreto D.S. N°52 de 2013', () => {
     expect(evaluarDS52(base).regla.decreto).toBe('D.S. N°52 de 2013, Res. Ex. N°809/2026 (Región Metropolitana)');
   });
+
+  it('elegible con tramo RSH exactamente en 70% (borde superior permitido)', () => {
+    expect(evaluarDS52({ ...base, tramoRSH: 70 }).estado).toBe('elegible');
+  });
+
+  it('elegible con ahorro exactamente en 4 UF (borde mínimo permitido)', () => {
+    expect(evaluarDS52({ ...base, ahorroUF: 4 }).estado).toBe('elegible');
+  });
+
+  it('elegible con ingreso familiar exactamente en 7 UF (borde mínimo permitido) para grupo de 2', () => {
+    expect(evaluarDS52({ ...base, ingresoFamiliarMensualUF: 7 }).estado).toBe('elegible');
+  });
+
+  it('elegible con ingreso familiar exactamente en 25 UF (borde máximo permitido) para grupo de 2', () => {
+    expect(evaluarDS52({ ...base, ingresoFamiliarMensualUF: 25 }).estado).toBe('elegible');
+  });
 });
