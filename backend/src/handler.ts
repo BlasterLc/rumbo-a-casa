@@ -116,7 +116,19 @@ function crearDependenciasReales(): DependenciasChat {
   if (!dependenciasReales) {
     const tabla = process.env.TABLA_SESIONES;
     if (!tabla) throw new Error('Falta la variable de entorno TABLA_SESIONES');
-    const bedrock = new BedrockRuntimeClient({});
+    // Sin este timeout, el SDK no limita cuánto puede tardar una llamada a Bedrock
+    // (por defecto es 0 = sin límite). `conversar` puede hacer hasta
+    // MAX_VUELTAS_HERRAMIENTAS (6) llamadas Converse seguidas; sin un tope por
+    // llamada, una demora o colgada empuja la solicitud entera más allá de los
+    // 28s de Lambda (ver infra/lib/rumbo-stack.ts) y esta última la mata con un
+    // 502 crudo en vez de que `atenderChat` alcance a devolver el 503 esperado.
+    // 3000ms por intento y como máximo 2 intentos acotan el peor caso a 21s
+    // (5 llamadas exitosas a tope de 3s + 1 llamada fallida con reintento),
+    // dejando margen cómodo dentro de los 28s.
+    const bedrock = new BedrockRuntimeClient({
+      requestHandler: { requestTimeout: 3000 },
+      maxAttempts: 2,
+    });
     const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
       marshallOptions: { removeUndefinedValues: true },
     });
