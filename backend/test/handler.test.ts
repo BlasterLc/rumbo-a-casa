@@ -23,6 +23,38 @@ describe('handler', () => {
   });
 });
 
+const peticionDemo = (metodo = 'GET') =>
+  ({ rawPath: '/api/demo', requestContext: { http: { method: metodo } } }) as unknown as APIGatewayProxyEventV2;
+
+describe('GET /api/demo', () => {
+  it('responde 200 con la conversación de ejemplo sin tocar Bedrock ni DynamoDB', async () => {
+    const obtenerDependencias = vi.fn(() => {
+      throw new Error('el demo no debe pedir dependencias');
+    });
+    const res = await crearHandler(obtenerDependencias)(peticionDemo());
+
+    expect(res.statusCode).toBe(200);
+    const cuerpo = JSON.parse(res.body as string);
+    expect(cuerpo.modo).toBe('demo');
+    expect(cuerpo.pasos.length).toBeGreaterThan(0);
+    expect(cuerpo.pasos[0]).toHaveProperty('usuario');
+    expect(cuerpo.pasos[0]).toHaveProperty('respuesta');
+    expect(cuerpo.pasos[0].resultados).toHaveLength(4);
+    expect(obtenerDependencias).not.toHaveBeenCalled();
+  });
+
+  it('funciona con el handler real aunque falte TABLA_SESIONES', async () => {
+    const res = await handler(peticionDemo());
+    expect(res.statusCode).toBe(200);
+  });
+
+  it('responde 405 si no es GET', async () => {
+    const res = await handler(peticionDemo('POST'));
+    expect(res.statusCode).toBe(405);
+    expect(JSON.parse(res.body as string)).toEqual({ error: 'metodo_no_permitido' });
+  });
+});
+
 const peticionChat = (
   body: string | undefined,
   opciones: { metodo?: string; base64?: boolean } = {},

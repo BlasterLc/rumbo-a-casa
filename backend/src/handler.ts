@@ -9,6 +9,7 @@ import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { evaluarTodosLosProgramas } from './rules-engine/index';
 import { conversar, type InvocarConverse, type SalidaConversar } from './chat/conversar';
 import { generarPlanPapeles } from './chat/papeles';
+import { construirDemo } from './chat/demo';
 import { RepositorioDynamo, type RepositorioSesiones } from './chat/sesion-repositorio';
 
 export const MAX_MENSAJES_POR_SESION = 40;
@@ -94,6 +95,12 @@ export function crearHandler(obtenerDependencias: () => DependenciasChat) {
         message: 'Hola desde Lambda',
         region: process.env.AWS_REGION ?? 'local',
       });
+    }
+    if (event.rawPath === '/api/demo') {
+      if (event.requestContext?.http?.method !== 'GET') {
+        return json(405, { error: 'metodo_no_permitido' });
+      }
+      return json(200, construirDemo());
     }
     if (event.rawPath === '/api/chat') {
       if (event.requestContext?.http?.method !== 'POST') {
