@@ -16,6 +16,14 @@ const INGRESO_MIN_UF = 7;
 const INGRESO_MAX_BASE_UF = 25;
 const INGRESO_MAX_INCREMENTO_UF = 8;
 
+const NOTA_FUERA_DE_RM =
+  'Los requisitos de ingreso y los montos corresponden al llamado de la Región Metropolitana; pueden variar según tu región o comuna, verifica en minvu.gob.cl.';
+
+function decidir(perfil: Perfil, elegible: boolean, motivo: string): ResultadoPrograma {
+  const detalle = perfil.region === 'Metropolitana' ? undefined : { nota: NOTA_FUERA_DE_RM };
+  return resultadoDecision('DS52', elegible, motivo, REGLA_DS52, detalle);
+}
+
 export function evaluarDS52(perfil: Perfil): ResultadoPrograma {
   const faltantes = CAMPOS_REQUERIDOS.filter((campo) => perfil[campo] === 'desconocido');
   if (faltantes.length > 0) {
@@ -23,10 +31,10 @@ export function evaluarDS52(perfil: Perfil): ResultadoPrograma {
   }
 
   if (perfil.tienePropiedad === true) {
-    return resultadoDecision('DS52', false, 'Ya cuenta con vivienda propia.', REGLA_DS52);
+    return decidir(perfil, false, 'Ya cuenta con vivienda propia.');
   }
   if (perfil.subsidioPrevio !== 'ninguno') {
-    return resultadoDecision('DS52', false, 'Ya cuenta con un subsidio habitacional anterior.', REGLA_DS52);
+    return decidir(perfil, false, 'Ya cuenta con un subsidio habitacional anterior.');
   }
 
   const postulanteEdad = perfil.postulanteEdad as number;
@@ -34,43 +42,40 @@ export function evaluarDS52(perfil: Perfil): ResultadoPrograma {
   const integrantes = perfil.integrantesGrupoFamiliar as { edad: number; discapacidadCertificada: boolean }[];
 
   if (postulanteEdad < 18) {
-    return resultadoDecision('DS52', false, 'El postulante debe ser mayor de 18 años.', REGLA_DS52);
+    return decidir(perfil, false, 'El postulante debe ser mayor de 18 años.');
   }
   if (!esAdultoMayor && integrantes.length === 0) {
-    return resultadoDecision(
-      'DS52',
+    return decidir(
+      perfil,
       false,
       'Debe postular al menos con cónyuge, conviviente civil, conviviente o hijo, salvo mayores de 60 años.',
-      REGLA_DS52,
     );
   }
 
   const tramoRSH = perfil.tramoRSH as number;
   if (tramoRSH > 70) {
-    return resultadoDecision('DS52', false, 'El tramo RSH debe ser 70% o menos.', REGLA_DS52);
+    return decidir(perfil, false, 'El tramo RSH debe ser 70% o menos.');
   }
 
   const ahorroUF = perfil.ahorroUF as number;
   if (ahorroUF < 4) {
-    return resultadoDecision('DS52', false, 'Se requiere un ahorro mínimo de 4 UF.', REGLA_DS52);
+    return decidir(perfil, false, 'Se requiere un ahorro mínimo de 4 UF.');
   }
 
   const tamanoGrupo = integrantes.length + 1;
   const ingresoMaxUF = INGRESO_MAX_BASE_UF + Math.max(0, tamanoGrupo - 3) * INGRESO_MAX_INCREMENTO_UF;
   const ingresoUF = perfil.ingresoFamiliarMensualUF as number;
   if (ingresoUF < INGRESO_MIN_UF || ingresoUF > ingresoMaxUF) {
-    return resultadoDecision(
-      'DS52',
+    return decidir(
+      perfil,
       false,
       `El ingreso familiar mensual debe estar entre ${INGRESO_MIN_UF} y ${ingresoMaxUF} UF para un grupo de ${tamanoGrupo} personas.`,
-      REGLA_DS52,
     );
   }
 
-  return resultadoDecision(
-    'DS52',
+  return decidir(
+    perfil,
     true,
     'Cumple los requisitos de DS52: RSH ≤70%, ahorro ≥4 UF, ingreso dentro del rango, no propietario ni con subsidio previo.',
-    REGLA_DS52,
   );
 }

@@ -99,3 +99,32 @@ describe('evaluarDS52', () => {
     expect(evaluarDS52({ ...base, ingresoFamiliarMensualUF: 25 }).estado).toBe('elegible');
   });
 });
+
+describe('evaluarDS52: nota fuera de la Región Metropolitana', () => {
+  it('en RM no agrega nota', () => {
+    expect(evaluarDS52(base).detalle).toBeUndefined();
+  });
+
+  it('elegible fuera de RM lleva la nota de verificar en minvu.gob.cl', () => {
+    const r = evaluarDS52({ ...base, region: 'Valparaíso' });
+    expect(r.estado).toBe('elegible');
+    expect(String(r.detalle?.nota)).toContain('minvu.gob.cl');
+  });
+
+  it('no_elegible fuera de RM también lleva la nota', () => {
+    const r = evaluarDS52({ ...base, region: 'Biobío', tramoRSH: 80 });
+    expect(r.estado).toBe('no_elegible');
+    expect(String(r.detalle?.nota)).toContain('minvu.gob.cl');
+  });
+
+  it('con región desconocida lleva la nota (no está confirmada RM)', () => {
+    const r = evaluarDS52({ ...base, region: 'desconocido' });
+    expect(String(r.detalle?.nota)).toContain('minvu.gob.cl');
+  });
+
+  it('falta_dato no lleva detalle', () => {
+    const r = evaluarDS52({ ...base, region: 'Maule', ahorroUF: 'desconocido' });
+    expect(r.estado).toBe('falta_dato');
+    expect(r.detalle).toBeUndefined();
+  });
+});
