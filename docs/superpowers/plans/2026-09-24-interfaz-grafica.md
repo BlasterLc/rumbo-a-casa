@@ -3886,7 +3886,7 @@ git commit -m "feat(web): organismo ChecklistDocumentos"
 
 ### Task 23: Organismo `LineaDeLlamados`
 
-Ningún dato real de llamados (fechas de apertura/cierre/Serviu) existe hoy en el backend — este componente se construye fiel a su contrato y, cuando se use en Task 31, cada llamado usará el propio texto de repliegue del design system («Sin fecha publicada», «Por confirmar con el Serviu») en vez de una fecha inventada.
+Ningún dato real de llamados (fechas de apertura/cierre/Serviu) existe hoy en el backend — este componente se construye fiel a su contrato y, cuando se use en Task 31, cada llamado usará el propio texto de repliegue del design system («Sin fecha publicada», «Por confirmar con el Serviu») en vez de una fecha inventada. Como en `Alerta`, `PasoAPaso`, `BurbujaChat`, `CabeceraApp`, `TarjetaPrograma` y `ChecklistDocumentos`, `index.d.ts` tipa `accion` de cada llamado como una simple etiqueta (`string`), sin manejador — se agrega `onAccion?: (indice: number) => void` a nivel de `LineaDeLlamados` por la misma razón pragmática que en esas tareas: un botón de recordatorio sin manejador no hace nada.
 
 **Files:**
 - Create: `web/src/components/organisms/LineaDeLlamados/LineaDeLlamados.tsx`
@@ -3971,6 +3971,8 @@ export interface LlamadoItem {
 export interface LineaDeLlamadosProps {
   titulo?: string;
   llamados: LlamadoItem[];
+  /** No está en el `index.d.ts` publicado (que solo trae la etiqueta `accion` en cada ítem); se
+   * agrega porque un botón de recordatorio sin manejador no hace nada. */
   onAccion?: (indice: number) => void;
 }
 
