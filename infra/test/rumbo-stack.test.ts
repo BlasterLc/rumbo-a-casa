@@ -49,4 +49,57 @@ describe('RumboStack', () => {
     const t = sintetizar();
     t.hasOutput('SiteUrl', {});
   });
+
+  it('crea la tabla de sesiones con clave sessionId, pago por uso y TTL en expiraEn', () => {
+    const t = sintetizar();
+    t.hasResourceProperties('AWS::DynamoDB::Table', {
+      KeySchema: [{ AttributeName: 'sessionId', KeyType: 'HASH' }],
+      BillingMode: 'PAY_PER_REQUEST',
+      TimeToLiveSpecification: { AttributeName: 'expiraEn', Enabled: true },
+    });
+  });
+
+  it('pasa la tabla y el modelo a la Lambda de la API, con timeout bajo el de CloudFront', () => {
+    const t = sintetizar();
+    t.hasResourceProperties('AWS::Lambda::Function', {
+      Timeout: 28,
+      Environment: {
+        Variables: Match.objectLike({
+          TABLA_SESIONES: Match.anyValue(),
+          MODEL_ID: 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
+        }),
+      },
+    });
+  });
+
+  it('permite invocar Bedrock en el perfil de inferencia y en el modelo base', () => {
+    const t = sintetizar();
+    t.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Action: 'bedrock:InvokeModel',
+            Effect: 'Allow',
+            Resource: Match.arrayWith([
+              'arn:aws:bedrock:*::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0',
+            ]),
+          }),
+        ]),
+      },
+    });
+  });
+
+  it('da a la Lambda permisos de lectura y escritura en la tabla', () => {
+    const t = sintetizar();
+    t.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Action: Match.arrayWith(['dynamodb:GetItem', 'dynamodb:PutItem']),
+            Effect: 'Allow',
+          }),
+        ]),
+      },
+    });
+  });
 });
