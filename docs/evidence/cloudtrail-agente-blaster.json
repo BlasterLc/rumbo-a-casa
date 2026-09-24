@@ -1,0 +1,92 @@
+{
+  "nota": "Extracto de AWS CloudTrail (lookup-events, usuario IAM blaster) sobre llamadas de lectura del coding agent (Claude Code) a la cuenta de AWS. Sección \"eventos_via_mcp\": llamadas hechas a través del servidor MCP oficial de AWS (aws-mcp); CloudTrail las registra con userAgent e invokedBy \"aws-mcp.amazonaws.com\". Sección \"eventos_via_cli\": llamadas por AWS CLI marcadas con app/claude-code-agent en el user agent (variable AWS_SDK_UA_APP_ID). IP de origen, ID de cuenta, ARN y claves de acceso redactados: no se incluyeron.",
+  "eventos_via_mcp": [
+    {
+      "eventTime": "2026-09-24T23:39:31Z",
+      "eventSource": "cloudformation.amazonaws.com",
+      "eventName": "DescribeStacks",
+      "awsRegion": "us-east-1",
+      "readOnly": true,
+      "userIdentity": {
+        "type": "IAMUser",
+        "userName": "blaster",
+        "invokedBy": "aws-mcp.amazonaws.com"
+      },
+      "userAgent": "aws-mcp.amazonaws.com"
+    }
+  ],
+  "eventos_via_cli": [
+    {
+      "eventTime": "2026-09-24T23:25:41Z",
+      "eventSource": "sts.amazonaws.com",
+      "eventName": "GetCallerIdentity",
+      "awsRegion": "us-east-1",
+      "readOnly": true,
+      "userIdentity": {
+        "type": "IAMUser",
+        "userName": "blaster"
+      },
+      "userAgent": "aws-cli/2.36.50 md/awscrt#0.36.4 ua/2.1 os/linux#6.18.33.2-microsoft-standard-WSL2 md/arch#x86_64 lang/python#3.14.6 md/pyimpl#CPython m/AN,n,Z,E,b cfg/retry-mode#standard app/claude-code-agent md/installer#exe sid/11a07ca4bb13 md/distrib#ubuntu.24 md/prompt#off md/command#sts.get-caller-identity"
+    },
+    {
+      "eventTime": "2026-09-24T23:25:42Z",
+      "eventSource": "cloudformation.amazonaws.com",
+      "eventName": "DescribeStacks",
+      "awsRegion": "us-east-1",
+      "readOnly": true,
+      "userIdentity": {
+        "type": "IAMUser",
+        "userName": "blaster"
+      },
+      "userAgent": "aws-cli/2.36.50 md/awscrt#0.36.4 ua/2.1 os/linux#6.18.33.2-microsoft-standard-WSL2 md/arch#x86_64 lang/python#3.14.6 md/pyimpl#CPython m/AN,n,Z,E,C,b cfg/retry-mode#standard app/claude-code-agent md/installer#exe sid/11a07ca4bb13 md/distrib#ubuntu.24 md/prompt#off md/command#cloudformation.describe-stacks"
+    },
+    {
+      "eventTime": "2026-09-24T23:25:44Z",
+      "eventSource": "lambda.amazonaws.com",
+      "eventName": "ListFunctions20150331",
+      "awsRegion": "us-east-1",
+      "readOnly": true,
+      "userIdentity": {
+        "type": "IAMUser",
+        "userName": "blaster"
+      },
+      "userAgent": "aws-cli/2.36.50 md/awscrt#0.36.4 ua/2.1 os/linux#6.18.33.2-microsoft-standard-WSL2 md/arch#x86_64 lang/python#3.14.6 md/pyimpl#CPython m/AN,n,Z,E,C,b cfg/retry-mode#standard app/claude-code-agent md/installer#exe sid/11a07ca4bb13 md/distrib#ubuntu.24 md/prompt#off md/command#lambda.list-functions"
+    },
+    {
+      "eventTime": "2026-09-24T23:25:45Z",
+      "eventSource": "dynamodb.amazonaws.com",
+      "eventName": "ListTables",
+      "awsRegion": "us-east-1",
+      "readOnly": true,
+      "userIdentity": {
+        "type": "IAMUser",
+        "userName": "blaster"
+      },
+      "userAgent": "aws-cli/2.36.50 md/awscrt#0.36.4 ua/2.1 os/linux#6.18.33.2-microsoft-standard-WSL2 md/arch#x86_64 lang/python#3.14.6 md/pyimpl#CPython m/AN,n,Z,E,C,P,b cfg/retry-mode#standard app/claude-code-agent md/installer#exe sid/11a07ca4bb13 md/distrib#ubuntu.24 md/prompt#off md/command#dynamodb.list-tables"
+    },
+    {
+      "eventTime": "2026-09-24T23:25:46Z",
+      "eventSource": "cloudfront.amazonaws.com",
+      "eventName": "ListDistributions",
+      "awsRegion": "us-east-1",
+      "readOnly": true,
+      "userIdentity": {
+        "type": "IAMUser",
+        "userName": "blaster"
+      },
+      "userAgent": "aws-cli/2.36.50 md/awscrt#0.36.4 ua/2.1 os/linux#6.18.33.2-microsoft-standard-WSL2 md/arch#x86_64 lang/python#3.14.6 md/pyimpl#CPython m/AN,n,Z,E,C,b cfg/retry-mode#standard app/claude-code-agent md/installer#exe sid/11a07ca4bb13 md/distrib#ubuntu.24 md/prompt#off md/command#cloudfront.list-distributions"
+    },
+    {
+      "eventTime": "2026-09-24T23:25:48Z",
+      "eventSource": "logs.amazonaws.com",
+      "eventName": "DescribeLogGroups",
+      "awsRegion": "us-east-1",
+      "readOnly": true,
+      "userIdentity": {
+        "type": "IAMUser",
+        "userName": "blaster"
+      },
+      "userAgent": "aws-cli/2.36.50 md/awscrt#0.36.4 ua/2.1 os/linux#6.18.33.2-microsoft-standard-WSL2 md/arch#x86_64 lang/python#3.14.6 md/pyimpl#CPython m/AN,n,Z,E,C,b cfg/retry-mode#standard app/claude-code-agent md/installer#exe sid/11a07ca4bb13 md/distrib#ubuntu.24 md/prompt#off md/command#logs.describe-log-groups"
+    }
+  ]
+}

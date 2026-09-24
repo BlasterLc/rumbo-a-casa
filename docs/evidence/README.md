@@ -16,6 +16,14 @@ Verificada 2026-09-22: `GET /` → 200. `GET /api/hello` → `{"message":"Hola d
 - **CloudTrail:** `docs/evidence/cloudtrail-createstack.json` — eventos `CreateChangeSet`/`ExecuteChangeSet`/`DeleteStack` sobre el stack `RumboACasa`, usuario `aws-cdk-augus` (identidad propia del agente para desplegar, vía el rol de despliegue de CDK), con MFA. IP y ID de cuenta redactados; solo se guardaron campos no sensibles.
 - **Capturas** (Augusto): `deploy-terminal.png` (log de `cdk deploy` completando el stack `RumboACasa`, recortado para no mostrar el Stack ARN/ID de cuenta) y `site-live.png` (el sitio ya cargando en el navegador desde la URL de CloudFront).
 
+## Conexión del coding agent a AWS desde la terminal del desarrollador (2026-09-24)
+
+El coding agent (Claude Code) opera contra la cuenta de AWS con las credenciales del usuario IAM `blaster`, por dos vías, y ambas quedan registradas en CloudTrail. Extracto redactado (sin IP, ID de cuenta, ARN ni claves): `docs/evidence/cloudtrail-agente-blaster.json`. Imagen del registro del evento del MCP, tomada del export JSON del *Event history* de la consola de CloudTrail (us-east-1) y redactada: `docs/evidence/cloudtrail-evento-mcp.png`.
+
+- **Servidor MCP oficial de AWS (`aws-mcp`):** el agente ejecutó un script de solo lectura con la herramienta `run_script` (estado del stack `RumboACasa` y sus Lambdas). CloudTrail registra la llamada `cloudformation:DescribeStacks` con `userAgent` e `invokedBy` iguales a `aws-mcp.amazonaws.com`, a nombre del usuario `blaster`.
+- **AWS CLI:** 6 llamadas de solo lectura (`sts`, `cloudformation`, `lambda`, `dynamodb`, `cloudfront`, `logs`) marcadas con `app/claude-code-agent` en el user agent, para poder distinguirlas de las del desarrollador.
+- Además, durante el desarrollo el agente leyó los logs de CloudWatch de la Lambda (`logs:FilterLogEvents`) para diagnosticar los `503` de Bedrock, y CDK desplegó los cambios.
+
 ## Modo demo (sin Bedrock) — desplegado 2026-09-24
 
 `GET /api/demo` devuelve una conversación de ejemplo con una familia ficticia; el texto del asistente es fijo, pero la elegibilidad y el plan de papeles los calcula el motor de reglas real. Funciona sin Bedrock ni DynamoDB.
