@@ -10,6 +10,10 @@ cdk.out/
 docs/reglas-hackathon.md
 docs/superpowers/plans/2026-09-21-roadmap-hackathon.md
 
+# Notas de estudio personal (más detalle del que corresponde en un repo
+# de entrega): quedan solo en la máquina local.
+docs/bedrock-y-dynamodb.md
+
 # PDFs/formularios oficiales crudos de MINVU (investigación de fuente):
 # las reglas ya destiladas y citadas viven en docs/programas-subsidio.md.
 dsDocs/
