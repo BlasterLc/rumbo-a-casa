@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Construir toda la interfaz gráfica de Rumbo a Casa (las 5 pantallas del flujo: bienvenida, entrevista, resultado, plan y seguimiento) con Material UI real y el design system "Rumbo a Casa" publicado por el usuario, organizada en atomic design, sin componentes genéricos de IA — cada pieza sigue al milímetro las reglas de marca, tokens y copy del design system.
+**Goal:** Construir toda la interfaz gráfica de Rumbo a Casa (las 5 pantallas del flujo: bienvenida, entrevista, resultado, plan y seguimiento) con Material UI real y el design system "Rumbo a Casa" publicado por el usuario, organizada en atomic design, sin componentes genéricos de IA — cada pieza sigue al milímetro las reglas de marca, tokens y copy del design system. Bilingüe español/inglés con selector en la cabecera, y responsiva (mobile-first, centrada en pantallas grandes).
 
-**Architecture:** SPA React + Vite existente (`web/`) se llena con: (1) un tema MUI generado desde los tokens del design system, (2) una librería de componentes en atomic design (`atoms/molecules/organisms/templates`) que replica los componentes del design system con las mismas props documentadas, (3) cinco pantallas que consumen la API real `POST /api/chat` del backend ya construido, con contexto de sesión persistido en `localStorage` y modo demo que reutiliza el motor de reglas real (`@rumbo/backend/rules-engine`) en el navegador. Cada tarea de componente termina agregándolo a una página-catálogo (`/catalogo`) y capturando una screenshot con Playwright a 360×800 para verificación visual, ya que el MCP de Playwright no está disponible en esta sesión.
+**Architecture:** SPA React + Vite existente (`web/`) se llena con: (1) un tema MUI generado desde los tokens del design system, (2) una capa de i18n propia (diccionario tipado ES/EN + contexto de idioma) que todo componente con copy fijo consume vía `useT()`, (3) una librería de componentes en atomic design (`atoms/molecules/organisms/templates`) que replica los componentes del design system con las mismas props documentadas, (4) cinco pantallas que consumen la API real `POST /api/chat` del backend ya construido, con contexto de sesión persistido en `localStorage` y modo demo que reutiliza el motor de reglas real (`@rumbo/backend/rules-engine`) en el navegador. Cada tarea de componente termina agregándolo a una página-catálogo (`/catalogo`) y capturando una screenshot con Playwright a 360×800 para verificación visual, ya que el MCP de Playwright no está disponible en esta sesión. El layout es mobile-first: la misma columna de 360 px del design system, centrada con un ancho máximo en pantallas grandes — el design system no define ningún layout de escritorio, así que no se inventa uno.
 
-**Tech Stack:** React 18.3 + TypeScript + Vite (ya en el repo) · Material UI 5.16.7 + `@mui/icons-material` + Emotion · `react-router-dom` 6 · `zod` 4 (reutilizado del backend) · Vitest + Testing Library para pruebas de componentes · `@playwright/test` (dev-only) para capturas de verificación visual, controlado por Bash — sustituye al MCP de Playwright, que no está conectado en esta sesión.
+**Tech Stack:** React 18.3 + TypeScript + Vite (ya en el repo) · Material UI 5.16.7 + `@mui/icons-material` + Emotion · `react-router-dom` 6 · `zod` 4 (reutilizado del backend) · Vitest + Testing Library para pruebas de componentes · `@playwright/test` (dev-only) para capturas de verificación visual, controlado por Bash — sustituye al MCP de Playwright, que no está disponible en esta sesión.
 
 **Spec:** `docs/superpowers/specs/2026-09-20-rumbo-a-casa-design.md` (diseño técnico del hackathon) + el design system "Rumbo a Casa" publicado en `https://claude.ai/artifact/Ee1rjdCZ62CeTsJZmQ3yiz` (README de marca, `tokens.json`, `guidelines/*.md` y el README de cada componente bajo `project/components/*/README.md`, leídos íntegros para este plan). Este plan transcribe su contenido; el ejecutor no necesita volver a leer el artifact salvo para verificar un detalle puntual.
 
@@ -20,29 +20,30 @@
 - Ningún componente pide, guarda ni muestra la Clave Única, RUT, clave bancaria ni contraseña de ningún servicio (regla dura del README del design system).
 - Todo resultado de elegibilidad mostrado en la interfaz viene del motor de reglas real — por la API (`/api/chat`) o, en modo demo, por importación directa de `evaluarTodosLosProgramas` desde `@rumbo/backend/rules-engine`. Ningún componente muestra un `SelloElegibilidad` con un estado inventado o de prueba manual fuera de sus propios tests unitarios.
 - Estado backend `EstadoElegibilidad` tiene 3 valores (`elegible | no_elegible | falta_dato`); el design system define 4 (`califica | falta | posible | noAplica`). `posible` no se usa en este plan — no hay ninguna regla del motor que hoy produzca esa categoría. Se documenta en `web/src/lib/estado.ts` (Task 10) y no se simula.
-- Ningún dato de `llamados` (fecha de apertura/cierre/Serviu) existe hoy en el backend. Donde el design system pide esa información (`LineaDeLlamados`, `TarjetaPrograma.llamado`), se usa el propio texto de repliegue que el design system define para la fuente ausente («Sin fecha publicada», «Por confirmar con el Serviu») — nunca una fecha inventada.
+- Ningún dato de `llamados` (fecha de apertura/cierre/Serviu) existe hoy en el backend. Donde el design system pide esa información (`LineaDeLlamados`, `TarjetaPrograma.llamado`), se usa el propio texto de repliegue que el design system define para la fuente ausente («Sin fecha publicada», «Por confirmar con el Serviu») — nunca una fecha inventada, y ese texto sale del diccionario (Task 2) como cualquier otro copy fijo.
 - `PlanPrograma.documentos` del backend solo trae `{ nombre, detalle? }`, no el par `nombreComun`/`nombreOficial`/`donde`/`gratis` que pide `ChecklistDocumentos`. Se mapea `nombre → nombreComun` y `detalle → donde` (ver Task 23) en vez de inventar campos que el backend no entrega.
 - `TarjetaPorQue` (desglose regla-por-regla con el dato de la persona) no se conecta a datos reales en este plan: el motor de reglas devuelve un solo `motivo` por programa, no un arreglo de reglas evaluadas una por una con el dato de la persona. Se construye el componente fiel a su contrato (Task 25) y se prueba con datos de fixture, pero **no se usa con datos de la API** — eso requiere extender el rules-engine del backend, fuera de este plan. Se avisa al usuario al final.
 - Todas las capturas de verificación visual se toman a 360×800 (el "teléfono de 360 px" que describe el propio sistema de diseño), contra `http://localhost:5173` servido por `npm run dev -w web`.
-- Idioma: solo español en este plan. El spec menciona una opción en inglés; queda fuera de alcance y se señala al final.
+- **Bilingüe.** Todo string visible a la persona sale de `t` (el diccionario tipado `DiccionarioTextos` de Task 2, vía el hook `useT()`) — nunca un literal en JSX. La única excepción son los dos nombres del propio selector de idioma («ES»/«EN» y sus etiquetas accesibles «Español»/«English»): el nombre de un idioma no se traduce, se escribe siempre en el idioma que nombra — están fijos en `SelectorIdioma` (Task 2), no en el diccionario. Los códigos de programa (`DS49`, `DS1`, `DS19`, `DS52`) tampoco se traducen — son siglas oficiales del MINVU, iguales en los dos idiomas.
+- **Responsivo, mobile-first.** El layout es la misma columna de 360 px del design system, centrada con `maxWidth: 480` en pantallas más anchas (`AppShell`, Task 27, y `PantallaBienvenida`, Task 28, que no usa `AppShell`). El design system no define ningún layout de escritorio (columnas, rieles laterales); inventar uno sería exactamente el componente genérico de IA que este plan evita. Nada de lo construido en Tasks 1-26 cambia por este requisito — el envoltorio responsivo vive en un solo lugar cada vez.
 
 ## Review Focus
 
-- **Respuestas de error de `/api/chat` (429/503/500/400).** El spec exige que un fallo de Bedrock ofrezca el modo demo y que el límite de mensajes se explique con el texto exacto del backend — una implementación ingenua solo mostraría "algo salió mal". Cubierto en Task 25 (`chatClient`) y Task 28 (`PantallaEntrevista`).
-- **Campos de `Perfil` en `'desconocido'`.** Cualquier cálculo que lea un campo del perfil antes de que la entrevista lo complete debe tratar `'desconocido'` sin producir `NaN` ni texto roto. Cubierto en Task 28 (`pasoActivo`, probado con `PERFIL_DESCONOCIDO`) y en Task 29 (`PantallaResultado` calcula el número de personas solo cuando `integrantesGrupoFamiliar` no es `'desconocido'`, y sus tests corren con un perfil íntegramente `'desconocido'` sin que la pantalla rompa).
-- **Mensaje vacío o de más de 2000 caracteres en la entrevista.** El backend rechaza con 400 si el mensaje no cumple `min(1).max(2000)`; la interfaz debe bloquear el envío antes, no depender del 400. Cubierto en Task 28.
-- **Primera visita sin `sessionId` ni `localStorage` disponible** (modo privado del navegador, o `localStorage` bloqueado). El contexto de sesión debe generar un `sessionId` nuevo y degradar a memoria en vez de romper la app. Cubierto en Task 25.
-- **Las tres combinaciones de `estado` en la misma respuesta de `resultados`.** `PantallaResultado` debe agrupar y ordenar (`elegible` primero, luego `falta_dato`, luego `no_elegible`) para cualquier combinación de los 4 programas, no solo el caso feliz de "todo elegible". Cubierto en Task 29.
+- **Respuestas de error de `/api/chat` (429/503/500/400).** El spec exige que un fallo de Bedrock ofrezca el modo demo y que el límite de mensajes se explique con el texto exacto del backend — una implementación ingenua solo mostraría "algo salió mal". Cubierto en Task 26 (`chatClient`) y Task 29 (`PantallaEntrevista`).
+- **Campos de `Perfil` en `'desconocido'`.** Cualquier cálculo que lea un campo del perfil antes de que la entrevista lo complete debe tratar `'desconocido'` sin producir `NaN` ni texto roto. Cubierto en Task 29 (`pasoActivo`, probado con `PERFIL_DESCONOCIDO`) y en Task 30 (`PantallaResultado` calcula el número de personas solo cuando `integrantesGrupoFamiliar` no es `'desconocido'`, y sus tests corren con un perfil íntegramente `'desconocido'` sin que la pantalla rompa).
+- **Mensaje vacío o de más de 2000 caracteres en la entrevista.** El backend rechaza con 400 si el mensaje no cumple `min(1).max(2000)`; la interfaz debe bloquear el envío antes, no depender del 400. Cubierto en Task 29.
+- **Primera visita sin `sessionId` ni `localStorage` disponible** (modo privado del navegador, o `localStorage` bloqueado). El contexto de sesión debe generar un `sessionId` nuevo y degradar a memoria en vez de romper la app. Cubierto en Task 26. El mismo patrón defensivo se reutiliza para el idioma guardado (Task 2).
+- **Las tres combinaciones de `estado` en la misma respuesta de `resultados`.** `PantallaResultado` debe agrupar y ordenar (`elegible` primero, luego `falta_dato`, luego `no_elegible`) para cualquier combinación de los 4 programas, no solo el caso feliz de "todo elegible". Cubierto en Task 30.
 
 ## Índice de tareas
 
-**Fundación:** 1) Dependencias y tipos compartidos · 2) Tokens y tema MUI · 3) Assets de marca + `Simbolo` · 4) Catálogo visual + script de captura Playwright
-**Atoms:** 5) `Icono` · 6) `Boton` · 7) `Chip` · 8) `CampoTexto`
-**Molecules:** 9) `SelloElegibilidad` · 10) `OpcionTarjeta` · 11) `Alerta` · 12) `AvisoLimite` · 13) `PasoAPaso` · 14) `Pestanas` · 15) `BurbujaChat` + `Pensando`
-**Organisms:** 16) `Franja` · 17) `Logotipo` · 18) `CabeceraApp` · 19) `BarraInferior` · 20) `BloqueHero` · 21) `TarjetaPrograma` · 22) `ChecklistDocumentos` · 23) `LineaDeLlamados` · 24) `TarjetaPorQue`
-**Estado y enrutamiento:** 25) `SesionContext` + `chatClient` · 26) `AppShell` + rutas
-**Pantallas:** 27) `PantallaBienvenida` · 28) `PantallaEntrevista` · 29) `PantallaResultado` · 30) `PantallaPlan` · 31) `PantallaSeguimiento`
-**Cierre:** 32) Verificación end-to-end + build de producción
+**Fundación:** 1) Dependencias y tipos compartidos · 2) Fundación de idioma (diccionario ES/EN, `LocaleProvider`, `SelectorIdioma`, helpers de test, envoltorio responsivo) · 3) Tokens y tema MUI · 4) Assets de marca + `Simbolo` · 5) Catálogo visual + script de captura Playwright
+**Atoms:** 6) `Icono` · 7) `Boton` · 8) `Chip` · 9) `CampoTexto`
+**Molecules:** 10) `SelloElegibilidad` · 11) `OpcionTarjeta` · 12) `Alerta` · 13) `AvisoLimite` · 14) `PasoAPaso` · 15) `Pestanas` · 16) `BurbujaChat` + `Pensando`
+**Organisms:** 17) `Franja` · 18) `Logotipo` · 19) `CabeceraApp` (con el selector de idioma) · 20) `BarraInferior` · 21) `BloqueHero` · 22) `TarjetaPrograma` · 23) `ChecklistDocumentos` · 24) `LineaDeLlamados` · 25) `TarjetaPorQue`
+**Estado y enrutamiento:** 26) `SesionContext` + `chatClient` · 27) `AppShell` + rutas (con el envoltorio responsivo)
+**Pantallas:** 28) `PantallaBienvenida` · 29) `PantallaEntrevista` · 30) `PantallaResultado` · 31) `PantallaPlan` · 32) `PantallaSeguimiento` + `PantallaDocumentos`
+**Cierre:** 33) Verificación end-to-end + build de producción
 
 ---
 
@@ -55,7 +56,7 @@
 - Test: `web/src/types/dominio.test.ts`
 
 **Interfaces:**
-- Produces: `web/src/types/dominio.ts` re-exporta, con `export type`, `Perfil`, `ResultadoPrograma`, `Programa`, `EstadoElegibilidad`, `Regla` (de `@rumbo/backend/rules-engine`) y `PlanPrograma`, `Documento` (de `@rumbo/backend/chat/papeles`); y re-exporta en runtime `evaluarTodosLosProgramas` y `generarPlanPapeles` para el modo demo (Task 28).
+- Produces: `web/src/types/dominio.ts` re-exporta, con `export type`, `Perfil`, `ResultadoPrograma`, `Programa`, `EstadoElegibilidad`, `Regla` (de `@rumbo/backend/rules-engine`) y `PlanPrograma`, `Documento` (de `@rumbo/backend/chat/papeles`); y re-exporta en runtime `evaluarTodosLosProgramas` y `generarPlanPapeles` para el modo demo (Task 29).
 
 - [ ] **Step 1: Declarar los subpaths del backend que el frontend puede importar**
 
@@ -249,9 +250,710 @@ git commit -m "feat(web): instalar MUI y dependencias, compartir tipos y motor d
 
 ---
 
-### Task 2: Tokens y tema MUI
+### Task 2: Fundación de idioma — diccionario ES/EN, `LocaleProvider`, `SelectorIdioma`, helpers de test
 
-Transcribe `tokens.json` del design system (color, tipografía, espacio, radio, sombra, tamaño — un solo tema, claro) a un tema real de Material UI, siguiendo `guidelines/20-material-ui.md`: paleta en hexadecimal (MUI lo necesita para calcular hover/estados), todo lo pintado sobrescrito con `var(--token)`.
+Todo string visible a la persona en el resto de este plan sale de aquí. El diccionario se tipa con UNA interfaz (`DiccionarioTextos`) que `es.ts` y `en.ts` implementan cada uno por completo — el compilador de TypeScript garantiza la paridad de claves entre los dos idiomas, así que no hace falta un test de runtime que las compare.
+
+Esta tarea escribe el diccionario **completo y final** de una vez: cada clave que cualquier tarea posterior usa (`t.pantallas.entrevista.enviar`, `t.molecules.selloElegibilidad.califica`, etc.) ya existe aquí. Si en algún punto te parece que falta una clave al implementar una tarea posterior, es un defecto de este plan — agrégala aquí, en las dos versiones (`es.ts` y `en.ts`), nunca solo en la que estés usando en ese momento.
+
+**Files:**
+- Create: `web/src/i18n/diccionario.ts`
+- Create: `web/src/i18n/es.ts`
+- Create: `web/src/i18n/en.ts`
+- Create: `web/src/i18n/LocaleContext.tsx`
+- Test: `web/src/i18n/LocaleContext.test.tsx`
+- Create: `web/src/components/atoms/SelectorIdioma/SelectorIdioma.tsx`
+- Test: `web/src/components/atoms/SelectorIdioma/SelectorIdioma.test.tsx`
+- Create: `web/src/test/utilidades.tsx`
+
+**Interfaces:**
+- Produces: `DiccionarioTextos` (interfaz, `web/src/i18n/diccionario.ts`); `es: DiccionarioTextos`, `en: DiccionarioTextos` (`web/src/i18n/es.ts`, `web/src/i18n/en.ts`); `Idioma = 'es' | 'en'`, `LocaleProvider`, `useIdioma(): { idioma: Idioma; cambiarIdioma: (i: Idioma) => void }`, `useT(): DiccionarioTextos` (`web/src/i18n/LocaleContext.tsx`); `SelectorIdioma(): JSX.Element` (`web/src/components/atoms/SelectorIdioma/SelectorIdioma.tsx`) — se cablea de forma fija dentro de `CabeceraApp` (Task 19), siempre visible, no depende de ninguna prop. `renderConIdioma(ui: ReactNode)`, `renderPantalla(ui: ReactNode, opciones?: { ruta?: string })` (`web/src/test/utilidades.tsx`) — todo test de componente de aquí en adelante usa uno de los dos en vez de `render` a secas.
+
+- [ ] **Step 1: Escribir el tipo del diccionario**
+
+Create `web/src/i18n/diccionario.ts`:
+
+```ts
+export interface DiccionarioTextos {
+  comun: {
+    /** "Fuente: {valor}" — usado por TarjetaPrograma y TarjetaPorQue. */
+    fuente: (valor: string) => string;
+    sinFechaPublicada: string;
+    porConfirmarServiuRegional: string;
+  };
+  atoms: {
+    campoTexto: {
+      dictarPorVoz: string;
+    };
+  };
+  molecules: {
+    selloElegibilidad: {
+      califica: string;
+      falta: string;
+      posible: string;
+      noAplica: string;
+    };
+    avisoLimite: {
+      linea1: string;
+      linea2: string;
+      linea3: (dominio: string) => string;
+      irA: (dominio: string) => string;
+    };
+    burbujaChat: {
+      escuchar: string;
+      dictadoMarca: string;
+      porQuePregunto: string;
+    };
+    pasoAPaso: {
+      pasoDe: (activo: number, total: number) => string;
+    };
+  };
+  organisms: {
+    barraInferior: {
+      hablar: string;
+      miPlan: string;
+      documentos: string;
+      avisos: string;
+    };
+    cabeceraApp: {
+      volver: string;
+      accion: string;
+    };
+    checklistDocumentos: {
+      deListos: (listos: number, total: number) => string;
+      vence: (fecha: string) => string;
+      notaNoGuarda: string;
+    };
+    tarjetaPorQue: {
+      tuDato: (dato: string) => string;
+    };
+    lineaDeLlamados: {
+      porConfirmar: string;
+    };
+    /** Nombre común de cada programa, compartido por PantallaResultado, PantallaPlan y PantallaDocumentos. */
+    nombrePrograma: Record<'DS49' | 'DS1' | 'DS19' | 'DS52', string>;
+  };
+  pantallas: {
+    bienvenida: {
+      titulo: string;
+      bajada: string;
+      empezar: string;
+      prefieroHablar: string;
+      seguirDondeQuedaste: string;
+      empezarDeNuevo: string;
+      fraseConfianza: string;
+    };
+    entrevista: {
+      titulo: string;
+      pasos: { familia: string; vivienda: string; ahorro: string; ingreso: string; region: string };
+      preguntaMensaje: string;
+      enviar: string;
+      pensando: string;
+      limiteCaracteres: (n: number) => string;
+      probarModoDemo: string;
+      mensajeDemoActivado: string;
+      errorGenerico: string;
+    };
+    resultado: {
+      titulo: string;
+      calificaPara: (n: number) => string;
+      revisamosCuatro: string;
+      personas: (n: number) => string;
+      sinDatos: string;
+      verDocumentos: string;
+      verComoAlcanzarlo: string;
+    };
+    plan: {
+      titulo: string;
+      tituloPrograma: (programa: string) => string;
+      noReconocemos: string;
+      paso1: string;
+      paso2: string;
+      paso3: string;
+      paso4: string;
+      todaviaNoEvaluamos: string;
+      calificaPrimero: string;
+      yaPostule: string;
+    };
+    documentos: {
+      titulo: string;
+      sinProgramas: string;
+    };
+    seguimiento: {
+      titulo: string;
+      reglasAl: (fecha: string) => string;
+      proximoLlamado: string;
+      fechaPrevista: string;
+      enQueEtapa: string;
+      etapas: {
+        papeles: { titulo: string; detalle: string };
+        postule: { titulo: string; detalle: string };
+        evaluacion: { titulo: string; detalle: string };
+        resultado: { titulo: string; detalle: string };
+      };
+      preguntaFolio: string;
+      ayudaFolio: string;
+      guardarFolio: string;
+      notaEstado: string;
+    };
+  };
+}
+```
+
+- [ ] **Step 2: Escribir el diccionario en español**
+
+Create `web/src/i18n/es.ts`:
+
+```ts
+import type { DiccionarioTextos } from './diccionario';
+
+export const es: DiccionarioTextos = {
+  comun: {
+    fuente: (valor) => `Fuente: ${valor}`,
+    sinFechaPublicada: 'Sin fecha publicada',
+    porConfirmarServiuRegional: 'Por confirmar con tu Serviu regional',
+  },
+  atoms: {
+    campoTexto: { dictarPorVoz: 'Dictar por voz' },
+  },
+  molecules: {
+    selloElegibilidad: {
+      califica: 'Califica',
+      falta: 'Falta un dato',
+      posible: 'Posible',
+      noAplica: 'No aplica',
+    },
+    avisoLimite: {
+      linea1:
+        'Te preparamos para postular: ordenamos tus datos, evaluamos tu elegibilidad y armamos tu plan de documentos.',
+      linea2: 'Postulas tú, con tu Clave Única, en tu propio navegador.',
+      linea3: (dominio) => `Nunca te pedimos tu Clave Única, ni entramos a ${dominio} por ti.`,
+      irA: (dominio) => `Ir a ${dominio}`,
+    },
+    burbujaChat: {
+      escuchar: 'Escuchar',
+      dictadoMarca: 'Lo dijiste hablando · toca para corregir',
+      porQuePregunto: '¿Por qué pregunto esto?',
+    },
+    pasoAPaso: {
+      pasoDe: (activo, total) => `Paso ${activo} de ${total}`,
+    },
+  },
+  organisms: {
+    barraInferior: { hablar: 'Hablar', miPlan: 'Mi plan', documentos: 'Documentos', avisos: 'Avisos' },
+    cabeceraApp: { volver: 'Volver', accion: 'Acción' },
+    checklistDocumentos: {
+      deListos: (listos, total) => `${listos} de ${total} listos`,
+      vence: (fecha) => `Vence: ${fecha}`,
+      notaNoGuarda: 'La app no guarda tus documentos. La casilla es solo un recordatorio tuyo.',
+    },
+    tarjetaPorQue: {
+      tuDato: (dato) => `Tu dato: ${dato}`,
+    },
+    lineaDeLlamados: { porConfirmar: 'Por confirmar con el Serviu.' },
+    nombrePrograma: {
+      DS49: 'Casa propia sin crédito',
+      DS1: 'Sectores medios',
+      DS19: 'Integración social',
+      DS52: 'Arriendo',
+    },
+  },
+  pantallas: {
+    bienvenida: {
+      titulo: 'Averigua a qué subsidio de vivienda puedes postular',
+      bajada: 'Cuéntanos de tu familia en unos 5 minutos.',
+      empezar: 'Empezar',
+      prefieroHablar: 'Prefiero hablar',
+      seguirDondeQuedaste: 'Seguir donde quedaste',
+      empezarDeNuevo: 'Empezar de nuevo',
+      fraseConfianza:
+        'Herramienta independiente, no oficial. Nunca te pediremos tu Clave Única. Puedes borrar tus datos cuando quieras.',
+    },
+    entrevista: {
+      titulo: 'Hablemos',
+      pasos: { familia: 'Familia', vivienda: 'Vivienda', ahorro: 'Ahorro', ingreso: 'Ingreso', region: 'Región' },
+      preguntaMensaje: 'Escribe tu respuesta',
+      enviar: 'Enviar',
+      pensando: 'Revisando tu respuesta',
+      limiteCaracteres: (n) => `Máximo ${n} caracteres.`,
+      probarModoDemo: 'Probar modo demo',
+      mensajeDemoActivado:
+        'Activamos el modo demo con una familia ficticia para que puedas ver cómo funciona Rumbo a Casa.',
+      errorGenerico: 'Algo no funcionó. Intenta de nuevo en un momento.',
+    },
+    resultado: {
+      titulo: 'Tu resultado',
+      calificaPara: (n) => `Calificas para ${n} programa${n > 1 ? 's' : ''}`,
+      revisamosCuatro: 'Revisamos tus cuatro programas',
+      personas: (n) => `${n} personas`,
+      sinDatos: 'Todavía no tenemos datos suficientes. Vuelve a la entrevista para seguir contándonos.',
+      verDocumentos: 'Ver los documentos',
+      verComoAlcanzarlo: 'Ver cómo alcanzarlo',
+    },
+    plan: {
+      titulo: 'Tu plan',
+      tituloPrograma: (programa) => `Tu plan · ${programa}`,
+      noReconocemos: 'No reconocemos ese programa. Vuelve a tu resultado.',
+      paso1: '1. Revisa por qué calificas',
+      paso2: '2. Reúne tus documentos',
+      paso3: '3. Guarda la fecha del llamado',
+      paso4: '4. Postula en el sitio del MINVU',
+      todaviaNoEvaluamos: 'Todavía no evaluamos este programa.',
+      calificaPrimero: 'Calificas primero para ver tu lista de documentos.',
+      yaPostule: 'Ya postulé',
+    },
+    documentos: {
+      titulo: 'Tus documentos',
+      sinProgramas: 'Todavía no calificas para ningún programa. Vuelve a la entrevista para seguir contándonos.',
+    },
+    seguimiento: {
+      titulo: 'Avisos',
+      reglasAl: (fecha) => `Reglas al ${fecha}`,
+      proximoLlamado: 'Próximo llamado',
+      fechaPrevista: 'Fecha prevista. Te confirmamos cuando el Serviu la publique.',
+      enQueEtapa: '¿En qué etapa estás?',
+      etapas: {
+        papeles: { titulo: 'Reuniendo documentos', detalle: 'Todavía estás juntando tus papeles.' },
+        postule: { titulo: 'Postulé', detalle: 'Ya entregaste tu postulación en el sitio del MINVU.' },
+        evaluacion: { titulo: 'En evaluación', detalle: 'El Serviu está revisando tu postulación.' },
+        resultado: { titulo: 'Resultado publicado', detalle: 'Ya salió el resultado de tu postulación.' },
+      },
+      preguntaFolio: '¿Cuál es tu número de folio?',
+      ayudaFolio: 'Lo entrega el sitio del MINVU al terminar tu postulación.',
+      guardarFolio: 'Guardar folio',
+      notaEstado: 'El estado no se consulta solo: tú marcas la etapa y nosotros te recordamos lo que falta.',
+    },
+  },
+};
+```
+
+- [ ] **Step 3: Escribir el diccionario en inglés**
+
+Create `web/src/i18n/en.ts`:
+
+```ts
+import type { DiccionarioTextos } from './diccionario';
+
+export const en: DiccionarioTextos = {
+  comun: {
+    fuente: (valor) => `Source: ${valor}`,
+    sinFechaPublicada: 'No date published yet',
+    porConfirmarServiuRegional: 'To be confirmed with your regional Serviu',
+  },
+  atoms: {
+    campoTexto: { dictarPorVoz: 'Dictate by voice' },
+  },
+  molecules: {
+    selloElegibilidad: {
+      califica: 'You qualify',
+      falta: 'Missing a detail',
+      posible: 'Possible',
+      noAplica: "Doesn't apply",
+    },
+    avisoLimite: {
+      linea1:
+        'We help you get ready to apply: we organize your details, check your eligibility, and put together your document plan.',
+      linea2: 'You apply yourself, with your Clave Única, in your own browser.',
+      linea3: (dominio) => `We never ask for your Clave Única, and we never go to ${dominio} for you.`,
+      irA: (dominio) => `Go to ${dominio}`,
+    },
+    burbujaChat: {
+      escuchar: 'Listen',
+      dictadoMarca: 'You said this out loud · tap to fix it',
+      porQuePregunto: 'Why am I asking this?',
+    },
+    pasoAPaso: {
+      pasoDe: (activo, total) => `Step ${activo} of ${total}`,
+    },
+  },
+  organisms: {
+    barraInferior: { hablar: 'Talk', miPlan: 'My plan', documentos: 'Documents', avisos: 'Alerts' },
+    cabeceraApp: { volver: 'Back', accion: 'Action' },
+    checklistDocumentos: {
+      deListos: (listos, total) => `${listos} of ${total} ready`,
+      vence: (fecha) => `Due: ${fecha}`,
+      notaNoGuarda: "We don't store your documents. The checkbox is just a reminder for you.",
+    },
+    tarjetaPorQue: {
+      tuDato: (dato) => `Your answer: ${dato}`,
+    },
+    lineaDeLlamados: { porConfirmar: 'To be confirmed with Serviu.' },
+    nombrePrograma: {
+      DS49: 'A home with no mortgage',
+      DS1: 'Middle-income households',
+      DS19: 'Social integration',
+      DS52: 'Rental subsidy',
+    },
+  },
+  pantallas: {
+    bienvenida: {
+      titulo: 'Find out which housing subsidy you can apply for',
+      bajada: 'Tell us about your family in about 5 minutes.',
+      empezar: 'Start',
+      prefieroHablar: "I'd rather talk",
+      seguirDondeQuedaste: 'Continue where you left off',
+      empezarDeNuevo: 'Start over',
+      fraseConfianza:
+        'Independent tool, not official. We will never ask for your Clave Única. You can delete your data whenever you want.',
+    },
+    entrevista: {
+      titulo: "Let's talk",
+      pasos: { familia: 'Family', vivienda: 'Housing', ahorro: 'Savings', ingreso: 'Income', region: 'Region' },
+      preguntaMensaje: 'Write your answer',
+      enviar: 'Send',
+      pensando: 'Reviewing your answer',
+      limiteCaracteres: (n) => `Maximum ${n} characters.`,
+      probarModoDemo: 'Try demo mode',
+      mensajeDemoActivado:
+        'We turned on demo mode with a made-up family so you can see how Rumbo a Casa works.',
+      errorGenerico: 'Something went wrong. Try again in a moment.',
+    },
+    resultado: {
+      titulo: 'Your result',
+      calificaPara: (n) => `You qualify for ${n} program${n > 1 ? 's' : ''}`,
+      revisamosCuatro: 'We reviewed your four programs',
+      personas: (n) => `${n} people`,
+      sinDatos: "We don't have enough details yet. Go back to the interview to keep telling us.",
+      verDocumentos: 'See the documents',
+      verComoAlcanzarlo: 'See how to get there',
+    },
+    plan: {
+      titulo: 'Your plan',
+      tituloPrograma: (programa) => `Your plan · ${programa}`,
+      noReconocemos: "We don't recognize that program. Go back to your result.",
+      paso1: '1. Review why you qualify',
+      paso2: '2. Gather your documents',
+      paso3: '3. Save the call date',
+      paso4: '4. Apply on the MINVU site',
+      todaviaNoEvaluamos: "We haven't evaluated this program yet.",
+      calificaPrimero: 'You need to qualify first to see your document list.',
+      yaPostule: 'I already applied',
+    },
+    documentos: {
+      titulo: 'Your documents',
+      sinProgramas: "You don't qualify for any program yet. Go back to the interview to keep telling us.",
+    },
+    seguimiento: {
+      titulo: 'Alerts',
+      reglasAl: (fecha) => `Rules as of ${fecha}`,
+      proximoLlamado: 'Next call',
+      fechaPrevista: "Expected date. We'll confirm once Serviu publishes it.",
+      enQueEtapa: 'What stage are you at?',
+      etapas: {
+        papeles: { titulo: 'Gathering documents', detalle: "You're still putting your papers together." },
+        postule: { titulo: 'Applied', detalle: 'You already submitted your application on the MINVU site.' },
+        evaluacion: { titulo: 'Under review', detalle: 'Serviu is reviewing your application.' },
+        resultado: { titulo: 'Result published', detalle: 'Your application result is already out.' },
+      },
+      preguntaFolio: "What's your file number?",
+      ayudaFolio: 'The MINVU site gives it to you when you finish applying.',
+      guardarFolio: 'Save file number',
+      notaEstado: "The status isn't checked automatically: you mark the stage and we remind you what's left.",
+    },
+  },
+};
+```
+
+- [ ] **Step 4: Test del contexto de idioma (falla primero)**
+
+Create `web/src/i18n/LocaleContext.test.tsx`:
+
+```tsx
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { LocaleProvider, useT, useIdioma } from './LocaleContext';
+
+function Sonda() {
+  const t = useT();
+  const { idioma, cambiarIdioma } = useIdioma();
+  return (
+    <div>
+      <div data-testid="idioma">{idioma}</div>
+      <div data-testid="texto">{t.pantallas.bienvenida.empezar}</div>
+      <button onClick={() => cambiarIdioma('en')}>a ingles</button>
+    </div>
+  );
+}
+
+describe('LocaleProvider', () => {
+  beforeEach(() => window.localStorage.clear());
+  afterEach(() => vi.restoreAllMocks());
+
+  it('arranca en español por defecto', () => {
+    render(
+      <LocaleProvider>
+        <Sonda />
+      </LocaleProvider>,
+    );
+    expect(screen.getByTestId('idioma')).toHaveTextContent('es');
+    expect(screen.getByTestId('texto')).toHaveTextContent('Empezar');
+  });
+
+  it('cambiar de idioma actualiza el texto en vivo', async () => {
+    render(
+      <LocaleProvider>
+        <Sonda />
+      </LocaleProvider>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'a ingles' }));
+    expect(screen.getByTestId('idioma')).toHaveTextContent('en');
+    expect(screen.getByTestId('texto')).toHaveTextContent('Start');
+  });
+
+  it('guarda el idioma elegido y lo recupera en una sesión nueva', async () => {
+    const { unmount } = render(
+      <LocaleProvider>
+        <Sonda />
+      </LocaleProvider>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'a ingles' }));
+    unmount();
+    render(
+      <LocaleProvider>
+        <Sonda />
+      </LocaleProvider>,
+    );
+    expect(screen.getByTestId('idioma')).toHaveTextContent('en');
+  });
+
+  it('si localStorage lanza, sigue funcionando en memoria en español', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('blocked');
+    });
+    expect(() =>
+      render(
+        <LocaleProvider>
+          <Sonda />
+        </LocaleProvider>,
+      ),
+    ).not.toThrow();
+    expect(screen.getByTestId('idioma')).toHaveTextContent('es');
+  });
+});
+```
+
+- [ ] **Step 5: Ejecutar y verificar que falla**
+
+Run: `npm run test -w web`
+Expected: FAIL — `./LocaleContext` no existe.
+
+- [ ] **Step 6: Implementar el contexto de idioma**
+
+Create `web/src/i18n/LocaleContext.tsx`:
+
+```tsx
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { es } from './es';
+import { en } from './en';
+import type { DiccionarioTextos } from './diccionario';
+
+export type Idioma = 'es' | 'en';
+
+const DICCIONARIOS: Record<Idioma, DiccionarioTextos> = { es, en };
+const CLAVE_STORAGE = 'rumbo-idioma';
+
+interface LocaleContextValue {
+  idioma: Idioma;
+  cambiarIdioma: (idioma: Idioma) => void;
+  t: DiccionarioTextos;
+}
+
+const LocaleContext = createContext<LocaleContextValue | undefined>(undefined);
+
+function leerIdiomaGuardado(): Idioma {
+  try {
+    return window.localStorage.getItem(CLAVE_STORAGE) === 'en' ? 'en' : 'es';
+  } catch {
+    return 'es';
+  }
+}
+
+/** Idioma por defecto: español. Persistido en localStorage, degrada a memoria si el navegador lo bloquea. */
+export function LocaleProvider({ children }: { children: ReactNode }) {
+  const [idioma, setIdioma] = useState<Idioma>(() => leerIdiomaGuardado());
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(CLAVE_STORAGE, idioma);
+    } catch {
+      // localStorage bloqueado (modo privado, cuotas): el idioma sigue funcionando en memoria.
+    }
+  }, [idioma]);
+
+  return (
+    <LocaleContext.Provider value={{ idioma, cambiarIdioma: setIdioma, t: DICCIONARIOS[idioma] }}>
+      {children}
+    </LocaleContext.Provider>
+  );
+}
+
+function useLocale(): LocaleContextValue {
+  const ctx = useContext(LocaleContext);
+  if (!ctx) throw new Error('useLocale debe usarse dentro de <LocaleProvider>');
+  return ctx;
+}
+
+export function useIdioma(): { idioma: Idioma; cambiarIdioma: (idioma: Idioma) => void } {
+  const { idioma, cambiarIdioma } = useLocale();
+  return { idioma, cambiarIdioma };
+}
+
+/** El diccionario del idioma activo. Todo componente con copy fijo llama a esto. */
+export function useT(): DiccionarioTextos {
+  return useLocale().t;
+}
+```
+
+- [ ] **Step 7: Ejecutar y verificar que pasa**
+
+Run: `npm run test -w web`
+Expected: PASS.
+
+- [ ] **Step 8: Test de `SelectorIdioma` (falla primero)**
+
+Create `web/src/components/atoms/SelectorIdioma/SelectorIdioma.test.tsx`:
+
+```tsx
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { LocaleProvider, useT } from '../../../i18n/LocaleContext';
+import { SelectorIdioma } from './SelectorIdioma';
+
+function Testigo() {
+  const t = useT();
+  return <div data-testid="testigo">{t.pantallas.bienvenida.empezar}</div>;
+}
+
+describe('SelectorIdioma', () => {
+  it('muestra ES activo por defecto, con su nombre completo accesible', () => {
+    render(
+      <LocaleProvider>
+        <SelectorIdioma />
+      </LocaleProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Español', pressed: true })).toBeInTheDocument();
+  });
+
+  it('tocar EN cambia el idioma de toda la app', async () => {
+    render(
+      <LocaleProvider>
+        <SelectorIdioma />
+        <Testigo />
+      </LocaleProvider>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'English' }));
+    expect(screen.getByTestId('testigo')).toHaveTextContent('Start');
+  });
+});
+```
+
+- [ ] **Step 9: Ejecutar y verificar que falla**
+
+Run: `npm run test -w web`
+Expected: FAIL — `./SelectorIdioma` no existe.
+
+- [ ] **Step 10: Implementar `SelectorIdioma`**
+
+Create `web/src/components/atoms/SelectorIdioma/SelectorIdioma.tsx`:
+
+```tsx
+import { ToggleButtonGroup, ToggleButton } from '@mui/material';
+import { useIdioma, type Idioma } from '../../../i18n/LocaleContext';
+
+/**
+ * El nombre de un idioma no se traduce: "Español" e "English" van siempre en su propio idioma.
+ * Por eso este componente no usa el diccionario — es la única excepción documentada en Global
+ * Constraints. Vive de forma fija dentro de CabeceraApp (Task 19), siempre visible.
+ */
+export function SelectorIdioma() {
+  const { idioma, cambiarIdioma } = useIdioma();
+
+  return (
+    <ToggleButtonGroup
+      value={idioma}
+      exclusive
+      onChange={(_e, valor: Idioma | null) => valor && cambiarIdioma(valor)}
+      size="small"
+      sx={{
+        '& .MuiToggleButton-root': {
+          color: 'var(--ink-on-brand)',
+          borderColor: 'var(--ink-on-brand)',
+          minWidth: 'var(--size-touch)',
+          minHeight: 'var(--size-touch)',
+          fontWeight: 700,
+          fontSize: '13px',
+        },
+        '& .Mui-selected': {
+          backgroundColor: 'var(--surface-brand-soft) !important',
+          color: 'var(--ink-brand) !important',
+        },
+      }}
+    >
+      <ToggleButton value="es" aria-label="Español">
+        ES
+      </ToggleButton>
+      <ToggleButton value="en" aria-label="English">
+        EN
+      </ToggleButton>
+    </ToggleButtonGroup>
+  );
+}
+```
+
+- [ ] **Step 11: Ejecutar y verificar que pasa**
+
+Run: `npm run test -w web`
+Expected: PASS.
+
+- [ ] **Step 12: Escribir los helpers de test compartidos**
+
+Create `web/src/test/utilidades.tsx`:
+
+```tsx
+import type { ReactNode } from 'react';
+import { render } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { LocaleProvider } from '../i18n/LocaleContext';
+import { SesionProvider } from '../state/SesionContext';
+
+/** Envuelve solo en `<LocaleProvider>`, para probar un átomo, molécula u organismo aislado. */
+export function renderConIdioma(ui: ReactNode) {
+  return render(<LocaleProvider>{ui}</LocaleProvider>);
+}
+
+/**
+ * Envuelve en `<LocaleProvider><SesionProvider><MemoryRouter>`, para una pantalla completa con
+ * una sola ruta y sin parámetros de URL. Las pantallas que necesitan coincidencia de ruta
+ * (`useParams`) o que navegan a otra pantalla dentro del mismo test arman su propio árbol de
+ * `<Routes>`/`<Route>` (ver Tasks 27-32), envuelto igual en `<LocaleProvider>`.
+ */
+export function renderPantalla(ui: ReactNode, opciones: { ruta?: string } = {}) {
+  return render(
+    <LocaleProvider>
+      <SesionProvider>
+        <MemoryRouter initialEntries={[opciones.ruta ?? '/']}>{ui}</MemoryRouter>
+      </SesionProvider>
+    </LocaleProvider>,
+  );
+}
+```
+
+`web/src/state/SesionContext.tsx` todavía no existe (lo crea Task 26) — este archivo no se importa desde ningún test hasta entonces, así que `tsc` no lo alcanza a chequear en falso hasta que exista; queda escrito ahora porque es donde el resto del plan espera encontrarlo.
+
+- [ ] **Step 13: Commit**
+
+```bash
+git add web/src/i18n web/src/components/atoms/SelectorIdioma web/src/test
+git commit -m "feat(web): fundacion de idioma ES/EN, selector y helpers de test"
+```
+
+---
+
+### Task 3: Tokens y tema MUI
+
+Transcribe `tokens.json` del design system (color, tipografía, espacio, radio, sombra, tamaño — un solo tema, claro) a un tema real de Material UI, siguiendo `guidelines/20-material-ui.md`: paleta en hexadecimal (MUI lo necesita para calcular hover/estados), todo lo pintado sobrescrito con `var(--token)`. El fondo de `body` se pinta en `surface-sunken`, no en `surface-base` — el design system no distingue entre los dos para el fondo de página, pero en pantallas anchas el "letterboxing" alrededor de la columna centrada de 480 px (Task 27, Task 28) necesita un tono de fondo distinto al de la columna misma para que el centrado se note; `surface-sunken` es el token más cercano en la escala neutra.
 
 **Files:**
 - Create: `web/src/theme/tokens.ts`
@@ -459,8 +1161,11 @@ Create `web/src/theme/tokens.css`:
 
 html, body { margin: 0; }
 
+/* surface-sunken, no surface-base: en pantallas anchas esto queda visible a los costados de la
+   columna centrada de 480 px (Task 27, Task 28), que sí pinta surface-base. Si los dos fueran
+   iguales, el centrado no se notaría. */
 body {
-  background: var(--surface-base);
+  background: var(--surface-sunken);
   color: var(--ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -576,6 +1281,8 @@ Replace `web/index.html`:
 </html>
 ```
 
+`lang="es"` es el idioma por defecto de la app (Task 2); no se actualiza dinámicamente al cambiar de idioma en este plan — es una mejora de accesibilidad razonable para más adelante, no un requisito de ninguna tarea.
+
 - [ ] **Step 7: Aplicar el tema en el punto de entrada**
 
 Replace `web/src/main.tsx`:
@@ -612,9 +1319,9 @@ git commit -m "feat(web): tema MUI y tokens del design system Rumbo a Casa"
 
 ---
 
-### Task 3: Assets de marca y el átomo `Simbolo`
+### Task 4: Assets de marca y el átomo `Simbolo`
 
-Copia literal de los 4 SVG del símbolo de Rumbo a Casa (leídos del design system) a `web/public/marca/`, más el átomo que los muestra. Los archivos se usan tal cual — el README de marca prohíbe redibujarlos.
+Copia literal de los 4 SVG del símbolo de Rumbo a Casa (leídos del design system) a `web/public/marca/`, más el átomo que los muestra. Los archivos se usan tal cual — el README de marca prohíbe redibujarlos. El nombre de la marca, "Rumbo a Casa", no se traduce en ningún idioma — es un nombre propio, igual que `alt="Rumbo a Casa"` en el SVG; no pasa por el diccionario de Task 2.
 
 **Files:**
 - Create: `web/public/marca/rumbo-simbolo.svg`
@@ -723,7 +1430,8 @@ export interface SimboloProps {
   tono?: 'color' | 'claro' | 'mono';
 }
 
-/** El símbolo de marca. Se usa tal cual — nunca se redibuja. Ver guidelines/10-marca.md. */
+/** El símbolo de marca. Se usa tal cual — nunca se redibuja. Ver guidelines/10-marca.md. El
+ * nombre "Rumbo a Casa" es un nombre propio y no se traduce en ningún idioma. */
 export function Simbolo({ tamano = 24, tono = 'color' }: SimboloProps) {
   return <img src={ARCHIVO[tono]} alt="Rumbo a Casa" width={tamano} height={tamano} />;
 }
@@ -743,9 +1451,11 @@ git commit -m "feat(web): assets de marca y atomo Simbolo"
 
 ---
 
-### Task 4: Catálogo visual y script de captura Playwright
+### Task 5: Catálogo visual y script de captura Playwright
 
 Establece el patrón que usa el resto del plan para "revisar en localhost a medida que se construye": una página `/catalogo` que va acumulando cada componente nuevo, y un script de Node que usa `playwright` (librería, no MCP — el MCP de Playwright no está disponible en esta sesión) para abrir esa página en Chromium a 360×800 y guardar una captura. El ejecutor abre la imagen resultante con la herramienta de lectura de archivos para verificarla visualmente.
+
+`/catalogo` es una página interna de desarrollo, nunca la ve la persona que usa la app — sus propios títulos de sección ("Catálogo Rumbo a Casa", "Simbolo", etc.) quedan como literales fijos en español, fuera del alcance del diccionario de Task 2 (que es para copy que la persona real ve). La app entera, incluida esta ruta temporal, se envuelve en `<LocaleProvider>` desde este task, para que cualquier componente que use `useT()` funcione al agregarse al catálogo más adelante.
 
 **Files:**
 - Create: `web/src/dev/Catalogo.tsx`
@@ -754,6 +1464,7 @@ Establece el patrón que usa el resto del plan para "revisar en localhost a medi
 - Modify: `.gitignore`
 
 **Interfaces:**
+- Consumes: `LocaleProvider` de `../i18n/LocaleContext` (Task 2).
 - Produces: `Catalogo` (componente de React, sin props) en `web/src/dev/Catalogo.tsx`. Cada tarea de componente posterior le agrega una sección (`<section>` con `Typography variant="overline"` de título + el componente). `web/e2e/capturar.mjs <ruta> <nombre-archivo>` — script de Node, no de test; guarda `web/e2e/capturas/<nombre-archivo>.png`.
 
 - [ ] **Step 1: Crear el catálogo con lo único que existe hasta ahora**
@@ -765,7 +1476,8 @@ import { Stack, Typography } from '@mui/material';
 import { Simbolo } from '../components/atoms/Simbolo/Simbolo';
 
 /**
- * Página interna de verificación visual, no es parte del flujo de la persona.
+ * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
+ * sección quedan en español fijo a propósito, fuera del diccionario de idioma.
  * Cada tarea de componente agrega aquí su propia sección, en orden de construcción.
  */
 export function Catalogo() {
@@ -788,14 +1500,23 @@ export function Catalogo() {
 }
 ```
 
-- [ ] **Step 2: Exponer `/catalogo` con un enrutamiento mínimo temporal**
+- [ ] **Step 2: Exponer `/catalogo` con un enrutamiento mínimo temporal, ya envuelto en `LocaleProvider`**
 
-Replace `web/src/App.tsx` (Task 26 lo reemplaza por el enrutamiento definitivo con `react-router-dom`; esta versión solo existe para poder capturar el catálogo mientras se construyen los componentes):
+Replace `web/src/App.tsx` (Task 27 lo reemplaza por el enrutamiento definitivo con `react-router-dom`; esta versión solo existe para poder capturar el catálogo mientras se construyen los componentes):
 
 ```tsx
+import { LocaleProvider } from './i18n/LocaleContext';
 import { Catalogo } from './dev/Catalogo';
 
 export function App() {
+  return (
+    <LocaleProvider>
+      <AppInterno />
+    </LocaleProvider>
+  );
+}
+
+function AppInterno() {
   if (window.location.pathname === '/catalogo') return <Catalogo />;
   return (
     <div style={{ padding: 24, fontFamily: 'sans-serif' }}>
@@ -844,7 +1565,7 @@ Expected: Vite sirve en `http://localhost:5173`.
 Run: `node web/e2e/capturar.mjs /catalogo 00-catalogo-inicial`
 Expected: se crea `web/e2e/capturas/00-catalogo-inicial.png`.
 
-Abre `web/e2e/capturas/00-catalogo-inicial.png` con la herramienta de lectura de archivos y verifica a simple vista: fondo `surface-base` (crema, no blanco puro), título "Catálogo Rumbo a Casa" en Bricolage Grotesque (con gancho más orgánico que una sans genérica), y el símbolo en sus tres tonos — el de tono claro sobre un cuadro azul oscuro, el monocromo en gris oscuro sólido. Si el símbolo no se ve o el fondo es blanco puro, algo del Step 1-2 de Task 2 o Step 1 de Task 3 no cargó — revisa antes de seguir.
+Abre `web/e2e/capturas/00-catalogo-inicial.png` con la herramienta de lectura de archivos y verifica a simple vista: fondo cálido (`surface-sunken`, no blanco puro — el catálogo no pinta su propio fondo de columna, hereda el de `body`), título "Catálogo Rumbo a Casa" en Bricolage Grotesque (con gancho más orgánico que una sans genérica), y el símbolo en sus tres tonos — el de tono claro sobre un cuadro azul oscuro, el monocromo en gris oscuro sólido. Si el símbolo no se ve o el fondo es blanco puro, algo del Step 4 de Task 3 o Step 1 de Task 4 no cargó — revisa antes de seguir.
 
 - [ ] **Step 7: Commit**
 
@@ -855,9 +1576,9 @@ git commit -m "feat(web): catalogo de verificacion visual y script de captura co
 
 ---
 
-### Task 5: Átomo `Icono`
+### Task 6: Átomo `Icono`
 
-`@mui/icons-material` no viene en la versión UMD del design system, así que ellos traen un juego propio; en este proyecto con bundler, `guidelines/20-material-ui.md` pide justamente reemplazarlo por `@mui/icons-material` con trazo redondeado. Se mapea 1 a 1 el mismo conjunto de 17 nombres que declara `index.d.ts` del design system.
+`@mui/icons-material` no viene en la versión UMD del design system, así que ellos traen un juego propio; en este proyecto con bundler, `guidelines/20-material-ui.md` pide justamente reemplazarlo por `@mui/icons-material` con trazo redondeado. Se mapea 1 a 1 el mismo conjunto de 17 nombres que declara `index.d.ts` del design system. Los nombres de ícono (`check`, `reloj`, …) son identificadores internos, no copy — no pasan por el diccionario.
 
 **Files:**
 - Create: `web/src/components/atoms/Icono/Icono.tsx`
@@ -994,7 +1715,7 @@ En `web/src/dev/Catalogo.tsx`, agrega el import `import { Icono, NOMBRES_ICONO }
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 05-icono`
+Run: `node web/e2e/capturar.mjs /catalogo 06-icono`
 Expected: PNG generado. Ábrelo y confirma que los 17 trazos son redondeados (sin ángulos rectos en las puntas) y del mismo grosor visual — no una mezcla de estilos de ícono.
 
 - [ ] **Step 7: Commit**
@@ -1006,7 +1727,9 @@ git commit -m "feat(web): atomo Icono"
 
 ---
 
-### Task 6: Átomo `Boton`
+### Task 7: Átomo `Boton`
+
+Sin copy propio — el texto lo pasa siempre quien lo usa, ya traducido por ese llamador (Tasks 28-33). No necesita `useT()`.
 
 **Files:**
 - Create: `web/src/components/atoms/Boton/Boton.tsx`
@@ -1014,7 +1737,7 @@ git commit -m "feat(web): atomo Icono"
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `Icono`, `NombreIcono` de `../Icono/Icono` (Task 5).
+- Consumes: `Icono`, `NombreIcono` de `../Icono/Icono` (Task 6).
 - Produces: `Boton(props: BotonProps): JSX.Element` con `BotonProps = Omit<ButtonProps, 'startIcon' | 'endIcon'> & { icono?: NombreIcono; iconoFinal?: NombreIcono; loading?: boolean }` desde `web/src/components/atoms/Boton/Boton.tsx`.
 
 - [ ] **Step 1: Test (falla primero)**
@@ -1119,7 +1842,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { Boton } from '../components/atom
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 06-boton`
+Run: `node web/e2e/capturar.mjs /catalogo 07-boton`
 Expected: PNG generado. Verifica: radio de esquina generoso (no cuadrado, no totalmente redondo/píldora — `radius-md`), el botón `contained` en azul `brand`, el `outlined` secundario en terracota `accent` (nunca relleno), ningún botón con sombra de elevación, y "Contar hablando" con ícono de micrófono a la izquierda del texto.
 
 - [ ] **Step 7: Commit**
@@ -1131,9 +1854,9 @@ git commit -m "feat(web): atomo Boton"
 
 ---
 
-### Task 7: Átomo `Chip` (`ChipFiltro` + `ChipEtiqueta`)
+### Task 8: Átomo `Chip` (`ChipFiltro` + `ChipEtiqueta`)
 
-Dos funciones que no se mezclan: `ChipFiltro` es tocable y cambia una lista; `ChipEtiqueta` solo informa.
+Dos funciones que no se mezclan: `ChipFiltro` es tocable y cambia una lista; `ChipEtiqueta` solo informa. Sin copy propio — el `label` lo pasa quien lo usa.
 
 **Files:**
 - Create: `web/src/components/atoms/Chip/Chip.tsx`
@@ -1250,7 +1973,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { ChipFiltro, ChipEtiqueta } from 
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 07-chip`
+Run: `node web/e2e/capturar.mjs /catalogo 08-chip`
 Expected: PNG generado. Verifica: los chips son píldora (`radius-pill`), "Todos" activo se distingue por fondo azul suave Y borde, no solo por un tono ligeramente distinto; los `ChipEtiqueta` son visiblemente más chicos y neutros (borde gris, texto `ink-muted`).
 
 - [ ] **Step 7: Commit**
@@ -1262,9 +1985,9 @@ git commit -m "feat(web): atomo Chip (ChipFiltro y ChipEtiqueta)"
 
 ---
 
-### Task 8: Átomo `CampoTexto`
+### Task 9: Átomo `CampoTexto`
 
-El `dictado` de este componente es solo el adorno visual del botón de micrófono — `index.d.ts` del design system solo documenta que "muestra" el botón, no una integración de reconocimiento de voz. Cablear Web Speech API real queda fuera de este plan (se avisa en el cierre); aquí se construye el campo fiel a su contrato documentado.
+El `dictado` de este componente es solo el adorno visual del botón de micrófono — `index.d.ts` del design system solo documenta que "muestra" el botón, no una integración de reconocimiento de voz. Cablear Web Speech API real queda fuera de este plan (se avisa en el cierre); aquí se construye el campo fiel a su contrato documentado. Su único texto fijo, la etiqueta accesible del botón de dictado, sale de `t.atoms.campoTexto.dictarPorVoz` (Task 2).
 
 **Files:**
 - Create: `web/src/components/atoms/CampoTexto/CampoTexto.tsx`
@@ -1272,7 +1995,7 @@ El `dictado` de este componente es solo el adorno visual del botón de micrófon
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `Icono` de `../Icono/Icono` (Task 5).
+- Consumes: `Icono` de `../Icono/Icono` (Task 6). `useT` de `../../../i18n/LocaleContext` (Task 2). `renderConIdioma` de `../../../test/utilidades` (Task 2).
 - Produces: `CampoTexto(props: CampoTextoProps): JSX.Element` con `CampoTextoProps = Omit<TextFieldProps, 'label' | 'helperText' | 'error'> & { pregunta: string; ayuda?: string; error?: string; dictado?: boolean; equivalencia?: string }` desde `web/src/components/atoms/CampoTexto/CampoTexto.tsx`.
 
 - [ ] **Step 1: Test (falla primero)**
@@ -1281,12 +2004,13 @@ Create `web/src/components/atoms/CampoTexto/CampoTexto.test.tsx`:
 
 ```tsx
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderConIdioma } from '../../../test/utilidades';
 import { CampoTexto } from './CampoTexto';
 
 describe('CampoTexto', () => {
   it('usa la pregunta como etiqueta y la ayuda como texto de apoyo', () => {
-    render(
+    renderConIdioma(
       <CampoTexto
         pregunta="¿Cuántas personas viven contigo?"
         ayuda="Con esto vemos tu grupo familiar."
@@ -1299,7 +2023,7 @@ describe('CampoTexto', () => {
   });
 
   it('el error reemplaza la ayuda y marca el campo inválido', () => {
-    render(
+    renderConIdioma(
       <CampoTexto
         pregunta="¿Cuánto tienes ahorrado?"
         ayuda="Con esto vemos si alcanzas el mínimo del programa."
@@ -1313,13 +2037,15 @@ describe('CampoTexto', () => {
     expect(screen.getByLabelText('¿Cuánto tienes ahorrado?')).toBeInvalid();
   });
 
-  it('muestra el botón de dictado cuando se pide', () => {
-    render(<CampoTexto pregunta="¿En qué región vives?" dictado value="" onChange={() => {}} />);
+  it('muestra el botón de dictado cuando se pide, con su etiqueta traducida', () => {
+    renderConIdioma(<CampoTexto pregunta="¿En qué región vives?" dictado value="" onChange={() => {}} />);
     expect(screen.getByRole('button', { name: 'Dictar por voz' })).toBeInTheDocument();
   });
 
   it('muestra la equivalencia calculada bajo el campo, en vez de pedirla directamente en UF', () => {
-    render(<CampoTexto pregunta="¿Cuánto tienes ahorrado?" equivalencia="12,3 UF" value="500000" onChange={() => {}} />);
+    renderConIdioma(
+      <CampoTexto pregunta="¿Cuánto tienes ahorrado?" equivalencia="12,3 UF" value="500000" onChange={() => {}} />,
+    );
     expect(screen.getByText('12,3 UF')).toBeInTheDocument();
   });
 });
@@ -1337,6 +2063,7 @@ Create `web/src/components/atoms/CampoTexto/CampoTexto.tsx`:
 ```tsx
 import { TextField, IconButton, InputAdornment, Typography, type TextFieldProps } from '@mui/material';
 import { Icono } from '../Icono/Icono';
+import { useT } from '../../../i18n/LocaleContext';
 
 export interface CampoTextoProps extends Omit<TextFieldProps, 'label' | 'helperText' | 'error'> {
   /** La pregunta completa en lenguaje natural, no el nombre del campo. */
@@ -1366,6 +2093,7 @@ export function CampoTexto({
   sx,
   ...props
 }: CampoTextoProps) {
+  const t = useT();
   return (
     <>
       <TextField
@@ -1376,7 +2104,7 @@ export function CampoTexto({
           ...InputProps,
           endAdornment: dictado ? (
             <InputAdornment position="end">
-              <IconButton aria-label="Dictar por voz" sx={{ color: 'var(--accent)' }}>
+              <IconButton aria-label={t.atoms.campoTexto.dictarPorVoz} sx={{ color: 'var(--accent)' }}>
                 <Icono nombre="mic" />
               </IconButton>
             </InputAdornment>
@@ -1437,7 +2165,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { CampoTexto } from '../components
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 08-campotexto`
+Run: `node web/e2e/capturar.mjs /catalogo 09-campotexto`
 Expected: PNG generado. Verifica: la etiqueta es la pregunta completa (no un nombre de campo corto), la ayuda se ve en gris apagado, el campo con error muestra el borde y el texto en rojo/terracota oscuro (`ink-danger`) y NO muestra la ayuda original a la vez, y el campo con `dictado` tiene el ícono de micrófono a la derecha en color terracota.
 
 - [ ] **Step 7: Commit**
@@ -1449,9 +2177,9 @@ git commit -m "feat(web): atomo CampoTexto"
 
 ---
 
-### Task 9: Molécula `SelloElegibilidad` y el mapeo de estados backend → design system
+### Task 10: Molécula `SelloElegibilidad` y el mapeo de estados backend → design system
 
-El componente más delicado del sistema: es lo único que la persona recuerda de la pantalla. El motor de reglas del backend solo tiene 3 estados (`elegible | no_elegible | falta_dato`); el design system define 4 (`califica | falta | posible | noAplica`). Este task también crea el mapeo explícito entre ambos, documentando que `'posible'` no se usa hoy.
+El componente más delicado del sistema: es lo único que la persona recuerda de la pantalla. El motor de reglas del backend solo tiene 3 estados (`elegible | no_elegible | falta_dato`); el design system define 4 (`califica | falta | posible | noAplica`). Este task también crea el mapeo explícito entre ambos, documentando que `'posible'` no se usa hoy. La palabra de cada sello sale de `t.molecules.selloElegibilidad` (Task 2); el color y el ícono no dependen del idioma y se quedan en una tabla aparte.
 
 **Files:**
 - Create: `web/src/components/molecules/SelloElegibilidad/SelloElegibilidad.tsx`
@@ -1461,7 +2189,7 @@ El componente más delicado del sistema: es lo único que la persona recuerda de
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `Icono`, `NombreIcono` de `../../atoms/Icono/Icono` (Task 5). `EstadoElegibilidad` (backend) de `../types/dominio` (Task 1).
+- Consumes: `Icono`, `NombreIcono` de `../../atoms/Icono/Icono` (Task 6). `EstadoElegibilidad` (backend) de `../types/dominio` (Task 1). `useT` de `../../../i18n/LocaleContext`, `renderConIdioma` de `../../../test/utilidades` (Task 2).
 - Produces: `EstadoElegibilidad` (unión de 4, del design system) y `SelloElegibilidad(props: { estado: EstadoElegibilidad; programa?: string; compacto?: boolean }): JSX.Element` desde `SelloElegibilidad.tsx`. `mapEstado(estado: EstadoBackend): EstadoElegibilidad` desde `web/src/lib/estado.ts` — toda pantalla que reciba un `ResultadoPrograma` de la API pasa su `estado` por esta función antes de dárselo a `SelloElegibilidad`.
 
 - [ ] **Step 1: Test del componente (falla primero)**
@@ -1470,29 +2198,30 @@ Create `web/src/components/molecules/SelloElegibilidad/SelloElegibilidad.test.ts
 
 ```tsx
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderConIdioma } from '../../../test/utilidades';
 import { SelloElegibilidad } from './SelloElegibilidad';
 
 describe('SelloElegibilidad', () => {
   it('muestra la palabra "Califica" dentro del sello, no solo el color', () => {
-    render(<SelloElegibilidad estado="califica" />);
+    renderConIdioma(<SelloElegibilidad estado="califica" />);
     expect(screen.getByText('Califica')).toBeInTheDocument();
   });
 
   it('nunca escribe "rechazado" ni "no cumple" para noAplica', () => {
-    render(<SelloElegibilidad estado="noAplica" />);
+    renderConIdioma(<SelloElegibilidad estado="noAplica" />);
     expect(screen.getByText('No aplica')).toBeInTheDocument();
     expect(screen.queryByText(/rechazad/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/no cumple/i)).not.toBeInTheDocument();
   });
 
   it('con programa, antepone la sigla a la palabra', () => {
-    render(<SelloElegibilidad estado="falta" programa="DS49" />);
+    renderConIdioma(<SelloElegibilidad estado="falta" programa="DS49" />);
     expect(screen.getByText('DS49 · Falta un dato')).toBeInTheDocument();
   });
 
   it('en compacto baja de tamaño pero conserva el texto', () => {
-    render(<SelloElegibilidad estado="posible" compacto />);
+    renderConIdioma(<SelloElegibilidad estado="posible" compacto />);
     const chip = screen.getByText('Posible').closest('.MuiChip-root');
     expect(chip).toHaveStyle({ height: '26px' });
   });
@@ -1511,14 +2240,15 @@ Create `web/src/components/molecules/SelloElegibilidad/SelloElegibilidad.tsx`:
 ```tsx
 import { Chip } from '@mui/material';
 import { Icono, type NombreIcono } from '../../atoms/Icono/Icono';
+import { useT } from '../../../i18n/LocaleContext';
 
 export type EstadoElegibilidad = 'califica' | 'falta' | 'posible' | 'noAplica';
 
-const CONFIG: Record<EstadoElegibilidad, { palabra: string; color: string; icono: NombreIcono }> = {
-  califica: { palabra: 'Califica', color: 'var(--success)', icono: 'check' },
-  falta: { palabra: 'Falta un dato', color: 'var(--warning)', icono: 'alerta' },
-  posible: { palabra: 'Posible', color: 'var(--brand)', icono: 'info' },
-  noAplica: { palabra: 'No aplica', color: 'var(--border-strong)', icono: 'menos' },
+const ESTILO: Record<EstadoElegibilidad, { color: string; icono: NombreIcono }> = {
+  califica: { color: 'var(--success)', icono: 'check' },
+  falta: { color: 'var(--warning)', icono: 'alerta' },
+  posible: { color: 'var(--brand)', icono: 'info' },
+  noAplica: { color: 'var(--border-strong)', icono: 'menos' },
 };
 
 export interface SelloElegibilidadProps {
@@ -1530,10 +2260,12 @@ export interface SelloElegibilidadProps {
 /**
  * El resultado del motor de reglas para un programa. Solo existen estos cuatro valores y no se
  * agregan más sin cambiar el motor. El sello nunca viaja solo: junto a él van la razón y la
- * regla citada (ver `TarjetaPrograma`, Task 21).
+ * regla citada (ver `TarjetaPrograma`, Task 22).
  */
 export function SelloElegibilidad({ estado, programa, compacto = false }: SelloElegibilidadProps) {
-  const { palabra, color, icono } = CONFIG[estado];
+  const t = useT();
+  const { color, icono } = ESTILO[estado];
+  const palabra = t.molecules.selloElegibilidad[estado];
   const texto = programa ? `${programa} · ${palabra}` : palabra;
   return (
     <Chip
@@ -1626,7 +2358,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { SelloElegibilidad } from '../com
 
 - [ ] **Step 9: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 09-selloelegibilidad`
+Run: `node web/e2e/capturar.mjs /catalogo 10-selloelegibilidad`
 Expected: PNG generado. Verifica: los 4 sellos tienen colores claramente distintos en tono, no solo en matiz (para que se distingan sin depender del rojo/verde), cada uno con su ícono y palabra legibles en blanco sobre el relleno, y las versiones `compacto` son notoriamente más chicas.
 
 - [ ] **Step 10: Commit**
@@ -1638,9 +2370,9 @@ git commit -m "feat(web): molecula SelloElegibilidad y mapeo de estados backend-
 
 ---
 
-### Task 10: Molécula `OpcionTarjeta`
+### Task 11: Molécula `OpcionTarjeta`
 
-Reemplaza al radio suelto en toda la entrevista. La tarjeta entera es el objetivo tocable, marcada con borde y fondo, nunca solo con el punto del radio.
+Reemplaza al radio suelto en toda la entrevista. La tarjeta entera es el objetivo tocable, marcada con borde y fondo, nunca solo con el punto del radio. Sin copy propio — `pregunta` y `opciones` los pasa quien lo usa.
 
 **Files:**
 - Create: `web/src/components/molecules/OpcionTarjeta/OpcionTarjeta.tsx`
@@ -1810,7 +2542,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { OpcionTarjeta } from '../compone
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 10-opciontarjeta`
+Run: `node web/e2e/capturar.mjs /catalogo 11-opciontarjeta`
 Expected: PNG generado. Verifica: la tarjeta "Vivo de allegado" (la seleccionada) tiene borde azul grueso y fondo celeste, claramente distinta de las demás; "No estoy seguro" está al final sin detalle y no se ve incompleta.
 
 - [ ] **Step 7: Commit**
@@ -1822,9 +2554,9 @@ git commit -m "feat(web): molecula OpcionTarjeta"
 
 ---
 
-### Task 11: Molécula `Alerta`
+### Task 12: Molécula `Alerta`
 
-El `index.d.ts` del design system tipa `accion` como un `string` (la etiqueta del botón) sin ningún manejador de click — un botón sin handler no hace nada, así que este task agrega `onAccion?: () => void` como extensión pragmática y documentada sobre el contrato publicado, no como reemplazo de él.
+El `index.d.ts` del design system tipa `accion` como un `string` (la etiqueta del botón) sin ningún manejador de click — un botón sin handler no hace nada, así que este task agrega `onAccion?: () => void` como extensión pragmática y documentada sobre el contrato publicado, no como reemplazo de él. Sin copy propio — `titulo`, `children` y `accion` los pasa quien lo usa.
 
 **Files:**
 - Create: `web/src/components/molecules/Alerta/Alerta.tsx`
@@ -1966,7 +2698,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { Alerta } from '../components/mol
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 11-alerta`
+Run: `node web/e2e/capturar.mjs /catalogo 12-alerta`
 Expected: PNG generado. Verifica: los 4 tonos usan superficies suaves (no colores saturados que compitan con el botón principal), cada uno con su ícono coherente con la tinta del texto, y "Documento listo" muestra el título en negrita distinto del cuerpo.
 
 - [ ] **Step 7: Commit**
@@ -1978,9 +2710,9 @@ git commit -m "feat(web): molecula Alerta"
 
 ---
 
-### Task 12: Molécula `AvisoLimite`
+### Task 13: Molécula `AvisoLimite`
 
-El texto es fijo y no se edita desde la pantalla — existe por una decisión de producto, no de diseño: "Rumbo a Casa no postula por nadie y no pide Clave Única". `index.d.ts` tipa la prop como `conSalida?: boolean` (no como `momento: 'plan' | 'salida'`, que es como lo nombra la prosa del README) — se sigue el tipo publicado.
+El texto es fijo y no se edita desde la pantalla — existe por una decisión de producto, no de diseño: "Rumbo a Casa no postula por nadie y no pide Clave Única". `index.d.ts` tipa la prop como `conSalida?: boolean` (no como `momento: 'plan' | 'salida'`, que es como lo nombra la prosa del README) — se sigue el tipo publicado. Sus tres líneas fijas y el texto del enlace salen de `t.molecules.avisoLimite` (Task 2); el dominio (`postulacionenlinea.minvu.cl`) es el mismo en los dos idiomas — es una URL, no se traduce.
 
 **Files:**
 - Create: `web/src/components/molecules/AvisoLimite/AvisoLimite.tsx`
@@ -1988,7 +2720,7 @@ El texto es fijo y no se edita desde la pantalla — existe por una decisión de
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `Icono` de `../../atoms/Icono/Icono` (Task 5).
+- Consumes: `Icono` de `../../atoms/Icono/Icono` (Task 6). `useT` de `../../../i18n/LocaleContext`, `renderConIdioma` de `../../../test/utilidades` (Task 2).
 - Produces: `AvisoLimite(props: { conSalida?: boolean }): JSX.Element` desde `web/src/components/molecules/AvisoLimite/AvisoLimite.tsx`.
 
 - [ ] **Step 1: Test (falla primero)**
@@ -1997,29 +2729,30 @@ Create `web/src/components/molecules/AvisoLimite/AvisoLimite.test.tsx`:
 
 ```tsx
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderConIdioma } from '../../../test/utilidades';
 import { AvisoLimite } from './AvisoLimite';
 
 describe('AvisoLimite', () => {
   it('dice siempre que nunca se pide la Clave Única', () => {
-    render(<AvisoLimite />);
+    renderConIdioma(<AvisoLimite />);
     expect(screen.getByText(/Nunca te pedimos tu Clave Única/)).toBeInTheDocument();
   });
 
   it('sin conSalida, no muestra el enlace al sitio del MINVU', () => {
-    render(<AvisoLimite />);
+    renderConIdioma(<AvisoLimite />);
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('con conSalida, muestra el dominio completo y abre en una pestaña nueva del navegador', () => {
-    render(<AvisoLimite conSalida />);
+    renderConIdioma(<AvisoLimite conSalida />);
     const enlace = screen.getByRole('link', { name: /postulacionenlinea\.minvu\.cl/ });
     expect(enlace).toHaveAttribute('href', 'https://postulacionenlinea.minvu.cl');
     expect(enlace).toHaveAttribute('target', '_blank');
   });
 
   it('no tiene botón de cerrar', () => {
-    render(<AvisoLimite conSalida />);
+    renderConIdioma(<AvisoLimite conSalida />);
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });
@@ -2037,6 +2770,7 @@ Create `web/src/components/molecules/AvisoLimite/AvisoLimite.tsx`:
 ```tsx
 import { Paper, Stack, Typography, Link } from '@mui/material';
 import { Icono } from '../../atoms/Icono/Icono';
+import { useT } from '../../../i18n/LocaleContext';
 
 export interface AvisoLimiteProps {
   /** true justo antes del enlace de salida al sitio del MINVU; false la primera vez que se
@@ -2052,6 +2786,7 @@ const DOMINIO = 'postulacionenlinea.minvu.cl';
  * mensaje sea siempre el mismo.
  */
 export function AvisoLimite({ conSalida = false }: AvisoLimiteProps) {
+  const t = useT();
   return (
     <Paper
       variant="outlined"
@@ -2066,14 +2801,13 @@ export function AvisoLimite({ conSalida = false }: AvisoLimiteProps) {
         <Icono nombre="escudo" tamano={20} sx={{ color: 'var(--ink-brand)', flexShrink: 0, mt: '2px' }} />
         <Stack spacing={1}>
           <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '16px', color: 'var(--ink-brand)' }}>
-            Te preparamos para postular: ordenamos tus datos, evaluamos tu elegibilidad y armamos tu
-            plan de documentos.
+            {t.molecules.avisoLimite.linea1}
           </Typography>
           <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '16px', color: 'var(--ink-brand)' }}>
-            Postulas tú, con tu Clave Única, en tu propio navegador.
+            {t.molecules.avisoLimite.linea2}
           </Typography>
           <Typography sx={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '16px', color: 'var(--ink-brand)' }}>
-            Nunca te pedimos tu Clave Única, ni entramos a {DOMINIO} por ti.
+            {t.molecules.avisoLimite.linea3(DOMINIO)}
           </Typography>
           {conSalida && (
             <Link
@@ -2082,7 +2816,7 @@ export function AvisoLimite({ conSalida = false }: AvisoLimiteProps) {
               rel="noopener noreferrer"
               sx={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: 'var(--ink-brand)' }}
             >
-              Ir a {DOMINIO}
+              {t.molecules.avisoLimite.irA(DOMINIO)}
             </Link>
           )}
         </Stack>
@@ -2113,7 +2847,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { AvisoLimite } from '../component
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 12-avisolimite`
+Run: `node web/e2e/capturar.mjs /catalogo 13-avisolimite`
 Expected: PNG generado. Verifica: fondo azul suave consistente con `surface-brand-soft`, ícono de escudo, y la segunda instancia con el enlace visible mostrando el dominio completo en `dato` (monoespaciada).
 
 - [ ] **Step 7: Commit**
@@ -2125,9 +2859,9 @@ git commit -m "feat(web): molecula AvisoLimite"
 
 ---
 
-### Task 13: Molécula `PasoAPaso`
+### Task 14: Molécula `PasoAPaso`
 
-Responde a las dos preguntas que hacen abandonar una entrevista larga: cuánto falta y si se puede volver. `index.d.ts` no incluye un manejador de click (a diferencia de la prosa del README, que sí lo menciona como `onStepClick`); se agrega `onActivarPaso?: (indice: number) => void`, con nombre en español consistente con el resto del tipo (`pasos`/`activo`), porque sin él la mitad del propósito documentado del componente ("si puedo volver") no se puede cumplir.
+Responde a las dos preguntas que hacen abandonar una entrevista larga: cuánto falta y si se puede volver. `index.d.ts` no incluye un manejador de click (a diferencia de la prosa del README, que sí lo menciona como `onStepClick`); se agrega `onActivarPaso?: (indice: number) => void`, con nombre en español consistente con el resto del tipo (`pasos`/`activo`), porque sin él la mitad del propósito documentado del componente ("si puedo volver") no se puede cumplir. El contador "Paso N de M" sale de `t.molecules.pasoAPaso.pasoDe` (Task 2); los nombres de cada paso los pasa quien usa el componente, ya traducidos.
 
 **Files:**
 - Create: `web/src/components/molecules/PasoAPaso/PasoAPaso.tsx`
@@ -2135,7 +2869,7 @@ Responde a las dos preguntas que hacen abandonar una entrevista larga: cuánto f
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `Icono` de `../../atoms/Icono/Icono` (Task 5).
+- Consumes: `Icono` de `../../atoms/Icono/Icono` (Task 6). `useT` de `../../../i18n/LocaleContext`, `renderConIdioma` de `../../../test/utilidades` (Task 2).
 - Produces: `PasoAPaso(props: { pasos: string[]; activo?: number; onActivarPaso?: (indice: number) => void }): JSX.Element` desde `web/src/components/molecules/PasoAPaso/PasoAPaso.tsx`.
 
 - [ ] **Step 1: Test (falla primero)**
@@ -2144,33 +2878,34 @@ Create `web/src/components/molecules/PasoAPaso/PasoAPaso.test.tsx`:
 
 ```tsx
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderConIdioma } from '../../../test/utilidades';
 import { PasoAPaso } from './PasoAPaso';
 
 const pasos = ['Familia', 'Vivienda', 'Ahorro', 'Ingreso', 'Región'];
 
 describe('PasoAPaso', () => {
   it('muestra el número y el total como dato, no solo la barra', () => {
-    render(<PasoAPaso pasos={pasos} activo={2} />);
+    renderConIdioma(<PasoAPaso pasos={pasos} activo={2} />);
     expect(screen.getByText('Paso 3 de 5')).toBeInTheDocument();
   });
 
   it('los pasos ya contestados son tocables', async () => {
     const onActivarPaso = vi.fn();
-    render(<PasoAPaso pasos={pasos} activo={2} onActivarPaso={onActivarPaso} />);
+    renderConIdioma(<PasoAPaso pasos={pasos} activo={2} onActivarPaso={onActivarPaso} />);
     await userEvent.click(screen.getByRole('button', { name: /Familia/ }));
     expect(onActivarPaso).toHaveBeenCalledWith(0);
   });
 
   it('los pasos pendientes no son tocables', () => {
-    render(<PasoAPaso pasos={pasos} activo={2} onActivarPaso={vi.fn()} />);
+    renderConIdioma(<PasoAPaso pasos={pasos} activo={2} onActivarPaso={vi.fn()} />);
     expect(screen.queryByRole('button', { name: /Región/ })).not.toBeInTheDocument();
   });
 
   it('nunca muestra más de seis pasos', () => {
     const muchos = ['1', '2', '3', '4', '5', '6', '7', '8'];
-    render(<PasoAPaso pasos={muchos} activo={0} />);
+    renderConIdioma(<PasoAPaso pasos={muchos} activo={0} />);
     expect(screen.getByText('Paso 1 de 6')).toBeInTheDocument();
   });
 });
@@ -2189,9 +2924,11 @@ Create `web/src/components/molecules/PasoAPaso/PasoAPaso.tsx`:
 import type { ReactNode } from 'react';
 import { Stepper, Step, StepButton, StepLabel, Typography, Stack, Box } from '@mui/material';
 import { Icono } from '../../atoms/Icono/Icono';
+import { useT } from '../../../i18n/LocaleContext';
 
 export interface PasoAPasoProps {
-  /** Nombres cortos, de una palabra, del mundo de la persona (Vivienda, Familia, Ahorro…). Máximo seis. */
+  /** Nombres cortos, de una palabra, del mundo de la persona (Vivienda, Familia, Ahorro…), ya
+   * traducidos por quien usa el componente. Máximo seis. */
   pasos: string[];
   activo?: number;
   onActivarPaso?: (indice: number) => void;
@@ -2230,6 +2967,7 @@ function IconoPaso({ activo, completado, icon }: IconoPasoProps) {
  * se puede volver. Los pasos ya contestados son tocables y se pueden corregir; los pendientes, no.
  */
 export function PasoAPaso({ pasos, activo = 0, onActivarPaso }: PasoAPasoProps) {
+  const t = useT();
   const pasosMostrados = pasos.slice(0, 6);
   return (
     <Stack spacing={1}>
@@ -2243,7 +2981,7 @@ export function PasoAPaso({ pasos, activo = 0, onActivarPaso }: PasoAPasoProps) 
           color: 'var(--ink-muted)',
         }}
       >
-        Paso {Math.min(activo + 1, pasosMostrados.length)} de {pasosMostrados.length}
+        {t.molecules.pasoAPaso.pasoDe(Math.min(activo + 1, pasosMostrados.length), pasosMostrados.length)}
       </Typography>
       <Stepper activeStep={activo} nonLinear alternativeLabel>
         {pasosMostrados.map((nombre, indice) => {
@@ -2288,7 +3026,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { PasoAPaso } from '../components/
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 13-pasoapaso`
+Run: `node web/e2e/capturar.mjs /catalogo 14-pasoapaso`
 Expected: PNG generado. Verifica: "Familia" y "Vivienda" (completados) muestran un check en verde, "Ahorro" (activo) muestra el número 3 en azul, "Ingreso" y "Región" (pendientes) en gris, y arriba dice "Paso 3 de 5".
 
 - [ ] **Step 7: Commit**
@@ -2300,9 +3038,9 @@ git commit -m "feat(web): molecula PasoAPaso"
 
 ---
 
-### Task 14: Molécula `Pestanas`
+### Task 15: Molécula `Pestanas`
 
-Corta una lista larga dentro de una misma pantalla: filtra resultados por estado o cambia entre los planes de varios programas. Nunca para pasos de un proceso — eso es `PasoAPaso`.
+Corta una lista larga dentro de una misma pantalla: filtra resultados por estado o cambia entre los planes de varios programas. Nunca para pasos de un proceso — eso es `PasoAPaso`. Sin copy propio — las etiquetas de cada pestaña las pasa quien lo usa.
 
 **Files:**
 - Create: `web/src/components/molecules/Pestanas/Pestanas.tsx`
@@ -2468,7 +3206,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { Pestanas } from '../components/m
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 14-pestanas`
+Run: `node web/e2e/capturar.mjs /catalogo 15-pestanas`
 Expected: PNG generado. Verifica: "Calificas" (primera pestaña) está activa por defecto, con indicador azul de 3 px debajo y texto en negrita; las cuentas se ven como números en píldoras oscuras, no como puntos.
 
 - [ ] **Step 7: Commit**
@@ -2480,9 +3218,9 @@ git commit -m "feat(web): molecula Pestanas"
 
 ---
 
-### Task 15: Moléculas `BurbujaChat` y `Pensando`
+### Task 16: Moléculas `BurbujaChat` y `Pensando`
 
-El `porQue` de `BurbujaChat` en `index.d.ts` es solo un booleano (sin manejador); se agrega `onPorQue?: () => void` por la misma razón pragmática que en `Alerta` (Task 11). `Pensando` es un componente aparte del design system, no una prop de `BurbujaChat` — se implementa como tal.
+El `porQue` de `BurbujaChat` en `index.d.ts` es solo un booleano (sin manejador); se agrega `onPorQue?: () => void` por la misma razón pragmática que en `Alerta` (Task 12). `Pensando` es un componente aparte del design system, no una prop de `BurbujaChat` — se implementa como tal. Los tres textos fijos de `BurbujaChat` («Escuchar», la marca de dictado, «¿Por qué pregunto esto?») salen de `t.molecules.burbujaChat` (Task 2); `Pensando` no tiene copy propio, `children` lo pasa quien lo usa.
 
 **Files:**
 - Create: `web/src/components/molecules/BurbujaChat/BurbujaChat.tsx`
@@ -2492,7 +3230,7 @@ El `porQue` de `BurbujaChat` en `index.d.ts` es solo un booleano (sin manejador)
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `Icono` de `../../atoms/Icono/Icono` (Task 5).
+- Consumes: `Icono` de `../../atoms/Icono/Icono` (Task 6). `useT` de `../../../i18n/LocaleContext`, `renderConIdioma` de `../../../test/utilidades` (Task 2).
 - Produces: `BurbujaChat(props: { autor?: 'agente' | 'persona'; children?: ReactNode; escuchable?: boolean; dictado?: boolean; porQue?: boolean; onPorQue?: () => void }): JSX.Element` y `Pensando(props: { children?: ReactNode }): JSX.Element`, ambos en `web/src/components/molecules/BurbujaChat/`.
 
 - [ ] **Step 1: Tests (fallan primero)**
@@ -2501,29 +3239,46 @@ Create `web/src/components/molecules/BurbujaChat/BurbujaChat.test.tsx`:
 
 ```tsx
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderConIdioma } from '../../../test/utilidades';
 import { BurbujaChat } from './BurbujaChat';
 
 describe('BurbujaChat', () => {
   it('el turno del agente muestra el botón Escuchar con la palabra visible', () => {
-    render(<BurbujaChat autor="agente" escuchable>Cuéntame de tu familia.</BurbujaChat>);
+    renderConIdioma(
+      <BurbujaChat autor="agente" escuchable>
+        Cuéntame de tu familia.
+      </BurbujaChat>,
+    );
     expect(screen.getByRole('button', { name: 'Escuchar' })).toBeInTheDocument();
   });
 
   it('el turno de la persona nunca muestra el botón Escuchar', () => {
-    render(<BurbujaChat autor="persona" escuchable>Somos 4 personas.</BurbujaChat>);
+    renderConIdioma(
+      <BurbujaChat autor="persona" escuchable>
+        Somos 4 personas.
+      </BurbujaChat>,
+    );
     expect(screen.queryByRole('button', { name: 'Escuchar' })).not.toBeInTheDocument();
   });
 
   it('un turno dictado se marca como editable, nunca se guarda en silencio', () => {
-    render(<BurbujaChat autor="persona" dictado>Somos 4 personas.</BurbujaChat>);
+    renderConIdioma(
+      <BurbujaChat autor="persona" dictado>
+        Somos 4 personas.
+      </BurbujaChat>,
+    );
     expect(screen.getByText('Lo dijiste hablando · toca para corregir')).toBeInTheDocument();
   });
 
   it('"¿Por qué pregunto esto?" llama a onPorQue', async () => {
     const onPorQue = vi.fn();
-    render(<BurbujaChat autor="agente" porQue onPorQue={onPorQue}>¿Tienes ahorro?</BurbujaChat>);
+    renderConIdioma(
+      <BurbujaChat autor="agente" porQue onPorQue={onPorQue}>
+        ¿Tienes ahorro?
+      </BurbujaChat>,
+    );
     await userEvent.click(screen.getByRole('button', { name: '¿Por qué pregunto esto?' }));
     expect(onPorQue).toHaveBeenCalledOnce();
   });
@@ -2534,12 +3289,13 @@ Create `web/src/components/molecules/BurbujaChat/Pensando.test.tsx`:
 
 ```tsx
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderConIdioma } from '../../../test/utilidades';
 import { Pensando } from './Pensando';
 
 describe('Pensando', () => {
   it('nunca son solo tres puntitos: dice en qué está el agente', () => {
-    render(<Pensando>Revisando el llamado de noviembre del DS1</Pensando>);
+    renderConIdioma(<Pensando>Revisando el llamado de noviembre del DS1</Pensando>);
     expect(screen.getByText('Revisando el llamado de noviembre del DS1')).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
@@ -2559,6 +3315,7 @@ Create `web/src/components/molecules/BurbujaChat/BurbujaChat.tsx`:
 import type { ReactNode } from 'react';
 import { Paper, Stack, IconButton, Typography, Link } from '@mui/material';
 import { Icono } from '../../atoms/Icono/Icono';
+import { useT } from '../../../i18n/LocaleContext';
 
 export interface BurbujaChatProps {
   autor?: 'agente' | 'persona';
@@ -2580,18 +3337,19 @@ export interface BurbujaChatProps {
  * se vuelve ilegible.
  */
 export function BurbujaChat({ autor = 'agente', children, escuchable, dictado, porQue, onPorQue }: BurbujaChatProps) {
+  const t = useT();
   const esPersona = autor === 'persona';
   return (
     <Stack alignItems={esPersona ? 'flex-end' : 'flex-start'} spacing={0.5} sx={{ maxWidth: 'var(--size-measure)' }}>
       {escuchable && !esPersona && (
         <IconButton
           size="small"
-          aria-label="Escuchar"
+          aria-label={t.molecules.burbujaChat.escuchar}
           sx={{ alignSelf: 'flex-end', color: 'var(--ink-brand)', borderRadius: 'var(--radius-pill)', px: 1, gap: 0.5 }}
         >
           <Icono nombre="parlante" tamano={18} />
           <Typography component="span" sx={{ fontSize: '13px', fontWeight: 600 }}>
-            Escuchar
+            {t.molecules.burbujaChat.escuchar}
           </Typography>
         </IconButton>
       )}
@@ -2617,7 +3375,7 @@ export function BurbujaChat({ autor = 'agente', children, escuchable, dictado, p
           <Typography
             sx={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--ink-muted)', mt: 0.5, fontStyle: 'italic' }}
           >
-            Lo dijiste hablando · toca para corregir
+            {t.molecules.burbujaChat.dictadoMarca}
           </Typography>
         )}
       </Paper>
@@ -2627,7 +3385,7 @@ export function BurbujaChat({ autor = 'agente', children, escuchable, dictado, p
           onClick={onPorQue}
           sx={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: 'var(--ink-brand)' }}
         >
-          ¿Por qué pregunto esto?
+          {t.molecules.burbujaChat.porQuePregunto}
         </Link>
       )}
     </Stack>
@@ -2647,7 +3405,8 @@ export interface PensandoProps {
   children?: ReactNode;
 }
 
-/** Estado de espera con texto: nunca tres puntitos solos. Dice en qué está el agente. */
+/** Estado de espera con texto: nunca tres puntitos solos. Dice en qué está el agente. Sin copy
+ * propio — el texto lo pasa quien lo usa. */
 export function Pensando({ children }: PensandoProps) {
   return (
     <Paper
@@ -2700,7 +3459,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { BurbujaChat } from '../component
 
 - [ ] **Step 7: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 15-burbujachat`
+Run: `node web/e2e/capturar.mjs /catalogo 16-burbujachat`
 Expected: PNG generado. Verifica: la burbuja del agente está a la izquierda con borde y esquina inferior izquierda recortada, la de la persona a la derecha en tono terracota suave con la esquina inferior derecha recortada, "Escuchar" solo aparece en la del agente, y "Pensando" muestra un texto real, no solo un spinner.
 
 - [ ] **Step 8: Commit**
@@ -2712,9 +3471,9 @@ git commit -m "feat(web): moleculas BurbujaChat y Pensando"
 
 ---
 
-### Task 16: Organismo `Franja` (patrón de marca)
+### Task 17: Organismo `Franja` (patrón de marca)
 
-Banda decorativa: medios redondeles apoyados sobre el borde de la pieza, más una huella de discos. Máximo dos tintas. Se implementa como SVG con un `<pattern>` que se repite, no como imagen — así escala a cualquier ancho de contenedor sin pixelarse.
+Banda decorativa: medios redondeles apoyados sobre el borde de la pieza, más una huella de discos. Máximo dos tintas. Se implementa como SVG con un `<pattern>` que se repite, no como imagen — así escala a cualquier ancho de contenedor sin pixelarse. Puramente decorativa, sin texto — no necesita `useT()`.
 
 **Files:**
 - Create: `web/src/components/organisms/Franja/Franja.tsx`
@@ -2842,7 +3601,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { Franja } from '../components/org
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 16-franja`
+Run: `node web/e2e/capturar.mjs /catalogo 17-franja`
 Expected: PNG generado. Verifica: la banda azul tiene un medio redondel claro en el centro y puntos crema repartidos; la banda terracota suave solo tiene el arco, sin puntos; la banda de 24 px se ve como una firma fina, no como un bloque grande.
 
 - [ ] **Step 7: Commit**
@@ -2854,9 +3613,9 @@ git commit -m "feat(web): organismo Franja (patron de marca)"
 
 ---
 
-### Task 17: Organismo `Logotipo`
+### Task 18: Organismo `Logotipo`
 
-El nombre se compone en vivo, nunca como archivo con el texto en curvas. Nota: `Logotipo` tipa su prop de tono como `'color' | 'claro' | 'monocromo'` (palabra completa), mientras que `Simbolo` (Task 3) la tipa como `'color' | 'claro' | 'mono'` (abreviada) — son dos componentes del mismo design system con esa pequeña inconsistencia entre sí; `Logotipo` traduce internamente su propio tono al de `Simbolo` al usarlo.
+El nombre se compone en vivo, nunca como archivo con el texto en curvas. Nota: `Logotipo` tipa su prop de tono como `'color' | 'claro' | 'monocromo'` (palabra completa), mientras que `Simbolo` (Task 4) la tipa como `'color' | 'claro' | 'mono'` (abreviada) — son dos componentes del mismo design system con esa pequeña inconsistencia entre sí; `Logotipo` traduce internamente su propio tono al de `Simbolo` al usarlo. "Rumbo a Casa" es el nombre de la marca y no se traduce en ningún idioma — no pasa por el diccionario.
 
 **Files:**
 - Create: `web/src/components/organisms/Logotipo/Logotipo.tsx`
@@ -2864,7 +3623,7 @@ El nombre se compone en vivo, nunca como archivo con el texto en curvas. Nota: `
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `Simbolo` de `../../atoms/Simbolo/Simbolo` (Task 3).
+- Consumes: `Simbolo` de `../../atoms/Simbolo/Simbolo` (Task 4).
 - Produces: `Logotipo(props: { disposicion?: 'horizontal' | 'vertical' | 'simbolo'; alto?: number; tono?: 'color' | 'claro' | 'monocromo' }): JSX.Element` desde `web/src/components/organisms/Logotipo/Logotipo.tsx`.
 
 - [ ] **Step 1: Test (falla primero)**
@@ -2931,7 +3690,7 @@ const TONO_SIMBOLO = { color: 'color', claro: 'claro', monocromo: 'mono' } as co
  * El símbolo y el nombre, en las tres disposiciones que el proyecto necesita. El nombre se
  * compone en vivo en la familia `display`, peso 700, interletrado -0,02em — nunca un archivo
  * con el texto convertido a curvas, para que el nombre de marca y el que muestra la app no se
- * puedan separar.
+ * puedan separar. "Rumbo a Casa" es un nombre propio: se escribe igual en los dos idiomas.
  */
 export function Logotipo({ disposicion = 'horizontal', alto = 40, tono = 'color' }: LogotipoProps) {
   const colorTexto =
@@ -3000,7 +3759,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { Logotipo } from '../components/o
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 17-logotipo`
+Run: `node web/e2e/capturar.mjs /catalogo 18-logotipo`
 Expected: PNG generado. Verifica: el nombre está en la tipografía con carácter (Bricolage Grotesque, no una sans genérica), la versión horizontal alinea símbolo y nombre en una línea, la vertical centra "Rumbo a" / "Casa" bajo el símbolo, y la versión sobre fondo azul usa el símbolo claro (peldaños celestes, puerta durazno).
 
 - [ ] **Step 7: Commit**
@@ -3012,9 +3771,9 @@ git commit -m "feat(web): organismo Logotipo"
 
 ---
 
-### Task 18: Organismo `CabeceraApp`
+### Task 19: Organismo `CabeceraApp` (con el selector de idioma)
 
-`index.d.ts` tipa `accion` como un simple `boolean`, sin decir qué ícono ni qué maneja — se agregan `accionIcono`/`onAccion` opcionales porque una acción sin ícono ni manejador no se puede renderizar; ninguna pantalla de este plan termina usándola (ver Tasks 27-31), así que queda lista pero sin uso real todavía.
+`index.d.ts` tipa `accion` como un simple `boolean`, sin decir qué ícono ni qué maneja — se agregan `accionIcono`/`onAccion` opcionales porque una acción sin ícono ni manejador no se puede renderizar; ninguna pantalla de este plan termina usándola (ver Tasks 28-32), así que queda lista pero sin uso real todavía. Este task cablea `SelectorIdioma` (Task 2) de forma permanente a la derecha de la cabecera, en toda pantalla que use `CabeceraApp` — es el único lugar donde vive. Los dos textos fijos («Volver», «Acción») salen de `t.organisms.cabeceraApp` (Task 2).
 
 **Files:**
 - Create: `web/src/components/organisms/CabeceraApp/CabeceraApp.tsx`
@@ -3022,7 +3781,7 @@ git commit -m "feat(web): organismo Logotipo"
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `Icono`, `NombreIcono` de `../../atoms/Icono/Icono` (Task 5); `Simbolo` de `../../atoms/Simbolo/Simbolo` (Task 3); `Franja` de `../Franja/Franja` (Task 16).
+- Consumes: `Icono`, `NombreIcono` de `../../atoms/Icono/Icono` (Task 6); `Simbolo` de `../../atoms/Simbolo/Simbolo` (Task 4); `Franja` de `../Franja/Franja` (Task 17); `SelectorIdioma` de `../../atoms/SelectorIdioma/SelectorIdioma`, `useT` de `../../../i18n/LocaleContext`, `renderConIdioma` de `../../../test/utilidades` (Task 2).
 - Produces: `CabeceraApp(props: { titulo: string; atras?: boolean; onAtras?: () => void; accion?: boolean; accionIcono?: NombreIcono; onAccion?: () => void; conFranja?: boolean }): JSX.Element` desde `web/src/components/organisms/CabeceraApp/CabeceraApp.tsx`.
 
 - [ ] **Step 1: Test (falla primero)**
@@ -3031,32 +3790,39 @@ Create `web/src/components/organisms/CabeceraApp/CabeceraApp.test.tsx`:
 
 ```tsx
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderConIdioma } from '../../../test/utilidades';
 import { CabeceraApp } from './CabeceraApp';
 
 describe('CabeceraApp', () => {
   it('muestra el título y el símbolo, nunca el logotipo completo', () => {
-    render(<CabeceraApp titulo="Tu entrevista" />);
+    renderConIdioma(<CabeceraApp titulo="Tu entrevista" />);
     expect(screen.getByText('Tu entrevista')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Rumbo a Casa' })).toBeInTheDocument();
   });
 
   it('el botón de volver llama a onAtras', async () => {
     const onAtras = vi.fn();
-    render(<CabeceraApp titulo="Tu plan" atras onAtras={onAtras} />);
+    renderConIdioma(<CabeceraApp titulo="Tu plan" atras onAtras={onAtras} />);
     await userEvent.click(screen.getByRole('button', { name: 'Volver' }));
     expect(onAtras).toHaveBeenCalledOnce();
   });
 
   it('sin atras, no muestra el botón de volver', () => {
-    render(<CabeceraApp titulo="Rumbo a Casa" />);
+    renderConIdioma(<CabeceraApp titulo="Rumbo a Casa" />);
     expect(screen.queryByRole('button', { name: 'Volver' })).not.toBeInTheDocument();
   });
 
   it('con conFranja, agrega la firma de marca bajo la cabecera', () => {
-    render(<CabeceraApp titulo="Tu plan" conFranja />);
+    renderConIdioma(<CabeceraApp titulo="Tu plan" conFranja />);
     expect(screen.getByTestId('franja')).toHaveAttribute('height', '24');
+  });
+
+  it('siempre muestra el selector de idioma, sin depender de ninguna prop', () => {
+    renderConIdioma(<CabeceraApp titulo="Tu plan" />);
+    expect(screen.getByRole('button', { name: 'Español' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'English' })).toBeInTheDocument();
   });
 });
 ```
@@ -3071,10 +3837,12 @@ Expected: FAIL — `./CabeceraApp` no existe.
 Create `web/src/components/organisms/CabeceraApp/CabeceraApp.tsx`:
 
 ```tsx
-import { AppBar, Toolbar, IconButton, Typography } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Typography, Stack } from '@mui/material';
 import { Icono, type NombreIcono } from '../../atoms/Icono/Icono';
 import { Simbolo } from '../../atoms/Simbolo/Simbolo';
 import { Franja } from '../Franja/Franja';
+import { SelectorIdioma } from '../../atoms/SelectorIdioma/SelectorIdioma';
+import { useT } from '../../../i18n/LocaleContext';
 
 export interface CabeceraAppProps {
   titulo: string;
@@ -3089,7 +3857,8 @@ export interface CabeceraAppProps {
 /**
  * La cabecera fija de la app. Es el único lugar de la interfaz donde el azul profundo ocupa una
  * superficie grande. Solo lleva el símbolo en tintas oscuras, nunca el logotipo completo — el
- * nombre ya está en el título. No se oculta al desplazar.
+ * nombre ya está en el título. No se oculta al desplazar. Lleva siempre, a la derecha, el
+ * selector de idioma — es el único lugar donde vive, y no depende de ninguna prop.
  */
 export function CabeceraApp({
   titulo,
@@ -3100,11 +3869,16 @@ export function CabeceraApp({
   onAccion,
   conFranja,
 }: CabeceraAppProps) {
+  const t = useT();
   return (
     <AppBar position="sticky" elevation={0} sx={{ backgroundColor: 'var(--surface-brand)', top: 0 }}>
       <Toolbar sx={{ gap: 1, minHeight: 'var(--size-touch)' }}>
         {atras && (
-          <IconButton aria-label="Volver" onClick={onAtras} sx={{ color: 'var(--ink-on-brand)' }}>
+          <IconButton
+            aria-label={t.organisms.cabeceraApp.volver}
+            onClick={onAtras}
+            sx={{ color: 'var(--ink-on-brand)' }}
+          >
             <Icono nombre="atras" />
           </IconButton>
         )}
@@ -3121,11 +3895,18 @@ export function CabeceraApp({
         >
           {titulo}
         </Typography>
-        {accion && accionIcono && (
-          <IconButton aria-label="Acción" onClick={onAccion} sx={{ color: 'var(--ink-on-brand)' }}>
-            <Icono nombre={accionIcono} />
-          </IconButton>
-        )}
+        <Stack direction="row" spacing={0.5} alignItems="center">
+          {accion && accionIcono && (
+            <IconButton
+              aria-label={t.organisms.cabeceraApp.accion}
+              onClick={onAccion}
+              sx={{ color: 'var(--ink-on-brand)' }}
+            >
+              <Icono nombre={accionIcono} />
+            </IconButton>
+          )}
+          <SelectorIdioma />
+        </Stack>
       </Toolbar>
       {conFranja && <Franja alto={24} tono="brand" borde="abajo" />}
     </AppBar>
@@ -3153,21 +3934,21 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { CabeceraApp } from '../component
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 18-cabeceraapp`
-Expected: PNG generado. Verifica: fondo azul profundo de borde a borde, solo el símbolo (no el nombre completo) a la izquierda del título, botón de volver en blanco, y la firma de patrón de 24 px pegada al borde inferior de la barra.
+Run: `node web/e2e/capturar.mjs /catalogo 19-cabeceraapp`
+Expected: PNG generado. Verifica: fondo azul profundo de borde a borde, solo el símbolo (no el nombre completo) a la izquierda del título, botón de volver en blanco, el selector "ES · EN" a la derecha con "ES" resaltado, y la firma de patrón de 24 px pegada al borde inferior de la barra.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add web/src/components/organisms/CabeceraApp web/src/dev/Catalogo.tsx
-git commit -m "feat(web): organismo CabeceraApp"
+git commit -m "feat(web): organismo CabeceraApp con selector de idioma"
 ```
 
 ---
 
-### Task 19: Organismo `BarraInferior`
+### Task 20: Organismo `BarraInferior`
 
-Cuatro destinos fijos, cada uno una etapa real del trámite: Hablar (la entrevista), Mi plan (resultado + plan de un programa), Documentos (checklist agregado) y Avisos (seguimiento y plazos) — el mapeo exacto a pantallas se cablea en Task 26.
+Cuatro destinos fijos, cada uno una etapa real del trámite: Hablar (la entrevista), Mi plan (resultado + plan de un programa), Documentos (checklist agregado) y Avisos (seguimiento y plazos) — el mapeo exacto a pantallas se cablea en Task 27. Las cuatro etiquetas salen de `t.organisms.barraInferior` (Task 2).
 
 **Files:**
 - Create: `web/src/components/organisms/BarraInferior/BarraInferior.tsx`
@@ -3175,7 +3956,7 @@ Cuatro destinos fijos, cada uno una etapa real del trámite: Hablar (la entrevis
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `Icono` de `../../atoms/Icono/Icono` (Task 5).
+- Consumes: `Icono` de `../../atoms/Icono/Icono` (Task 6). `useT` de `../../../i18n/LocaleContext`, `renderConIdioma` de `../../../test/utilidades` (Task 2).
 - Produces: `DestinoBarraInferior = 'hablar' | 'plan' | 'documentos' | 'avisos'`, `BarraInferior(props: { value?: DestinoBarraInferior; avisos?: number; onChange?: (e: SyntheticEvent, v: string) => void }): JSX.Element` desde `web/src/components/organisms/BarraInferior/BarraInferior.tsx`.
 
 - [ ] **Step 1: Test (falla primero)**
@@ -3184,13 +3965,14 @@ Create `web/src/components/organisms/BarraInferior/BarraInferior.test.tsx`:
 
 ```tsx
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderConIdioma } from '../../../test/utilidades';
 import { BarraInferior } from './BarraInferior';
 
 describe('BarraInferior', () => {
   it('tiene los cuatro destinos fijos, siempre con su etiqueta visible', () => {
-    render(<BarraInferior value="hablar" />);
+    renderConIdioma(<BarraInferior value="hablar" />);
     expect(screen.getByRole('button', { name: /Hablar/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Mi plan/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Documentos/ })).toBeInTheDocument();
@@ -3198,13 +3980,13 @@ describe('BarraInferior', () => {
   });
 
   it('muestra el número de avisos, no solo un punto', () => {
-    render(<BarraInferior value="hablar" avisos={2} />);
+    renderConIdioma(<BarraInferior value="hablar" avisos={2} />);
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 
   it('llama a onChange con el destino elegido', async () => {
     const onChange = vi.fn();
-    render(<BarraInferior value="hablar" onChange={onChange} />);
+    renderConIdioma(<BarraInferior value="hablar" onChange={onChange} />);
     await userEvent.click(screen.getByRole('button', { name: /Mi plan/ }));
     expect(onChange).toHaveBeenCalled();
     expect(onChange.mock.calls[0][1]).toBe('plan');
@@ -3225,6 +4007,7 @@ Create `web/src/components/organisms/BarraInferior/BarraInferior.tsx`:
 import type { SyntheticEvent } from 'react';
 import { BottomNavigation, BottomNavigationAction, Badge } from '@mui/material';
 import { Icono } from '../../atoms/Icono/Icono';
+import { useT } from '../../../i18n/LocaleContext';
 
 export type DestinoBarraInferior = 'hablar' | 'plan' | 'documentos' | 'avisos';
 
@@ -3239,6 +4022,7 @@ export interface BarraInferiorProps {
  * uno corresponde a una etapa real del trámite, no a una sección del producto.
  */
 export function BarraInferior({ value, avisos = 0, onChange }: BarraInferiorProps) {
+  const t = useT();
   return (
     <BottomNavigation
       value={value}
@@ -3253,11 +4037,15 @@ export function BarraInferior({ value, avisos = 0, onChange }: BarraInferiorProp
         '& .Mui-selected': { color: 'var(--brand)', fontWeight: 700 },
       }}
     >
-      <BottomNavigationAction label="Hablar" value="hablar" icon={<Icono nombre="chat" />} />
-      <BottomNavigationAction label="Mi plan" value="plan" icon={<Icono nombre="casa" />} />
-      <BottomNavigationAction label="Documentos" value="documentos" icon={<Icono nombre="papel" />} />
+      <BottomNavigationAction label={t.organisms.barraInferior.hablar} value="hablar" icon={<Icono nombre="chat" />} />
+      <BottomNavigationAction label={t.organisms.barraInferior.miPlan} value="plan" icon={<Icono nombre="casa" />} />
       <BottomNavigationAction
-        label="Avisos"
+        label={t.organisms.barraInferior.documentos}
+        value="documentos"
+        icon={<Icono nombre="papel" />}
+      />
+      <BottomNavigationAction
+        label={t.organisms.barraInferior.avisos}
         value="avisos"
         icon={
           <Badge
@@ -3294,7 +4082,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { BarraInferior } from '../compone
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 19-barrainferior`
+Run: `node web/e2e/capturar.mjs /catalogo 20-barrainferior`
 Expected: PNG generado. Verifica: los cuatro destinos con su etiqueta siempre visible, "Mi plan" (activo) en azul y negrita, y "Avisos" con una insignia numérica (no un punto vacío) con el número 2.
 
 - [ ] **Step 7: Commit**
@@ -3306,9 +4094,9 @@ git commit -m "feat(web): organismo BarraInferior"
 
 ---
 
-### Task 20: Organismo `BloqueHero`
+### Task 21: Organismo `BloqueHero`
 
-Cabecera de pantalla con los bloques de color de la portada. La usan `PantallaBienvenida` (Task 27) y `PantallaResultado` (Task 29).
+Cabecera de pantalla con los bloques de color de la portada. La usan `PantallaBienvenida` (Task 28) y `PantallaResultado` (Task 30). Sin copy propio — `titulo`, `bajada` y `chips` los pasa quien lo usa, ya traducidos.
 
 **Files:**
 - Create: `web/src/components/organisms/BloqueHero/BloqueHero.tsx`
@@ -3316,7 +4104,7 @@ Cabecera de pantalla con los bloques de color de la portada. La usan `PantallaBi
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `Franja` de `../Franja/Franja` (Task 16).
+- Consumes: `Franja` de `../Franja/Franja` (Task 17).
 - Produces: `BloqueHero(props: { titulo: string; bajada?: string; chips?: string[] }): JSX.Element` desde `web/src/components/organisms/BloqueHero/BloqueHero.tsx`.
 
 - [ ] **Step 1: Test (falla primero)**
@@ -3441,7 +4229,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { BloqueHero } from '../components
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 20-bloquehero`
+Run: `node web/e2e/capturar.mjs /catalogo 21-bloquehero`
 Expected: PNG generado. Verifica: bloque azul con esquinas redondeadas, título grande en Bricolage Grotesque, los 4 chips de programa en celeste sobre el azul, y la franja decorativa cerrando el bloque por abajo.
 
 - [ ] **Step 7: Commit**
@@ -3453,9 +4241,9 @@ git commit -m "feat(web): organismo BloqueHero"
 
 ---
 
-### Task 21: Organismo `TarjetaPrograma`
+### Task 22: Organismo `TarjetaPrograma`
 
-La unidad de la pantalla de resultados. Como en `Alerta` y `BurbujaChat`, `accion` en `index.d.ts` es solo una etiqueta sin manejador — se agrega `onAccion?: () => void`.
+La unidad de la pantalla de resultados. Como en `Alerta` y `BurbujaChat`, `accion` en `index.d.ts` es solo una etiqueta sin manejador — se agrega `onAccion?: () => void`. La cita de fuente ("Fuente: …") sale de `t.comun.fuente` (Task 2), compartida con `TarjetaPorQue` (Task 25); el resto del contenido (`sigla`, `nombreComun`, `razon`, `accion`) lo pasa quien usa el componente, ya traducido.
 
 **Files:**
 - Create: `web/src/components/organisms/TarjetaPrograma/TarjetaPrograma.tsx`
@@ -3463,7 +4251,7 @@ La unidad de la pantalla de resultados. Como en `Alerta` y `BurbujaChat`, `accio
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `SelloElegibilidad`, `EstadoElegibilidad` de `../../molecules/SelloElegibilidad/SelloElegibilidad` (Task 9); `Boton` de `../../atoms/Boton/Boton` (Task 6).
+- Consumes: `SelloElegibilidad`, `EstadoElegibilidad` de `../../molecules/SelloElegibilidad/SelloElegibilidad` (Task 10); `Boton` de `../../atoms/Boton/Boton` (Task 7); `useT` de `../../../i18n/LocaleContext`, `renderConIdioma` de `../../../test/utilidades` (Task 2).
 - Produces: `TarjetaPrograma(props: { sigla: string; nombreComun: string; estado: EstadoElegibilidad; razon: string; regla?: string; llamado?: string; serviu?: string; accion?: string; onAccion?: () => void; variante?: 'contained' | 'outlined' }): JSX.Element` desde `web/src/components/organisms/TarjetaPrograma/TarjetaPrograma.tsx`.
 
 - [ ] **Step 1: Test (falla primero)**
@@ -3472,13 +4260,14 @@ Create `web/src/components/organisms/TarjetaPrograma/TarjetaPrograma.test.tsx`:
 
 ```tsx
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderConIdioma } from '../../../test/utilidades';
 import { TarjetaPrograma } from './TarjetaPrograma';
 
 describe('TarjetaPrograma', () => {
   it('el título junta la sigla y el nombre común', () => {
-    render(
+    renderConIdioma(
       <TarjetaPrograma
         sigla="DS49"
         nombreComun="Casa propia sin crédito"
@@ -3490,7 +4279,7 @@ describe('TarjetaPrograma', () => {
   });
 
   it('muestra la razón y la regla citada', () => {
-    render(
+    renderConIdioma(
       <TarjetaPrograma
         sigla="DS49"
         nombreComun="Casa propia sin crédito"
@@ -3505,7 +4294,7 @@ describe('TarjetaPrograma', () => {
 
   it('la acción llama a onAccion', async () => {
     const onAccion = vi.fn();
-    render(
+    renderConIdioma(
       <TarjetaPrograma
         sigla="DS49"
         nombreComun="Casa propia sin crédito"
@@ -3520,7 +4309,9 @@ describe('TarjetaPrograma', () => {
   });
 
   it('sin accion, no muestra ningún botón', () => {
-    render(<TarjetaPrograma sigla="DS52" nombreComun="Arriendo" estado="noAplica" razon="Ya tienes vivienda propia." />);
+    renderConIdioma(
+      <TarjetaPrograma sigla="DS52" nombreComun="Arriendo" estado="noAplica" razon="Ya tienes vivienda propia." />,
+    );
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });
@@ -3539,6 +4330,7 @@ Create `web/src/components/organisms/TarjetaPrograma/TarjetaPrograma.tsx`:
 import { Card, CardContent, CardActions, Stack, Typography } from '@mui/material';
 import { SelloElegibilidad, type EstadoElegibilidad } from '../../molecules/SelloElegibilidad/SelloElegibilidad';
 import { Boton } from '../../atoms/Boton/Boton';
+import { useT } from '../../../i18n/LocaleContext';
 
 export interface TarjetaProgramaProps {
   sigla: string;
@@ -3570,6 +4362,7 @@ export function TarjetaPrograma({
   onAccion,
   variante = 'contained',
 }: TarjetaProgramaProps) {
+  const t = useT();
   return (
     <Card variant="outlined" sx={{ borderColor: 'var(--border)' }}>
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -3592,7 +4385,7 @@ export function TarjetaPrograma({
               pl: 1,
             }}
           >
-            Fuente: {regla}
+            {t.comun.fuente(regla)}
           </Typography>
         )}
         {(llamado || serviu) && (
@@ -3650,7 +4443,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { TarjetaPrograma } from '../compo
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 21-tarjetaprograma`
+Run: `node web/e2e/capturar.mjs /catalogo 22-tarjetaprograma`
 Expected: PNG generado. Verifica: el sello queda arriba a la derecha en la misma línea del título, la fuente aparece con una barra vertical a la izquierda por debajo de la razón, y el botón de acción ocupa el ancho completo de la tarjeta.
 
 - [ ] **Step 7: Commit**
@@ -3662,9 +4455,9 @@ git commit -m "feat(web): organismo TarjetaPrograma"
 
 ---
 
-### Task 22: Organismo `ChecklistDocumentos`
+### Task 23: Organismo `ChecklistDocumentos`
 
-`index.d.ts` nombra los campos del ítem más simple que la prosa del README: `nombre` (no `nombreComun`), `oficial` (no `nombreOficial`), `donde`, `vence` (no `venceEl`), `listo` (no `estado`) — se sigue el tipo publicado. No incluye `onToggle`; se agrega igual que en tasks anteriores, porque una casilla sin manejador no sirve de nada.
+`index.d.ts` nombra los campos del ítem más simple que la prosa del README: `nombre` (no `nombreComun`), `oficial` (no `nombreOficial`), `donde`, `vence` (no `venceEl`), `listo` (no `estado`) — se sigue el tipo publicado. No incluye `onToggle`; se agrega igual que en tasks anteriores, porque una casilla sin manejador no sirve de nada. Los tres textos fijos (el progreso, el vencimiento, la nota al pie) salen de `t.organisms.checklistDocumentos` (Task 2); `nombre`, `oficial` y `donde` de cada ítem los pasa quien usa el componente, ya traducidos.
 
 **Files:**
 - Create: `web/src/components/organisms/ChecklistDocumentos/ChecklistDocumentos.tsx`
@@ -3672,7 +4465,7 @@ git commit -m "feat(web): organismo TarjetaPrograma"
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `Icono` de `../../atoms/Icono/Icono` (Task 5).
+- Consumes: `Icono` de `../../atoms/Icono/Icono` (Task 6). `useT` de `../../../i18n/LocaleContext`, `renderConIdioma` de `../../../test/utilidades` (Task 2).
 - Produces: `DocumentoChecklist { nombre: string; oficial?: string; donde?: string; vence?: string; listo?: boolean }`, `ChecklistDocumentos(props: { programa?: string; items: DocumentoChecklist[]; onToggle?: (indice: number) => void }): JSX.Element` desde `web/src/components/organisms/ChecklistDocumentos/ChecklistDocumentos.tsx`.
 
 - [ ] **Step 1: Test (falla primero)**
@@ -3681,8 +4474,9 @@ Create `web/src/components/organisms/ChecklistDocumentos/ChecklistDocumentos.tes
 
 ```tsx
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderConIdioma } from '../../../test/utilidades';
 import { ChecklistDocumentos } from './ChecklistDocumentos';
 
 const items = [
@@ -3693,30 +4487,30 @@ const items = [
 
 describe('ChecklistDocumentos', () => {
   it('muestra el progreso en texto, no solo en barra', () => {
-    render(<ChecklistDocumentos items={items} />);
+    renderConIdioma(<ChecklistDocumentos items={items} />);
     expect(screen.getByText('1 de 3 listos')).toBeInTheDocument();
   });
 
   it('el nombre común va primero y el oficial abajo en letra chica', () => {
-    render(<ChecklistDocumentos items={items} />);
+    renderConIdioma(<ChecklistDocumentos items={items} />);
     expect(screen.getByText('Tu cédula')).toBeInTheDocument();
     expect(screen.getByText('Cédula de identidad vigente')).toBeInTheDocument();
   });
 
   it('un documento pendiente con vencimiento muestra la fecha completa', () => {
-    render(<ChecklistDocumentos items={items} />);
+    renderConIdioma(<ChecklistDocumentos items={items} />);
     expect(screen.getByText('Vence: 30 sep 2026')).toBeInTheDocument();
   });
 
   it('marcar la casilla llama a onToggle con el índice', async () => {
     const onToggle = vi.fn();
-    render(<ChecklistDocumentos items={items} onToggle={onToggle} />);
+    renderConIdioma(<ChecklistDocumentos items={items} onToggle={onToggle} />);
     await userEvent.click(screen.getByRole('checkbox', { name: /Cartola Hogar/ }));
     expect(onToggle).toHaveBeenCalledWith(1);
   });
 
   it('dice que la app no guarda los documentos', () => {
-    render(<ChecklistDocumentos items={items} />);
+    renderConIdioma(<ChecklistDocumentos items={items} />);
     expect(screen.getByText(/La app no guarda tus documentos/)).toBeInTheDocument();
   });
 });
@@ -3734,6 +4528,7 @@ Create `web/src/components/organisms/ChecklistDocumentos/ChecklistDocumentos.tsx
 ```tsx
 import { List, ListItem, ListItemIcon, ListItemText, Checkbox, Typography, LinearProgress, Stack } from '@mui/material';
 import { Icono } from '../../atoms/Icono/Icono';
+import { useT } from '../../../i18n/LocaleContext';
 
 export interface DocumentoChecklist {
   nombre: string;
@@ -3755,6 +4550,7 @@ export interface ChecklistDocumentosProps {
  * recordatorio de la persona.
  */
 export function ChecklistDocumentos({ programa, items, onToggle }: ChecklistDocumentosProps) {
+  const t = useT();
   const listos = items.filter((i) => i.listo).length;
   return (
     <Stack spacing={1.5}>
@@ -3774,7 +4570,7 @@ export function ChecklistDocumentos({ programa, items, onToggle }: ChecklistDocu
       )}
       <Stack direction="row" alignItems="center" spacing={1.5}>
         <Typography sx={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>
-          {listos} de {items.length} listos
+          {t.organisms.checklistDocumentos.deListos(listos, items.length)}
         </Typography>
         <LinearProgress
           variant="determinate"
@@ -3826,7 +4622,7 @@ export function ChecklistDocumentos({ programa, items, onToggle }: ChecklistDocu
                         display="block"
                         sx={{ fontSize: '14px', color: 'var(--ink-warning)', fontWeight: 600 }}
                       >
-                        Vence: {item.vence}
+                        {t.organisms.checklistDocumentos.vence(item.vence!)}
                       </Typography>
                     )}
                   </>
@@ -3837,7 +4633,7 @@ export function ChecklistDocumentos({ programa, items, onToggle }: ChecklistDocu
         })}
       </List>
       <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--ink-muted)' }}>
-        La app no guarda tus documentos. La casilla es solo un recordatorio tuyo.
+        {t.organisms.checklistDocumentos.notaNoGuarda}
       </Typography>
     </Stack>
   );
@@ -3872,7 +4668,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { ChecklistDocumentos } from '../c
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 22-checklistdocumentos`
+Run: `node web/e2e/capturar.mjs /catalogo 23-checklistdocumentos`
 Expected: PNG generado. Verifica: "1 de 3 listos" junto a una barra de avance en terracota, la fila lista con check verde, "Certificado de ahorro" muestra su fecha de vencimiento en tono de advertencia, y la nota al pie sobre que la app no guarda los documentos.
 
 - [ ] **Step 7: Commit**
@@ -3884,9 +4680,9 @@ git commit -m "feat(web): organismo ChecklistDocumentos"
 
 ---
 
-### Task 23: Organismo `LineaDeLlamados`
+### Task 24: Organismo `LineaDeLlamados`
 
-Ningún dato real de llamados (fechas de apertura/cierre/Serviu) existe hoy en el backend — este componente se construye fiel a su contrato y, cuando se use en Task 31, cada llamado usará el propio texto de repliegue del design system («Sin fecha publicada», «Por confirmar con el Serviu») en vez de una fecha inventada. Como en `Alerta`, `PasoAPaso`, `BurbujaChat`, `CabeceraApp`, `TarjetaPrograma` y `ChecklistDocumentos`, `index.d.ts` tipa `accion` de cada llamado como una simple etiqueta (`string`), sin manejador — se agrega `onAccion?: (indice: number) => void` a nivel de `LineaDeLlamados` por la misma razón pragmática que en esas tareas: un botón de recordatorio sin manejador no hace nada.
+Ningún dato real de llamados (fechas de apertura/cierre/Serviu) existe hoy en el backend — este componente se construye fiel a su contrato y, cuando se use en Task 32, cada llamado usará el propio texto de repliegue del design system («Sin fecha publicada», «Por confirmar con tu Serviu regional» — `t.comun`, Task 2) en vez de una fecha inventada. Como en `Alerta`, `PasoAPaso`, `BurbujaChat`, `CabeceraApp`, `TarjetaPrograma` y `ChecklistDocumentos`, `index.d.ts` tipa `accion` de cada llamado como una simple etiqueta (`string`), sin manejador — se agrega `onAccion?: (indice: number) => void` a nivel de `LineaDeLlamados` por la misma razón pragmática que en esas tareas: un botón de recordatorio sin manejador no hace nada. El texto fijo «Por confirmar con el Serviu.» que muestra cada ítem con `porConfirmar` sale de `t.organisms.lineaDeLlamados.porConfirmar` (Task 2).
 
 **Files:**
 - Create: `web/src/components/organisms/LineaDeLlamados/LineaDeLlamados.tsx`
@@ -3894,7 +4690,7 @@ Ningún dato real de llamados (fechas de apertura/cierre/Serviu) existe hoy en e
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `Boton` de `../../atoms/Boton/Boton` (Task 6).
+- Consumes: `Boton` de `../../atoms/Boton/Boton` (Task 7). `useT` de `../../../i18n/LocaleContext`, `renderConIdioma` de `../../../test/utilidades` (Task 2).
 - Produces: `LlamadoItem { programa: string; fechas: string; serviu: string; estado: 'cerrado' | 'abierto' | 'porVenir'; porConfirmar?: boolean; contador?: string; accion?: string }`, `LineaDeLlamados(props: { titulo?: string; llamados: LlamadoItem[]; onAccion?: (indice: number) => void }): JSX.Element` desde `web/src/components/organisms/LineaDeLlamados/LineaDeLlamados.tsx`.
 
 - [ ] **Step 1: Test (falla primero)**
@@ -3903,8 +4699,9 @@ Create `web/src/components/organisms/LineaDeLlamados/LineaDeLlamados.test.tsx`:
 
 ```tsx
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderConIdioma } from '../../../test/utilidades';
 import { LineaDeLlamados } from './LineaDeLlamados';
 
 const llamados = [
@@ -3922,23 +4719,23 @@ const llamados = [
 
 describe('LineaDeLlamados', () => {
   it('muestra apertura, cierre y Serviu juntos, para cada llamado', () => {
-    render(<LineaDeLlamados llamados={llamados} />);
+    renderConIdioma(<LineaDeLlamados llamados={llamados} />);
     expect(screen.getByText('3 mar 2026 – 30 mar 2026 · Serviu Metropolitana')).toBeInTheDocument();
   });
 
   it('un llamado cerrado se muestra atenuado pero nunca se esconde', () => {
-    render(<LineaDeLlamados llamados={llamados} />);
+    renderConIdioma(<LineaDeLlamados llamados={llamados} />);
     expect(screen.getByText('DS49')).toBeInTheDocument();
   });
 
   it('una fecha por confirmar lo dice explícitamente', () => {
-    render(<LineaDeLlamados llamados={llamados} />);
+    renderConIdioma(<LineaDeLlamados llamados={llamados} />);
     expect(screen.getByText('Por confirmar con el Serviu.')).toBeInTheDocument();
   });
 
   it('la acción de recordatorio llama a onAccion con el índice', async () => {
     const onAccion = vi.fn();
-    render(<LineaDeLlamados llamados={llamados} onAccion={onAccion} />);
+    renderConIdioma(<LineaDeLlamados llamados={llamados} onAccion={onAccion} />);
     await userEvent.click(screen.getByRole('button', { name: 'Avisarme' }));
     expect(onAccion).toHaveBeenCalledWith(1);
   });
@@ -3957,6 +4754,7 @@ Create `web/src/components/organisms/LineaDeLlamados/LineaDeLlamados.tsx`:
 ```tsx
 import { Stack, Typography, Box } from '@mui/material';
 import { Boton } from '../../atoms/Boton/Boton';
+import { useT } from '../../../i18n/LocaleContext';
 
 export interface LlamadoItem {
   programa: string;
@@ -3988,6 +4786,7 @@ const COLOR_ESTADO: Record<LlamadoItem['estado'], string> = {
  * El cerrado se muestra atenuado pero legible, nunca se esconde.
  */
 export function LineaDeLlamados({ titulo, llamados, onAccion }: LineaDeLlamadosProps) {
+  const t = useT();
   return (
     <Stack spacing={2}>
       {titulo && (
@@ -4025,7 +4824,7 @@ export function LineaDeLlamados({ titulo, llamados, onAccion }: LineaDeLlamadosP
               <Typography
                 sx={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: 'var(--ink-muted)', fontStyle: 'italic' }}
               >
-                Por confirmar con el Serviu.
+                {t.organisms.lineaDeLlamados.porConfirmar}
               </Typography>
             )}
             {l.contador && (
@@ -4080,7 +4879,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { LineaDeLlamados } from '../compo
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 23-lineadellamados`
+Run: `node web/e2e/capturar.mjs /catalogo 24-lineadellamados`
 Expected: PNG generado. Verifica: el llamado cerrado se ve atenuado (punto gris) pero legible, el segundo llamado dice claramente "Por confirmar con el Serviu" en vez de mostrar una fecha inventada, y el botón "Avisarme..." queda visible al final de esa fila.
 
 - [ ] **Step 7: Commit**
@@ -4092,9 +4891,9 @@ git commit -m "feat(web): organismo LineaDeLlamados"
 
 ---
 
-### Task 24: Organismo `TarjetaPorQue` (solo de fixture — sin datos reales, ver Global Constraints)
+### Task 25: Organismo `TarjetaPorQue` (solo de fixture — sin datos reales, ver Global Constraints)
 
-El motor de reglas del backend devuelve un solo `motivo` por programa, no un arreglo `reglas` evaluadas una por una con el dato de la persona (`tuDato` es obligatorio en `index.d.ts` y hoy no hay de dónde sacarlo). Se construye el componente fiel a su contrato y se prueba con datos de fixture; **no se conecta a la API en este plan** — eso requiere extender `backend/src/rules-engine` para que cada `evaluarDSxx` devuelva su lista de sub-reglas evaluadas, no solo el primer motivo que falla. Se avisa de nuevo en el cierre (Task 32).
+El motor de reglas del backend devuelve un solo `motivo` por programa, no un arreglo `reglas` evaluadas una por una con el dato de la persona (`tuDato` es obligatorio en `index.d.ts` y hoy no hay de dónde sacarlo). Se construye el componente fiel a su contrato y se prueba con datos de fixture; **no se conecta a la API en este plan** — eso requiere extender `backend/src/rules-engine` para que cada `evaluarDSxx` devuelva su lista de sub-reglas evaluadas, no solo el primer motivo que falla. Se avisa de nuevo en el cierre (Task 33). "Tu dato: …" sale de `t.organisms.tarjetaPorQue.tuDato` y "Fuente: …" de `t.comun.fuente` (los dos de Task 2, el segundo compartido con `TarjetaPrograma`, Task 22).
 
 **Files:**
 - Create: `web/src/components/organisms/TarjetaPorQue/TarjetaPorQue.tsx`
@@ -4102,7 +4901,7 @@ El motor de reglas del backend devuelve un solo `motivo` por programa, no un arr
 - Modify: `web/src/dev/Catalogo.tsx`
 
 **Interfaces:**
-- Consumes: `Icono` de `../../atoms/Icono/Icono` (Task 5).
+- Consumes: `Icono` de `../../atoms/Icono/Icono` (Task 6). `useT` de `../../../i18n/LocaleContext`, `renderConIdioma` de `../../../test/utilidades` (Task 2).
 - Produces: `ReglaEvaluada { enunciado: string; tuDato: string; cumple: boolean; fuente: string; arreglo?: string }`, `TarjetaPorQue(props: { titulo: string; reglas: ReglaEvaluada[]; pie?: string }): JSX.Element` desde `web/src/components/organisms/TarjetaPorQue/TarjetaPorQue.tsx`.
 
 - [ ] **Step 1: Test (falla primero)**
@@ -4111,8 +4910,9 @@ Create `web/src/components/organisms/TarjetaPorQue/TarjetaPorQue.test.tsx`:
 
 ```tsx
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderConIdioma } from '../../../test/utilidades';
 import { TarjetaPorQue } from './TarjetaPorQue';
 
 const reglas = [
@@ -4133,7 +4933,7 @@ const reglas = [
 
 describe('TarjetaPorQue', () => {
   it('arranca cerrada', () => {
-    render(<TarjetaPorQue titulo="Por qué calificas para DS49" reglas={reglas} />);
+    renderConIdioma(<TarjetaPorQue titulo="Por qué calificas para DS49" reglas={reglas} />);
     expect(screen.getByRole('button', { name: /Por qué calificas para DS49/ })).toHaveAttribute(
       'aria-expanded',
       'false',
@@ -4141,7 +4941,7 @@ describe('TarjetaPorQue', () => {
   });
 
   it('cada fila muestra el enunciado, el dato de la persona y la fuente', async () => {
-    render(<TarjetaPorQue titulo="Por qué calificas para DS49" reglas={reglas} />);
+    renderConIdioma(<TarjetaPorQue titulo="Por qué calificas para DS49" reglas={reglas} />);
     await userEvent.click(screen.getByRole('button', { name: /Por qué calificas para DS49/ }));
     expect(screen.getByText('Tramo del Registro Social de Hogares de 40% o menos.')).toBeInTheDocument();
     expect(screen.getByText('Tu dato: 30,4%')).toBeInTheDocument();
@@ -4149,13 +4949,13 @@ describe('TarjetaPorQue', () => {
   });
 
   it('una regla que no se cumple ofrece un arreglo cuando es alcanzable', async () => {
-    render(<TarjetaPorQue titulo="Por qué calificas para DS49" reglas={reglas} />);
+    renderConIdioma(<TarjetaPorQue titulo="Por qué calificas para DS49" reglas={reglas} />);
     await userEvent.click(screen.getByRole('button', { name: /Por qué calificas para DS49/ }));
     expect(screen.getByText('Ahorra 2 UF más antes del cierre del llamado.')).toBeInTheDocument();
   });
 
   it('muestra con qué versión de reglas se calculó, en el pie', async () => {
-    render(
+    renderConIdioma(
       <TarjetaPorQue titulo="Por qué calificas para DS49" reglas={reglas} pie="Reglas al 22 de septiembre de 2026." />,
     );
     await userEvent.click(screen.getByRole('button', { name: /Por qué calificas para DS49/ }));
@@ -4176,6 +4976,7 @@ Create `web/src/components/organisms/TarjetaPorQue/TarjetaPorQue.tsx`:
 ```tsx
 import { Card, Accordion, AccordionSummary, AccordionDetails, Stack, Typography } from '@mui/material';
 import { Icono } from '../../atoms/Icono/Icono';
+import { useT } from '../../../i18n/LocaleContext';
 
 export interface ReglaEvaluada {
   enunciado: string;
@@ -4197,6 +4998,7 @@ export interface TarjetaPorQueProps {
  * determinista — este componente no recibe texto generado por el modelo.
  */
 export function TarjetaPorQue({ titulo, reglas, pie }: TarjetaPorQueProps) {
+  const t = useT();
   return (
     <Card variant="outlined" sx={{ borderColor: 'var(--border)' }}>
       <Accordion disableGutters sx={{ boxShadow: 'none', '&::before': { display: 'none' } }}>
@@ -4222,10 +5024,10 @@ export function TarjetaPorQue({ titulo, reglas, pie }: TarjetaPorQueProps) {
                   </Typography>
                 </Stack>
                 <Typography sx={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: 'var(--ink-muted)', pl: '26px' }}>
-                  Tu dato: {r.tuDato}
+                  {t.organisms.tarjetaPorQue.tuDato(r.tuDato)}
                 </Typography>
                 <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--ink-muted)', pl: '26px' }}>
-                  Fuente: {r.fuente}
+                  {t.comun.fuente(r.fuente)}
                 </Typography>
                 {r.arreglo && (
                   <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: 'var(--ink-brand)', pl: '26px' }}>
@@ -4285,7 +5087,7 @@ En `web/src/dev/Catalogo.tsx`, agrega `import { TarjetaPorQue } from '../compone
 
 - [ ] **Step 6: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /catalogo 24-tarjetaporque`
+Run: `node web/e2e/capturar.mjs /catalogo 25-tarjetaporque`
 Expected: PNG generado. Antes de capturar, abre manualmente el acordeón en el navegador (o ajusta temporalmente el catálogo para que arranque abierto) para confirmar que cada fila muestra el ícono de cumple/no cumple, el dato de la persona en monoespaciada, y la fuente por fila (no una sola al pie).
 
 - [ ] **Step 7: Commit**
@@ -4297,9 +5099,9 @@ git commit -m "feat(web): organismo TarjetaPorQue (fixture, sin conexion a datos
 
 ---
 
-### Task 25: Cliente de `/api/chat` y contexto de sesión
+### Task 26: Cliente de `/api/chat` y contexto de sesión
 
-El corazón del estado de la app: el cliente HTTP que nunca lanza (todo error vuelve tipado) y el contexto de React que guarda transcripción, perfil, resultados y plan en `localStorage`, degradando a memoria si el navegador lo bloquea. Cubre los puntos 1 y 4 de Review Focus.
+El corazón del estado de la app: el cliente HTTP que nunca lanza (todo error vuelve tipado) y el contexto de React que guarda transcripción, perfil, resultados y plan en `localStorage`, degradando a memoria si el navegador lo bloquea. Cubre los puntos 1 y 4 de Review Focus. `SesionProvider` llama a `useT()` (Task 2) para el único texto fijo que genera por su cuenta — el mensaje de "modo demo activado" que se agrega a la transcripción — así que **siempre debe montarse dentro de `<LocaleProvider>`**, nunca al revés; `renderPantalla` (Task 2) ya respeta ese orden.
 
 **Files:**
 - Create: `web/src/api/chatClient.ts`
@@ -4308,7 +5110,7 @@ El corazón del estado de la app: el cliente HTTP que nunca lanza (todo error vu
 - Test: `web/src/state/SesionContext.test.tsx`
 
 **Interfaces:**
-- Consumes: `Perfil`, `ResultadoPrograma`, `PlanPrograma`, `Programa`, `EstadoElegibilidad`, `PERFIL_DESCONOCIDO`, `evaluarTodosLosProgramas`, `generarPlanPapeles` de `../types/dominio` (Task 1).
+- Consumes: `Perfil`, `ResultadoPrograma`, `PlanPrograma`, `Programa`, `EstadoElegibilidad`, `PERFIL_DESCONOCIDO`, `evaluarTodosLosProgramas`, `generarPlanPapeles` de `../types/dominio` (Task 1). `useT` de `../i18n/LocaleContext` (Task 2).
 - Produces: `enviarMensaje(sessionId: string, mensaje: string): Promise<ChatResultado>` desde `web/src/api/chatClient.ts`, con `ChatResultado = ChatOk | ChatError`. `SesionProvider`, `useSesion(): SesionContextValue` desde `web/src/state/SesionContext.tsx` — toda pantalla que hable con la API o lea el perfil/resultados/plan pasa por aquí, nunca hace su propio `fetch`.
 
 - [ ] **Step 1: Test del cliente HTTP (falla primero)**
@@ -4467,6 +5269,7 @@ Create `web/src/state/SesionContext.test.tsx`:
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { LocaleProvider } from '../i18n/LocaleContext';
 import { SesionProvider, useSesion } from './SesionContext';
 import * as chatClient from '../api/chatClient';
 import { PERFIL_DESCONOCIDO } from '../types/dominio';
@@ -4483,21 +5286,22 @@ function Sonda() {
   );
 }
 
-describe('SesionProvider', () => {
-  beforeEach(() => {
-    window.localStorage.clear();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it('genera un sessionId nuevo en la primera visita y lo guarda', () => {
-    render(
+function conProveedores() {
+  return render(
+    <LocaleProvider>
       <SesionProvider>
         <Sonda />
-      </SesionProvider>,
-    );
+      </SesionProvider>
+    </LocaleProvider>,
+  );
+}
+
+describe('SesionProvider', () => {
+  beforeEach(() => window.localStorage.clear());
+  afterEach(() => vi.restoreAllMocks());
+
+  it('genera un sessionId nuevo en la primera visita y lo guarda', () => {
+    conProveedores();
     expect(window.localStorage.getItem('rumbo-sesion')).toBeTruthy();
   });
 
@@ -4509,11 +5313,7 @@ describe('SesionProvider', () => {
       resultados: [],
       plan: [],
     });
-    render(
-      <SesionProvider>
-        <Sonda />
-      </SesionProvider>,
-    );
+    conProveedores();
     await userEvent.click(screen.getByRole('button', { name: 'enviar' }));
     await waitFor(() => expect(screen.getByTestId('transcript-length')).toHaveTextContent('2'));
   });
@@ -4525,21 +5325,13 @@ describe('SesionProvider', () => {
       codigo: 'asistente_no_disponible',
       mensaje: 'El asistente no está disponible en este momento. Puedes probar el modo demo.',
     });
-    render(
-      <SesionProvider>
-        <Sonda />
-      </SesionProvider>,
-    );
+    conProveedores();
     await userEvent.click(screen.getByRole('button', { name: 'enviar' }));
     await waitFor(() => expect(screen.getByTestId('error')).toHaveTextContent('asistente_no_disponible'));
   });
 
   it('borrar los datos limpia localStorage y arranca una sesión nueva', async () => {
-    render(
-      <SesionProvider>
-        <Sonda />
-      </SesionProvider>,
-    );
+    conProveedores();
     const idAntes = JSON.parse(window.localStorage.getItem('rumbo-sesion')!).sessionId;
     await userEvent.click(screen.getByRole('button', { name: 'borrar' }));
     await waitFor(() => {
@@ -4552,13 +5344,7 @@ describe('SesionProvider', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('QuotaExceededError');
     });
-    expect(() =>
-      render(
-        <SesionProvider>
-          <Sonda />
-        </SesionProvider>,
-      ),
-    ).not.toThrow();
+    expect(() => conProveedores()).not.toThrow();
   });
 });
 ```
@@ -4575,6 +5361,7 @@ Create `web/src/state/SesionContext.tsx`:
 ```tsx
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { enviarMensaje, type ChatError } from '../api/chatClient';
+import { useT } from '../i18n/LocaleContext';
 import {
   PERFIL_DESCONOCIDO,
   evaluarTodosLosProgramas,
@@ -4666,7 +5453,10 @@ export interface SesionContextValue extends EstadoSesion {
 
 const SesionContext = createContext<SesionContextValue | undefined>(undefined);
 
+/** Requiere montarse dentro de `<LocaleProvider>` (Task 2) — usa `useT()` para el mensaje de
+ * "modo demo activado" que agrega a la transcripción. */
 export function SesionProvider({ children }: { children: ReactNode }) {
+  const t = useT();
   const [estado, setEstado] = useState<EstadoSesion>(() => leerStorage() ?? sesionNueva());
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<ChatError | undefined>();
@@ -4716,11 +5506,7 @@ export function SesionProvider({ children }: { children: ReactNode }) {
       eventos: resultados.map((r) => ({ id: crearId(), programa: r.programa, estado: r.estado })),
       transcript: [
         ...prev.transcript,
-        {
-          id: crearId(),
-          autor: 'agente',
-          texto: 'Activamos el modo demo con una familia ficticia para que puedas ver cómo funciona Rumbo a Casa.',
-        },
+        { id: crearId(), autor: 'agente', texto: t.pantallas.entrevista.mensajeDemoActivado },
       ],
     }));
     setError(undefined);
@@ -4788,9 +5574,9 @@ git commit -m "feat(web): cliente de /api/chat y contexto de sesion con persiste
 
 ---
 
-### Task 26: Plantilla `AppShell` y enrutamiento real
+### Task 27: Plantilla `AppShell` y enrutamiento real (con el envoltorio responsivo)
 
-Reemplaza el enrutamiento manual temporal de Task 4 por `react-router-dom`. Crea pantallas de relleno mínimas y reales (no marcadores de posición: cada una ya renderiza algo, solo que aún no es el contenido final) para que la app compile y navegue de punta a punta desde ahora — las Tasks 27-31 las reemplazan una por una con la implementación completa.
+Reemplaza el enrutamiento manual temporal de Task 5 por `react-router-dom`, envolviendo la app entera en `<LocaleProvider><SesionProvider><BrowserRouter>` (ese orden — `SesionProvider` necesita `useT()`, ver Task 26). `AppShell` centra su contenido con `maxWidth: 480` en pantallas anchas: la misma columna móvil del design system, nunca un layout de escritorio nuevo (Global Constraints). Crea pantallas de relleno mínimas y reales (no marcadores de posición: cada una ya renderiza algo, solo que aún no es el contenido final; sus textos de "en construcción" son literales fijos, temporales, fuera del diccionario — desaparecen en las Tasks 29-32) para que la app compile y navegue de punta a punta desde ahora.
 
 **Files:**
 - Create: `web/src/components/templates/AppShell/AppShell.tsx`
@@ -4804,7 +5590,7 @@ Reemplaza el enrutamiento manual temporal de Task 4 por `react-router-dom`. Crea
 - Modify: `web/src/App.tsx`
 
 **Interfaces:**
-- Consumes: `CabeceraApp` (Task 18), `BarraInferior`, `DestinoBarraInferior` (Task 19), `SesionProvider` (Task 25).
+- Consumes: `CabeceraApp` (Task 19), `BarraInferior`, `DestinoBarraInferior` (Task 20), `LocaleProvider` (Task 2), `SesionProvider` (Task 26).
 - Produces: `AppShell(props: { titulo: string; destino: DestinoBarraInferior; avisos?: number; atras?: boolean; children: ReactNode }): JSX.Element` desde `web/src/components/templates/AppShell/AppShell.tsx`. Rutas: `/` (bienvenida, sin `AppShell`), `/hablar`, `/resultado`, `/plan/:programa`, `/documentos`, `/avisos`, `/catalogo`.
 
 - [ ] **Step 1: Test de `AppShell` (falla primero)**
@@ -4816,30 +5602,33 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { LocaleProvider } from '../../../i18n/LocaleContext';
 import { AppShell } from './AppShell';
 
 function conEnrutamiento(inicial: string) {
   return render(
-    <MemoryRouter initialEntries={[inicial]}>
-      <Routes>
-        <Route
-          path="/hablar"
-          element={
-            <AppShell titulo="Hablemos" destino="hablar">
-              contenido hablar
-            </AppShell>
-          }
-        />
-        <Route
-          path="/documentos"
-          element={
-            <AppShell titulo="Tus documentos" destino="documentos">
-              contenido documentos
-            </AppShell>
-          }
-        />
-      </Routes>
-    </MemoryRouter>,
+    <LocaleProvider>
+      <MemoryRouter initialEntries={[inicial]}>
+        <Routes>
+          <Route
+            path="/hablar"
+            element={
+              <AppShell titulo="Hablemos" destino="hablar">
+                contenido hablar
+              </AppShell>
+            }
+          />
+          <Route
+            path="/documentos"
+            element={
+              <AppShell titulo="Tus documentos" destino="documentos">
+                contenido documentos
+              </AppShell>
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    </LocaleProvider>,
   );
 }
 
@@ -4854,6 +5643,11 @@ describe('AppShell', () => {
     conEnrutamiento('/hablar');
     await userEvent.click(screen.getByRole('button', { name: /Documentos/ }));
     expect(await screen.findByText('contenido documentos')).toBeInTheDocument();
+  });
+
+  it('se centra con un ancho máximo en pantallas anchas, sin un layout de escritorio nuevo', () => {
+    conEnrutamiento('/hablar');
+    expect(screen.getByText('Hablemos').closest('header')?.parentElement).toHaveStyle({ maxWidth: '480px' });
   });
 });
 ```
@@ -4881,6 +5675,8 @@ const RUTA_DESTINO: Record<DestinoBarraInferior, string> = {
   avisos: '/avisos',
 };
 
+const ANCHO_MAXIMO = 480;
+
 export interface AppShellProps {
   titulo: string;
   destino: DestinoBarraInferior;
@@ -4891,12 +5687,24 @@ export interface AppShellProps {
 
 /**
  * Armazón de pantalla: cabecera fija arriba, contenido con margen lateral, barra de navegación
- * fija abajo. `space-7` de relleno inferior para que el último bloque no quede tapado por la barra.
+ * fija abajo. `space-7` de relleno inferior para que el último bloque no quede tapado por la
+ * barra. Centrado con `maxWidth: 480` en pantallas anchas — la misma columna móvil del design
+ * system, letterboxed sobre el `surface-sunken` de `body` (Task 3); nunca un layout de
+ * escritorio nuevo.
  */
 export function AppShell({ titulo, destino, avisos = 0, atras = false, children }: AppShellProps) {
   const navigate = useNavigate();
   return (
-    <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--surface-base)' }}>
+    <Box
+      sx={{
+        minHeight: '100dvh',
+        maxWidth: ANCHO_MAXIMO,
+        mx: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: 'var(--surface-base)',
+      }}
+    >
       <CabeceraApp titulo={titulo} atras={atras} onAtras={() => navigate(-1)} />
       <Box component="main" sx={{ flex: 1, px: 'var(--space-4)', pt: 'var(--space-5)', pb: 'var(--space-7)' }}>
         {children}
@@ -4921,7 +5729,7 @@ Expected: PASS.
 Create `web/src/screens/PantallaBienvenida/PantallaBienvenida.tsx`:
 
 ```tsx
-/** Reemplazada por completo en Task 27. */
+/** Reemplazada por completo en Task 28. */
 export function PantallaBienvenida() {
   return <div>Bienvenida — en construcción.</div>;
 }
@@ -4932,7 +5740,7 @@ Create `web/src/screens/PantallaEntrevista/PantallaEntrevista.tsx`:
 ```tsx
 import { AppShell } from '../../components/templates/AppShell/AppShell';
 
-/** Reemplazada por completo en Task 28. */
+/** Reemplazada por completo en Task 29. */
 export function PantallaEntrevista() {
   return (
     <AppShell titulo="Hablemos" destino="hablar">
@@ -4947,7 +5755,7 @@ Create `web/src/screens/PantallaResultado/PantallaResultado.tsx`:
 ```tsx
 import { AppShell } from '../../components/templates/AppShell/AppShell';
 
-/** Reemplazada por completo en Task 29. */
+/** Reemplazada por completo en Task 30. */
 export function PantallaResultado() {
   return (
     <AppShell titulo="Tu resultado" destino="plan" atras>
@@ -4962,7 +5770,7 @@ Create `web/src/screens/PantallaPlan/PantallaPlan.tsx`:
 ```tsx
 import { AppShell } from '../../components/templates/AppShell/AppShell';
 
-/** Reemplazada por completo en Task 30. */
+/** Reemplazada por completo en Task 31. */
 export function PantallaPlan() {
   return (
     <AppShell titulo="Tu plan" destino="plan" atras>
@@ -4977,7 +5785,7 @@ Create `web/src/screens/PantallaDocumentos/PantallaDocumentos.tsx`:
 ```tsx
 import { AppShell } from '../../components/templates/AppShell/AppShell';
 
-/** Reemplazada por completo en Task 31. */
+/** Reemplazada por completo en Task 32. */
 export function PantallaDocumentos() {
   return (
     <AppShell titulo="Tus documentos" destino="documentos">
@@ -4992,7 +5800,7 @@ Create `web/src/screens/PantallaSeguimiento/PantallaSeguimiento.tsx`:
 ```tsx
 import { AppShell } from '../../components/templates/AppShell/AppShell';
 
-/** Reemplazada por completo en Task 31. */
+/** Reemplazada por completo en Task 32. */
 export function PantallaSeguimiento() {
   return (
     <AppShell titulo="Avisos" destino="avisos">
@@ -5004,10 +5812,11 @@ export function PantallaSeguimiento() {
 
 - [ ] **Step 6: Enrutamiento real en `App.tsx`**
 
-Replace `web/src/App.tsx` (reemplaza la versión temporal de Task 4):
+Replace `web/src/App.tsx` (reemplaza la versión temporal de Task 5):
 
 ```tsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { LocaleProvider } from './i18n/LocaleContext';
 import { SesionProvider } from './state/SesionContext';
 import { Catalogo } from './dev/Catalogo';
 import { PantallaBienvenida } from './screens/PantallaBienvenida/PantallaBienvenida';
@@ -5019,47 +5828,49 @@ import { PantallaSeguimiento } from './screens/PantallaSeguimiento/PantallaSegui
 
 export function App() {
   return (
-    <SesionProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<PantallaBienvenida />} />
-          <Route path="/hablar" element={<PantallaEntrevista />} />
-          <Route path="/resultado" element={<PantallaResultado />} />
-          <Route path="/plan/:programa" element={<PantallaPlan />} />
-          <Route path="/documentos" element={<PantallaDocumentos />} />
-          <Route path="/avisos" element={<PantallaSeguimiento />} />
-          <Route path="/catalogo" element={<Catalogo />} />
-        </Routes>
-      </BrowserRouter>
-    </SesionProvider>
+    <LocaleProvider>
+      <SesionProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<PantallaBienvenida />} />
+            <Route path="/hablar" element={<PantallaEntrevista />} />
+            <Route path="/resultado" element={<PantallaResultado />} />
+            <Route path="/plan/:programa" element={<PantallaPlan />} />
+            <Route path="/documentos" element={<PantallaDocumentos />} />
+            <Route path="/avisos" element={<PantallaSeguimiento />} />
+            <Route path="/catalogo" element={<Catalogo />} />
+          </Routes>
+        </BrowserRouter>
+      </SesionProvider>
+    </LocaleProvider>
   );
 }
 ```
 
 - [ ] **Step 7: Verificar que el catálogo y las pantallas siguen sirviendo**
 
-Run: `node web/e2e/capturar.mjs /catalogo 26a-catalogo-tras-enrutamiento` y `node web/e2e/capturar.mjs /hablar 26b-hablar-stub` y `node web/e2e/capturar.mjs / 26c-bienvenida-stub`
-Expected: los tres PNG se generan sin error 404 ni pantalla en blanco. `/hablar` debe mostrarse con la cabecera azul y la barra inferior ya funcionando (aunque el contenido diga "en construcción").
+Run: `node web/e2e/capturar.mjs /catalogo 27a-catalogo-tras-enrutamiento` y `node web/e2e/capturar.mjs /hablar 27b-hablar-stub` y `node web/e2e/capturar.mjs / 27c-bienvenida-stub`
+Expected: los tres PNG se generan sin error 404 ni pantalla en blanco. `/hablar` debe mostrarse con la cabecera azul y la barra inferior ya funcionando (aunque el contenido diga "en construcción"), con la columna centrada.
 
 - [ ] **Step 8: Commit**
 
 ```bash
 git add web/src/components/templates web/src/screens web/src/App.tsx
-git commit -m "feat(web): plantilla AppShell y enrutamiento real con react-router"
+git commit -m "feat(web): plantilla AppShell responsiva y enrutamiento real con react-router"
 ```
 
 ---
 
-### Task 27: Pantalla `PantallaBienvenida`
+### Task 28: Pantalla `PantallaBienvenida`
 
-No usa `AppShell` ni `CabeceraApp`: es la única pantalla con el logotipo completo arriba y sin barra inferior. El "bloques de color de la portada" que menciona el README de `PantallaResultado` (Task 29, vía `BloqueHero`) es la `Franja` tocando el borde inferior de esta pantalla — se compone directo con `Franja`, no envolviendo el texto en `BloqueHero`, porque esta pantalla no mete la promesa dentro de un bloque azul: el fondo se mantiene `surface-base` y solo la banda del pie es de marca.
+No usa `AppShell` ni `CabeceraApp`: es la única pantalla con el logotipo completo arriba y sin barra inferior, así que centra su propia columna con el mismo `maxWidth: 480` que `AppShell` (Task 27) — no hay una plantilla compartida para esto porque solo dos lugares lo necesitan. El "bloques de color de la portada" que menciona el README de `PantallaResultado` (Task 30, vía `BloqueHero`) es la `Franja` tocando el borde inferior de esta pantalla — se compone directo con `Franja`, no envolviendo el texto en `BloqueHero`, porque esta pantalla no mete la promesa dentro de un bloque azul: el fondo se mantiene `surface-base` y solo la banda del pie es de marca. Todo el copy fijo sale de `t.pantallas.bienvenida` (Task 2).
 
 **Files:**
 - Modify: `web/src/screens/PantallaBienvenida/PantallaBienvenida.tsx`
 - Test: `web/src/screens/PantallaBienvenida/PantallaBienvenida.test.tsx`
 
 **Interfaces:**
-- Consumes: `Logotipo` (Task 17), `Franja` (Task 16), `Boton` (Task 6), `useSesion` (Task 25).
+- Consumes: `Logotipo` (Task 18), `Franja` (Task 17), `Boton` (Task 7), `useSesion` (Task 26), `useT` de `../../i18n/LocaleContext` (Task 2).
 
 - [ ] **Step 1: Test (falla primero)**
 
@@ -5070,19 +5881,22 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { PantallaBienvenida } from './PantallaBienvenida';
+import { LocaleProvider } from '../../i18n/LocaleContext';
 import { SesionProvider } from '../../state/SesionContext';
+import { PantallaBienvenida } from './PantallaBienvenida';
 
 function renderPantalla() {
   return render(
-    <SesionProvider>
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route path="/" element={<PantallaBienvenida />} />
-          <Route path="/hablar" element={<div>pantalla hablar</div>} />
-        </Routes>
-      </MemoryRouter>
-    </SesionProvider>,
+    <LocaleProvider>
+      <SesionProvider>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/" element={<PantallaBienvenida />} />
+            <Route path="/hablar" element={<div>pantalla hablar</div>} />
+          </Routes>
+        </MemoryRouter>
+      </SesionProvider>
+    </LocaleProvider>,
   );
 }
 
@@ -5126,7 +5940,7 @@ describe('PantallaBienvenida', () => {
 - [ ] **Step 2: Ejecutar y verificar que falla**
 
 Run: `npm run test -w web`
-Expected: FAIL — el placeholder de Task 26 no tiene ni la promesa ni los botones que el test busca.
+Expected: FAIL — el placeholder de Task 27 no tiene ni la promesa ni los botones que el test busca.
 
 - [ ] **Step 3: Implementar**
 
@@ -5139,8 +5953,10 @@ import { Logotipo } from '../../components/organisms/Logotipo/Logotipo';
 import { Franja } from '../../components/organisms/Franja/Franja';
 import { Boton } from '../../components/atoms/Boton/Boton';
 import { useSesion } from '../../state/SesionContext';
+import { useT } from '../../i18n/LocaleContext';
 
 const PROGRAMAS = ['DS49', 'DS1', 'DS19', 'DS52'];
+const ANCHO_MAXIMO = 480;
 
 /**
  * Primera de las cinco pantallas: la promesa, las dos formas de empezar, y la aclaración de que
@@ -5149,10 +5965,20 @@ const PROGRAMAS = ['DS49', 'DS1', 'DS19', 'DS52'];
 export function PantallaBienvenida() {
   const navigate = useNavigate();
   const { transcript, borrarDatos } = useSesion();
+  const t = useT();
   const tieneSesionPrevia = transcript.length > 0;
 
   return (
-    <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--surface-base)' }}>
+    <Box
+      sx={{
+        minHeight: '100dvh',
+        maxWidth: ANCHO_MAXIMO,
+        mx: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: 'var(--surface-base)',
+      }}
+    >
       <Box sx={{ p: 'var(--space-4)' }}>
         <Logotipo disposicion="horizontal" alto={32} />
       </Box>
@@ -5169,10 +5995,10 @@ export function PantallaBienvenida() {
               color: 'var(--ink-strong)',
             }}
           >
-            Averigua a qué subsidio de vivienda puedes postular
+            {t.pantallas.bienvenida.titulo}
           </Typography>
           <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '18px', color: 'var(--ink)' }}>
-            Cuéntanos de tu familia en unos 5 minutos.
+            {t.pantallas.bienvenida.bajada}
           </Typography>
         </Stack>
 
@@ -5189,22 +6015,21 @@ export function PantallaBienvenida() {
         <Stack spacing={2} sx={{ mt: 'auto', pb: 'var(--space-6)' }}>
           {tieneSesionPrevia ? (
             <>
-              <Boton onClick={() => navigate('/hablar')}>Seguir donde quedaste</Boton>
+              <Boton onClick={() => navigate('/hablar')}>{t.pantallas.bienvenida.seguirDondeQuedaste}</Boton>
               <Boton variant="text" onClick={borrarDatos}>
-                Empezar de nuevo
+                {t.pantallas.bienvenida.empezarDeNuevo}
               </Boton>
             </>
           ) : (
             <>
-              <Boton onClick={() => navigate('/hablar')}>Empezar</Boton>
+              <Boton onClick={() => navigate('/hablar')}>{t.pantallas.bienvenida.empezar}</Boton>
               <Boton variant="outlined" color="secondary" icono="mic" onClick={() => navigate('/hablar')}>
-                Prefiero hablar
+                {t.pantallas.bienvenida.prefieroHablar}
               </Boton>
             </>
           )}
           <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: 'var(--ink-muted)' }}>
-            Herramienta independiente, no oficial. Nunca te pediremos tu Clave Única. Puedes borrar tus datos cuando
-            quieras.
+            {t.pantallas.bienvenida.fraseConfianza}
           </Typography>
         </Stack>
       </Stack>
@@ -5222,21 +6047,21 @@ Expected: PASS.
 
 - [ ] **Step 5: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs / 27-pantallabienvenida`
+Run: `node web/e2e/capturar.mjs / 28-pantallabienvenida`
 Expected: PNG generado. Verifica: el logotipo completo arriba (símbolo + nombre en Bricolage Grotesque), la promesa en tamaño grande, los 4 chips de programa, "Empezar" como botón principal de ancho completo, "Prefiero hablar" en outlined terracota con ícono de micrófono, la frase de confianza legible, y la franja de marca cerrando la pantalla por abajo sin nada encima.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add web/src/screens/PantallaBienvenida
-git commit -m "feat(web): pantalla PantallaBienvenida"
+git commit -m "feat(web): pantalla PantallaBienvenida bilingue y responsiva"
 ```
 
 ---
 
-### Task 28: Pantalla `PantallaEntrevista` (chat real + modo demo)
+### Task 29: Pantalla `PantallaEntrevista` (chat real + modo demo)
 
-La pantalla más grande del plan: cablea `SesionContext` a la conversación real, bloquea mensajes inválidos antes de llamar al backend (Review Focus #3), muestra los cuatro códigos de error documentados (Review Focus #1) y ofrece el modo demo reutilizando el motor de reglas real del backend en el navegador — nunca datos inventados.
+La pantalla más grande del plan: cablea `SesionContext` a la conversación real, bloquea mensajes inválidos antes de llamar al backend (Review Focus #3), muestra los cuatro códigos de error documentados (Review Focus #1) y ofrece el modo demo reutilizando el motor de reglas real del backend en el navegador — nunca datos inventados. `pasos.ts` es lógica pura (no un componente), así que no puede llamar a `useT()`: en vez de guardar los nombres de paso ya en español, guarda una `clave` (`'familia' | 'vivienda' | ...`) y es `PantallaEntrevista` quien la traduce vía `t.pantallas.entrevista.pasos` al armar la lista que le pasa a `PasoAPaso`.
 
 **Files:**
 - Create: `web/src/screens/PantallaEntrevista/pasos.ts`
@@ -5247,8 +6072,8 @@ La pantalla más grande del plan: cablea `SesionContext` a la conversación real
 - Test: `web/src/screens/PantallaEntrevista/PantallaEntrevista.test.tsx`
 
 **Interfaces:**
-- Consumes: `AppShell` (Task 26), `PasoAPaso` (Task 13), `BurbujaChat`/`Pensando` (Task 15), `SelloElegibilidad` (Task 9), `Alerta` (Task 11), `CampoTexto` (Task 8), `Boton` (Task 6), `useSesion` (Task 25), `mapEstado` (Task 9), `evaluarTodosLosProgramas` (Task 1).
-- Produces: `GRUPOS_ENTREVISTA`, `pasoActivo(perfil: Perfil): number` desde `web/src/screens/PantallaEntrevista/pasos.ts`. `PERFIL_DEMO: Perfil` desde `web/src/lib/perfilDemo.ts` — cualquier pantalla que active el modo demo usa este mismo perfil.
+- Consumes: `AppShell` (Task 27), `PasoAPaso` (Task 14), `BurbujaChat`/`Pensando` (Task 16), `SelloElegibilidad` (Task 10), `Alerta` (Task 12), `CampoTexto` (Task 9), `Boton` (Task 7), `useSesion` (Task 26), `mapEstado` (Task 10), `evaluarTodosLosProgramas` (Task 1), `useT` de `../../i18n/LocaleContext`, `renderPantalla` de `../../test/utilidades` (Task 2).
+- Produces: `ClavePasoEntrevista = 'familia' | 'vivienda' | 'ahorro' | 'ingreso' | 'region'`, `GRUPOS_ENTREVISTA: ReadonlyArray<{ clave: ClavePasoEntrevista; campos: (keyof Perfil)[] }>`, `pasoActivo(perfil: Perfil): number` desde `web/src/screens/PantallaEntrevista/pasos.ts`. `PERFIL_DEMO: Perfil` desde `web/src/lib/perfilDemo.ts` — cualquier pantalla que active el modo demo usa este mismo perfil.
 
 - [ ] **Step 1: Test de los pasos de la entrevista (falla primero)**
 
@@ -5263,6 +6088,11 @@ describe('pasoActivo', () => {
   it('cubre los 13 campos del perfil entre los 5 grupos, sin dejar ninguno fuera', () => {
     const todos = GRUPOS_ENTREVISTA.flatMap((g) => g.campos);
     expect(new Set(todos).size).toBe(13);
+  });
+
+  it('cada grupo tiene una clave única de las 5 que espera el diccionario', () => {
+    const claves = GRUPOS_ENTREVISTA.map((g) => g.clave);
+    expect(claves).toEqual(['familia', 'vivienda', 'ahorro', 'ingreso', 'region']);
   });
 
   it('con el perfil vacío, el paso activo es el primero', () => {
@@ -5312,19 +6142,23 @@ Create `web/src/screens/PantallaEntrevista/pasos.ts`:
 ```ts
 import type { Perfil } from '../../types/dominio';
 
+export type ClavePasoEntrevista = 'familia' | 'vivienda' | 'ahorro' | 'ingreso' | 'region';
+
 /**
  * Agrupa los 13 campos del perfil en 5 pasos del mundo de la persona, no del motor de reglas.
- * Debe cubrir cada campo de `Perfil` exactamente una vez — ver el test de este archivo.
+ * Debe cubrir cada campo de `Perfil` exactamente una vez — ver el test de este archivo. Guarda
+ * una `clave`, no el nombre ya traducido: este archivo es lógica pura, sin acceso a `useT()`
+ * (Task 2) — `PantallaEntrevista` la traduce vía `t.pantallas.entrevista.pasos[clave]`.
  */
-export const GRUPOS_ENTREVISTA: ReadonlyArray<{ etiqueta: string; campos: (keyof Perfil)[] }> = [
+export const GRUPOS_ENTREVISTA: ReadonlyArray<{ clave: ClavePasoEntrevista; campos: (keyof Perfil)[] }> = [
   {
-    etiqueta: 'Familia',
+    clave: 'familia',
     campos: ['postulanteEdad', 'integrantesGrupoFamiliar', 'excepcionPostulacionIndividualDS49'],
   },
-  { etiqueta: 'Vivienda', campos: ['tienePropiedad', 'objetivo', 'subsidioPrevio'] },
-  { etiqueta: 'Ahorro', campos: ['ahorroUF', 'antiguedadCuentaAhorroMeses'] },
-  { etiqueta: 'Ingreso', campos: ['ingresoFamiliarMensualCLP', 'ingresoFamiliarMensualUF', 'tramoRSH'] },
-  { etiqueta: 'Región', campos: ['region', 'zonaEspecial'] },
+  { clave: 'vivienda', campos: ['tienePropiedad', 'objetivo', 'subsidioPrevio'] },
+  { clave: 'ahorro', campos: ['ahorroUF', 'antiguedadCuentaAhorroMeses'] },
+  { clave: 'ingreso', campos: ['ingresoFamiliarMensualCLP', 'ingresoFamiliarMensualUF', 'tramoRSH'] },
+  { clave: 'region', campos: ['region', 'zonaEspecial'] },
 ];
 
 /** El primer grupo con un campo todavía 'desconocido'; si todos están completos, el último. */
@@ -5400,35 +6234,24 @@ Create `web/src/screens/PantallaEntrevista/PantallaEntrevista.test.tsx`:
 
 ```tsx
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { renderPantalla } from '../../test/utilidades';
 import { PantallaEntrevista } from './PantallaEntrevista';
-import { SesionProvider } from '../../state/SesionContext';
 import * as chatClient from '../../api/chatClient';
 import { PERFIL_DESCONOCIDO } from '../../types/dominio';
-
-function renderPantalla() {
-  return render(
-    <SesionProvider>
-      <MemoryRouter initialEntries={['/hablar']}>
-        <PantallaEntrevista />
-      </MemoryRouter>
-    </SesionProvider>,
-  );
-}
 
 describe('PantallaEntrevista', () => {
   beforeEach(() => window.localStorage.clear());
   afterEach(() => vi.restoreAllMocks());
 
   it('el botón de enviar está deshabilitado con el mensaje vacío', () => {
-    renderPantalla();
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
     expect(screen.getByRole('button', { name: 'Enviar' })).toBeDisabled();
   });
 
   it('bloquea el envío de más de 2000 caracteres, sin depender del backend', () => {
-    renderPantalla();
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
     const campo = screen.getByLabelText('Escribe tu respuesta');
     fireEvent.change(campo, { target: { value: 'a'.repeat(2001) } });
     expect(screen.getByRole('button', { name: 'Enviar' })).toBeDisabled();
@@ -5443,7 +6266,7 @@ describe('PantallaEntrevista', () => {
       resultados: [],
       plan: [],
     });
-    renderPantalla();
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
     await userEvent.type(screen.getByLabelText('Escribe tu respuesta'), 'Hola');
     await userEvent.click(screen.getByRole('button', { name: 'Enviar' }));
     expect(screen.getByText('Hola')).toBeInTheDocument();
@@ -5457,7 +6280,7 @@ describe('PantallaEntrevista', () => {
       codigo: 'limite_mensajes',
       mensaje: 'Esta conversación llegó a su límite de mensajes. Puedes empezar una nueva.',
     });
-    renderPantalla();
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
     await userEvent.type(screen.getByLabelText('Escribe tu respuesta'), 'Hola');
     await userEvent.click(screen.getByRole('button', { name: 'Enviar' }));
     expect(
@@ -5472,7 +6295,7 @@ describe('PantallaEntrevista', () => {
       codigo: 'asistente_no_disponible',
       mensaje: 'El asistente no está disponible en este momento. Puedes probar el modo demo.',
     });
-    renderPantalla();
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
     await userEvent.type(screen.getByLabelText('Escribe tu respuesta'), 'Hola');
     await userEvent.click(screen.getByRole('button', { name: 'Enviar' }));
     const botonDemo = await screen.findByRole('button', { name: 'Probar modo demo' });
@@ -5485,7 +6308,7 @@ describe('PantallaEntrevista', () => {
 - [ ] **Step 9: Ejecutar y verificar que falla**
 
 Run: `npm run test -w web`
-Expected: FAIL — el placeholder de Task 26 no tiene entrevista real.
+Expected: FAIL — el placeholder de Task 27 no tiene entrevista real.
 
 - [ ] **Step 10: Implementar la pantalla**
 
@@ -5503,6 +6326,7 @@ import { Alerta } from '../../components/molecules/Alerta/Alerta';
 import { CampoTexto } from '../../components/atoms/CampoTexto/CampoTexto';
 import { Boton } from '../../components/atoms/Boton/Boton';
 import { useSesion } from '../../state/SesionContext';
+import { useT } from '../../i18n/LocaleContext';
 import { mapEstado } from '../../lib/estado';
 import { PERFIL_DEMO } from '../../lib/perfilDemo';
 import { GRUPOS_ENTREVISTA, pasoActivo } from './pasos';
@@ -5515,6 +6339,7 @@ const LIMITE_MENSAJE = 2000;
  */
 export function PantallaEntrevista() {
   const { transcript, eventos, perfil, cargando, error, enviarTurno, activarDemo } = useSesion();
+  const t = useT();
   const [borrador, setBorrador] = useState('');
 
   const mensajeValido = borrador.trim().length > 0 && borrador.length <= LIMITE_MENSAJE;
@@ -5527,9 +6352,12 @@ export function PantallaEntrevista() {
   };
 
   return (
-    <AppShell titulo="Hablemos" destino="hablar">
+    <AppShell titulo={t.pantallas.entrevista.titulo} destino="hablar">
       <Stack spacing={3}>
-        <PasoAPaso pasos={GRUPOS_ENTREVISTA.map((g) => g.etiqueta)} activo={pasoActivo(perfil)} />
+        <PasoAPaso
+          pasos={GRUPOS_ENTREVISTA.map((g) => t.pantallas.entrevista.pasos[g.clave])}
+          activo={pasoActivo(perfil)}
+        />
 
         <Stack spacing={2}>
           {transcript.map((turno) => (
@@ -5545,16 +6373,16 @@ export function PantallaEntrevista() {
           {eventos.map((evento) => (
             <SelloElegibilidad key={evento.id} estado={mapEstado(evento.estado)} programa={evento.programa} />
           ))}
-          {cargando && <Pensando>Revisando tu respuesta</Pensando>}
+          {cargando && <Pensando>{t.pantallas.entrevista.pensando}</Pensando>}
         </Stack>
 
         {error && (
           <Alerta
             severity={error.codigo === 'limite_mensajes' ? 'warning' : 'error'}
-            accion={error.codigo === 'asistente_no_disponible' ? 'Probar modo demo' : undefined}
+            accion={error.codigo === 'asistente_no_disponible' ? t.pantallas.entrevista.probarModoDemo : undefined}
             onAccion={() => activarDemo(PERFIL_DEMO)}
           >
-            {error.mensaje ?? 'Algo no funcionó. Intenta de nuevo en un momento.'}
+            {error.mensaje ?? t.pantallas.entrevista.errorGenerico}
           </Alerta>
         )}
 
@@ -5562,15 +6390,19 @@ export function PantallaEntrevista() {
           <Stack direction="row" spacing={1} alignItems="flex-end">
             <Box sx={{ flex: 1 }}>
               <CampoTexto
-                pregunta="Escribe tu respuesta"
+                pregunta={t.pantallas.entrevista.preguntaMensaje}
                 value={borrador}
                 onChange={(e) => setBorrador(e.target.value)}
                 dictado
-                error={borrador.length > LIMITE_MENSAJE ? `Máximo ${LIMITE_MENSAJE} caracteres.` : undefined}
+                error={
+                  borrador.length > LIMITE_MENSAJE
+                    ? t.pantallas.entrevista.limiteCaracteres(LIMITE_MENSAJE)
+                    : undefined
+                }
               />
             </Box>
             <Boton onClick={enviar} loading={cargando} disabled={!mensajeValido}>
-              Enviar
+              {t.pantallas.entrevista.enviar}
             </Boton>
           </Stack>
         </Box>
@@ -5587,21 +6419,21 @@ Expected: PASS.
 
 - [ ] **Step 12: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /hablar 28-pantallaentrevista`
+Run: `node web/e2e/capturar.mjs /hablar 29-pantallaentrevista`
 Expected: PNG generado (contra el servidor de desarrollo; sin backend real desplegado, la pantalla muestra el estado inicial — sin turnos ni error — lo cual es correcto de verificar: cabecera azul, `PasoAPaso` en "Paso 1 de 5", el campo de mensaje fijo al pie con su botón de micrófono, y "Enviar" deshabilitado).
 
 - [ ] **Step 13: Commit**
 
 ```bash
 git add web/src/screens/PantallaEntrevista web/src/lib/perfilDemo.ts web/src/lib/perfilDemo.test.ts
-git commit -m "feat(web): pantalla PantallaEntrevista con chat real y modo demo"
+git commit -m "feat(web): pantalla PantallaEntrevista bilingue con chat real y modo demo"
 ```
 
 ---
 
-### Task 29: Pantalla `PantallaResultado`
+### Task 30: Pantalla `PantallaResultado`
 
-Cubre el punto 5 de Review Focus: agrupa y ordena `elegible → falta_dato → no_elegible` para cualquier combinación, no solo el caso feliz. También corrige una calidad de dato del backend sin tocarlo: `regla.fuente` de `backend/src/rules-engine/*.ts` es una ruta de archivo interna del repo (`"docs/programas-subsidio.md, sección DS49"`), no una cita presentable — la pantalla solo muestra `regla.decreto` y `regla.fechaConsulta`, nunca `regla.fuente`.
+Cubre el punto 5 de Review Focus: agrupa y ordena `elegible → falta_dato → no_elegible` para cualquier combinación, no solo el caso feliz. También corrige una calidad de dato del backend sin tocarlo: `regla.fuente` de `backend/src/rules-engine/*.ts` es una ruta de archivo interna del repo (`"docs/programas-subsidio.md, sección DS49"`), no una cita presentable — la pantalla solo muestra `regla.decreto` y `regla.fechaConsulta`, nunca `regla.fuente`. `formatoFechaCorta` es lógica pura (no un componente): recibe el `idioma` activo como parámetro en vez de llamar a `useT()`, porque los nombres de mes sí cambian de idioma («22 sep 2026» / «Sep 22, 2026»), algo que el diccionario de Task 2 no cubría — se agrega su propia tabla ES/EN aquí, junto al resto del copy fijo de esta pantalla (`t.pantallas.resultado`) y el nombre común de cada programa (`t.organisms.nombrePrograma`, compartido con Tasks 31 y 32).
 
 **Files:**
 - Create: `web/src/lib/fecha.ts`
@@ -5610,8 +6442,8 @@ Cubre el punto 5 de Review Focus: agrupa y ordena `elegible → falta_dato → n
 - Test: `web/src/screens/PantallaResultado/PantallaResultado.test.tsx`
 
 **Interfaces:**
-- Consumes: `AppShell` (Task 26), `BloqueHero` (Task 20), `TarjetaPrograma` (Task 21), `useSesion` (Task 25), `mapEstado` (Task 9).
-- Produces: `formatoFechaCorta(iso: string): string` desde `web/src/lib/fecha.ts` (formato «22 sep 2026»).
+- Consumes: `AppShell` (Task 27), `BloqueHero` (Task 21), `TarjetaPrograma` (Task 22), `useSesion` (Task 26), `mapEstado` (Task 10), `useT`/`useIdioma`/`LocaleProvider` de `../../i18n/LocaleContext` (Task 2).
+- Produces: `formatoFechaCorta(iso: string, idioma?: Idioma): string` desde `web/src/lib/fecha.ts` (formato «22 sep 2026» / «Sep 22, 2026»).
 
 - [ ] **Step 1: Test del formateador de fecha (falla primero)**
 
@@ -5622,8 +6454,12 @@ import { describe, it, expect } from 'vitest';
 import { formatoFechaCorta } from './fecha';
 
 describe('formatoFechaCorta', () => {
-  it('formatea una fecha ISO al formato corto de tarjeta del design system', () => {
+  it('formatea una fecha ISO al formato corto de tarjeta en español, por defecto', () => {
     expect(formatoFechaCorta('2026-09-22')).toBe('22 sep 2026');
+  });
+
+  it('formatea en inglés cuando se pide', () => {
+    expect(formatoFechaCorta('2026-09-22', 'en')).toBe('Sep 22, 2026');
   });
 
   it('con un texto que no es una fecha ISO, lo devuelve tal cual en vez de romper', () => {
@@ -5642,13 +6478,20 @@ Expected: FAIL — `./fecha` no existe.
 Create `web/src/lib/fecha.ts`:
 
 ```ts
-const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+import type { Idioma } from '../i18n/LocaleContext';
 
-/** 'YYYY-MM-DD' → '22 sep 2026', el formato corto de tarjeta que usa el design system. */
-export function formatoFechaCorta(iso: string): string {
+const MESES: Record<Idioma, string[]> = {
+  es: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'],
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+};
+
+/** 'YYYY-MM-DD' → '22 sep 2026' (es) / 'Sep 22, 2026' (en) — el formato corto de tarjeta que
+ * usa el design system, en el idioma activo. */
+export function formatoFechaCorta(iso: string, idioma: Idioma = 'es'): string {
   const [anio, mes, dia] = iso.split('-').map(Number);
   if (!anio || !mes || !dia) return iso;
-  return `${dia} ${MESES[mes - 1]} ${anio}`;
+  const nombreMes = MESES[idioma][mes - 1];
+  return idioma === 'en' ? `${nombreMes} ${dia}, ${anio}` : `${dia} ${nombreMes} ${anio}`;
 }
 ```
 
@@ -5666,6 +6509,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { LocaleProvider } from '../../i18n/LocaleContext';
 import { PantallaResultado } from './PantallaResultado';
 import { PERFIL_DESCONOCIDO, type ResultadoPrograma } from '../../types/dominio';
 import * as SesionContextModulo from '../../state/SesionContext';
@@ -5700,12 +6544,14 @@ function mockSesion(resultados: ResultadoPrograma[]) {
 
 function renderPantalla() {
   return render(
-    <MemoryRouter initialEntries={['/resultado']}>
-      <Routes>
-        <Route path="/resultado" element={<PantallaResultado />} />
-        <Route path="/plan/:programa" element={<div>pantalla plan</div>} />
-      </Routes>
-    </MemoryRouter>,
+    <LocaleProvider>
+      <MemoryRouter initialEntries={['/resultado']}>
+        <Routes>
+          <Route path="/resultado" element={<PantallaResultado />} />
+          <Route path="/plan/:programa" element={<div>pantalla plan</div>} />
+        </Routes>
+      </MemoryRouter>
+    </LocaleProvider>,
   );
 }
 
@@ -5758,7 +6604,7 @@ describe('PantallaResultado', () => {
 - [ ] **Step 6: Ejecutar y verificar que falla**
 
 Run: `npm run test -w web`
-Expected: FAIL — el placeholder de Task 26 no tiene la lista de resultados.
+Expected: FAIL — el placeholder de Task 27 no tiene la lista de resultados.
 
 - [ ] **Step 7: Implementar la pantalla**
 
@@ -5771,16 +6617,10 @@ import { AppShell } from '../../components/templates/AppShell/AppShell';
 import { BloqueHero } from '../../components/organisms/BloqueHero/BloqueHero';
 import { TarjetaPrograma } from '../../components/organisms/TarjetaPrograma/TarjetaPrograma';
 import { useSesion } from '../../state/SesionContext';
+import { useT, useIdioma } from '../../i18n/LocaleContext';
 import { mapEstado } from '../../lib/estado';
 import { formatoFechaCorta } from '../../lib/fecha';
-import type { EstadoElegibilidad as EstadoBackend, Programa } from '../../types/dominio';
-
-const NOMBRE_COMUN: Record<Programa, string> = {
-  DS49: 'Casa propia sin crédito',
-  DS1: 'Sectores medios',
-  DS19: 'Integración social',
-  DS52: 'Arriendo',
-};
+import type { EstadoElegibilidad as EstadoBackend } from '../../types/dominio';
 
 const ORDEN_ESTADO: EstadoBackend[] = ['elegible', 'falta_dato', 'no_elegible'];
 
@@ -5792,6 +6632,8 @@ const ORDEN_ESTADO: EstadoBackend[] = ['elegible', 'falta_dato', 'no_elegible'];
 export function PantallaResultado() {
   const navigate = useNavigate();
   const { perfil, resultados } = useSesion();
+  const t = useT();
+  const { idioma } = useIdioma();
 
   const ordenados = [...resultados].sort(
     (a, b) => ORDEN_ESTADO.indexOf(a.estado) - ORDEN_ESTADO.indexOf(b.estado),
@@ -5801,20 +6643,20 @@ export function PantallaResultado() {
     perfil.integrantesGrupoFamiliar !== 'desconocido' ? perfil.integrantesGrupoFamiliar.length + 1 : undefined;
 
   return (
-    <AppShell titulo="Tu resultado" destino="plan" atras>
+    <AppShell titulo={t.pantallas.resultado.titulo} destino="plan" atras>
       <Stack spacing={3}>
         <BloqueHero
           titulo={
             calificaCount > 0
-              ? `Calificas para ${calificaCount} programa${calificaCount > 1 ? 's' : ''}`
-              : 'Revisamos tus cuatro programas'
+              ? t.pantallas.resultado.calificaPara(calificaCount)
+              : t.pantallas.resultado.revisamosCuatro
           }
-          bajada={personas ? `${personas} personas` : undefined}
+          bajada={personas ? t.pantallas.resultado.personas(personas) : undefined}
         />
 
         {resultados.length === 0 && (
           <Typography sx={{ fontFamily: 'var(--font-sans)', color: 'var(--ink-muted)' }}>
-            Todavía no tenemos datos suficientes. Vuelve a la entrevista para seguir contándonos.
+            {t.pantallas.resultado.sinDatos}
           </Typography>
         )}
 
@@ -5822,15 +6664,15 @@ export function PantallaResultado() {
           <TarjetaPrograma
             key={r.programa}
             sigla={r.programa}
-            nombreComun={NOMBRE_COMUN[r.programa]}
+            nombreComun={t.organisms.nombrePrograma[r.programa]}
             estado={mapEstado(r.estado)}
             razon={r.motivo}
-            regla={`${r.regla.decreto} · ${formatoFechaCorta(r.regla.fechaConsulta)}`}
+            regla={`${r.regla.decreto} · ${formatoFechaCorta(r.regla.fechaConsulta, idioma)}`}
             accion={
               r.estado === 'elegible'
-                ? 'Ver los documentos'
+                ? t.pantallas.resultado.verDocumentos
                 : r.estado === 'falta_dato'
-                  ? 'Ver cómo alcanzarlo'
+                  ? t.pantallas.resultado.verComoAlcanzarlo
                   : undefined
             }
             onAccion={() => navigate(`/plan/${r.programa}`)}
@@ -5849,28 +6691,28 @@ Expected: PASS.
 
 - [ ] **Step 9: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /resultado 29-pantallaresultado`
+Run: `node web/e2e/capturar.mjs /resultado 30-pantallaresultado`
 Expected: PNG generado (sin sesión previa, se ve la invitación a volver a la entrevista — correcto de verificar en este punto).
 
 - [ ] **Step 10: Commit**
 
 ```bash
 git add web/src/lib/fecha.ts web/src/lib/fecha.test.ts web/src/screens/PantallaResultado
-git commit -m "feat(web): pantalla PantallaResultado con orden correcto para cualquier combinacion de estados"
+git commit -m "feat(web): pantalla PantallaResultado bilingue con orden correcto para cualquier combinacion de estados"
 ```
 
 ---
 
-### Task 30: Pantalla `PantallaPlan`
+### Task 31: Pantalla `PantallaPlan`
 
-Los cuatro pasos fijos del design system, adaptados a lo que el backend realmente entrega: paso 1 cita `resultado.motivo` y `resultado.regla` (sin `TarjetaPorQue`, que no tiene datos reales — ver Task 24); paso 2 usa `ChecklistDocumentos` mapeando `PlanPrograma.documentos` (`nombre`/`detalle?`) a `nombreComun`/`donde`, con el estado de cada casilla guardado en el contexto de sesión; paso 3 usa `LineaDeLlamados` con el texto de repliegue («Sin fecha publicada») porque no existe ninguna fecha real de llamado; paso 4 muestra `AvisoLimite` con salida y un botón interno (no un enlace externo) para pasar al seguimiento.
+Los cuatro pasos fijos del design system, adaptados a lo que el backend realmente entrega: paso 1 cita `resultado.motivo` y `resultado.regla` (sin `TarjetaPorQue`, que no tiene datos reales — ver Task 25) componiendo la cita con `t.comun.fuente` (Task 2, igual que Task 22 y 25); paso 2 usa `ChecklistDocumentos` mapeando `PlanPrograma.documentos` (`nombre`/`detalle?`) a `nombreComun`/`donde`, con el estado de cada casilla guardado en el contexto de sesión; paso 3 usa `LineaDeLlamados` con los textos de repliegue `t.comun.sinFechaPublicada`/`t.comun.porConfirmarServiuRegional` porque no existe ninguna fecha real de llamado; paso 4 muestra `AvisoLimite` con salida y un botón interno (no un enlace externo) para pasar al seguimiento. El nombre común de cada programa sale de `t.organisms.nombrePrograma` (compartido con Task 30 y Task 32).
 
 **Files:**
 - Modify: `web/src/screens/PantallaPlan/PantallaPlan.tsx`
 - Test: `web/src/screens/PantallaPlan/PantallaPlan.test.tsx`
 
 **Interfaces:**
-- Consumes: `AppShell` (Task 26), `ChecklistDocumentos` (Task 22), `LineaDeLlamados` (Task 23), `AvisoLimite` (Task 12), `Alerta` (Task 11), `Boton` (Task 6), `useSesion` (Task 25), `formatoFechaCorta` (Task 29).
+- Consumes: `AppShell` (Task 27), `ChecklistDocumentos` (Task 23), `LineaDeLlamados` (Task 24), `AvisoLimite` (Task 13), `Alerta` (Task 12), `Boton` (Task 7), `useSesion` (Task 26), `useT`/`useIdioma`/`LocaleProvider` de `../../i18n/LocaleContext`, `formatoFechaCorta` (Task 30).
 
 - [ ] **Step 1: Test (falla primero)**
 
@@ -5881,6 +6723,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { LocaleProvider } from '../../i18n/LocaleContext';
 import { PantallaPlan } from './PantallaPlan';
 import { PERFIL_DESCONOCIDO } from '../../types/dominio';
 import * as SesionContextModulo from '../../state/SesionContext';
@@ -5918,12 +6761,14 @@ function mockSesion(overrides: Partial<ReturnType<typeof SesionContextModulo.use
 
 function renderPantalla(ruta: string) {
   return render(
-    <MemoryRouter initialEntries={[ruta]}>
-      <Routes>
-        <Route path="/plan/:programa" element={<PantallaPlan />} />
-        <Route path="/avisos" element={<div>pantalla avisos</div>} />
-      </Routes>
-    </MemoryRouter>,
+    <LocaleProvider>
+      <MemoryRouter initialEntries={[ruta]}>
+        <Routes>
+          <Route path="/plan/:programa" element={<PantallaPlan />} />
+          <Route path="/avisos" element={<div>pantalla avisos</div>} />
+        </Routes>
+      </MemoryRouter>
+    </LocaleProvider>,
   );
 }
 
@@ -5978,7 +6823,7 @@ describe('PantallaPlan', () => {
 - [ ] **Step 2: Ejecutar y verificar que falla**
 
 Run: `npm run test -w web`
-Expected: FAIL — el placeholder de Task 26 no tiene los cuatro pasos.
+Expected: FAIL — el placeholder de Task 27 no tiene los cuatro pasos.
 
 - [ ] **Step 3: Implementar**
 
@@ -5997,15 +6842,9 @@ import { AvisoLimite } from '../../components/molecules/AvisoLimite/AvisoLimite'
 import { Alerta } from '../../components/molecules/Alerta/Alerta';
 import { Boton } from '../../components/atoms/Boton/Boton';
 import { useSesion } from '../../state/SesionContext';
+import { useT, useIdioma } from '../../i18n/LocaleContext';
 import { formatoFechaCorta } from '../../lib/fecha';
 import type { Programa } from '../../types/dominio';
-
-const NOMBRE_COMUN: Record<Programa, string> = {
-  DS49: 'Casa propia sin crédito',
-  DS1: 'Sectores medios',
-  DS19: 'Integración social',
-  DS52: 'Arriendo',
-};
 
 const PROGRAMAS_VALIDOS: Programa[] = ['DS49', 'DS1', 'DS19', 'DS52'];
 const esPrograma = (p: string | undefined): p is Programa => PROGRAMAS_VALIDOS.includes(p as Programa);
@@ -6026,12 +6865,14 @@ export function PantallaPlan() {
   const { programa } = useParams<{ programa: string }>();
   const navigate = useNavigate();
   const { resultados, plan, documentosListos, marcarDocumento } = useSesion();
+  const t = useT();
+  const { idioma } = useIdioma();
 
   if (!esPrograma(programa)) {
     return (
-      <AppShell titulo="Tu plan" destino="plan" atras>
+      <AppShell titulo={t.pantallas.plan.titulo} destino="plan" atras>
         <Typography sx={{ fontFamily: 'var(--font-sans)', color: 'var(--ink-muted)' }}>
-          No reconocemos ese programa. Vuelve a tu resultado.
+          {t.pantallas.plan.noReconocemos}
         </Typography>
       </AppShell>
     );
@@ -6039,6 +6880,7 @@ export function PantallaPlan() {
 
   const resultado = resultados.find((r) => r.programa === programa);
   const planPrograma = plan.find((p) => p.programa === programa);
+  const nombreComun = t.organisms.nombrePrograma[programa];
 
   const items: DocumentoChecklist[] = (planPrograma?.documentos ?? []).map((d) => ({
     nombre: d.nombre,
@@ -6047,42 +6889,43 @@ export function PantallaPlan() {
   }));
 
   return (
-    <AppShell titulo={`Tu plan · ${programa}`} destino="plan" atras>
+    <AppShell titulo={t.pantallas.plan.tituloPrograma(programa)} destino="plan" atras>
       <Stack spacing={5}>
         <Stack spacing={1}>
-          <Typography sx={ESTILO_TITULO_PASO}>1. Revisa por qué calificas</Typography>
+          <Typography sx={ESTILO_TITULO_PASO}>{t.pantallas.plan.paso1}</Typography>
           {resultado ? (
             <Alerta severity="success">
-              {resultado.motivo} — Fuente: {resultado.regla.decreto} · {formatoFechaCorta(resultado.regla.fechaConsulta)}
+              {resultado.motivo} —{' '}
+              {t.comun.fuente(
+                `${resultado.regla.decreto} · ${formatoFechaCorta(resultado.regla.fechaConsulta, idioma)}`,
+              )}
             </Alerta>
           ) : (
-            <Typography sx={{ color: 'var(--ink-muted)' }}>Todavía no evaluamos este programa.</Typography>
+            <Typography sx={{ color: 'var(--ink-muted)' }}>{t.pantallas.plan.todaviaNoEvaluamos}</Typography>
           )}
         </Stack>
 
         <Stack spacing={1}>
-          <Typography sx={ESTILO_TITULO_PASO}>2. Reúne tus documentos</Typography>
+          <Typography sx={ESTILO_TITULO_PASO}>{t.pantallas.plan.paso2}</Typography>
           {items.length > 0 ? (
             <ChecklistDocumentos
-              programa={`${programa} — ${NOMBRE_COMUN[programa]}`}
+              programa={`${programa} — ${nombreComun}`}
               items={items}
               onToggle={(indice) => marcarDocumento(`${programa}:${items[indice].nombre}`, !items[indice].listo)}
             />
           ) : (
-            <Typography sx={{ color: 'var(--ink-muted)' }}>
-              Calificas primero para ver tu lista de documentos.
-            </Typography>
+            <Typography sx={{ color: 'var(--ink-muted)' }}>{t.pantallas.plan.calificaPrimero}</Typography>
           )}
         </Stack>
 
         <Stack spacing={1}>
-          <Typography sx={ESTILO_TITULO_PASO}>3. Guarda la fecha del llamado</Typography>
+          <Typography sx={ESTILO_TITULO_PASO}>{t.pantallas.plan.paso3}</Typography>
           <LineaDeLlamados
             llamados={[
               {
-                programa: `${programa} — ${NOMBRE_COMUN[programa]}`,
-                fechas: 'Sin fecha publicada',
-                serviu: 'Por confirmar con tu Serviu regional',
+                programa: `${programa} — ${nombreComun}`,
+                fechas: t.comun.sinFechaPublicada,
+                serviu: t.comun.porConfirmarServiuRegional,
                 estado: 'porVenir',
                 porConfirmar: true,
               },
@@ -6091,10 +6934,10 @@ export function PantallaPlan() {
         </Stack>
 
         <Stack spacing={2}>
-          <Typography sx={ESTILO_TITULO_PASO}>4. Postula en el sitio del MINVU</Typography>
+          <Typography sx={ESTILO_TITULO_PASO}>{t.pantallas.plan.paso4}</Typography>
           <AvisoLimite conSalida />
           <Boton variant="outlined" onClick={() => navigate('/avisos')}>
-            Ya postulé
+            {t.pantallas.plan.yaPostule}
           </Boton>
         </Stack>
       </Stack>
@@ -6110,21 +6953,21 @@ Expected: PASS.
 
 - [ ] **Step 5: Captura de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /plan/DS49 30-pantallaplan`
+Run: `node web/e2e/capturar.mjs /plan/DS49 31-pantallaplan`
 Expected: PNG generado (sin sesión previa, el paso 1 y 2 muestran su mensaje de "todavía no" — correcto de verificar aquí; el paso 3 y 4 sí se ven completos porque no dependen de datos de sesión).
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add web/src/screens/PantallaPlan
-git commit -m "feat(web): pantalla PantallaPlan con los cuatro pasos fijos"
+git commit -m "feat(web): pantalla PantallaPlan bilingue con los cuatro pasos fijos"
 ```
 
 ---
 
-### Task 31: Pantallas `PantallaSeguimiento` (Avisos) y `PantallaDocumentos`
+### Task 32: Pantallas `PantallaSeguimiento` (Avisos) y `PantallaDocumentos`
 
-Cierra el mapeo de los 4 destinos de `BarraInferior` (Task 19): `avisos` → `PantallaSeguimiento`, `documentos` → `PantallaDocumentos` (el checklist agregado de todos los programas donde la persona califica). Ambas comparten la misma clave de documento (`"<programa>:<nombre>"`) que `PantallaPlan` (Task 30), así que marcar un documento en una pantalla se refleja en la otra.
+Cierra el mapeo de los 4 destinos de `BarraInferior` (Task 20): `avisos` → `PantallaSeguimiento`, `documentos` → `PantallaDocumentos` (el checklist agregado de todos los programas donde la persona califica). Ambas comparten la misma clave de documento (`"<programa>:<nombre>"`) que `PantallaPlan` (Task 31), así que marcar un documento en una pantalla se refleja en la otra. Las cuatro etapas de seguimiento viven como una lista de claves puras (`CLAVES_ETAPA`, igual que `pasos.ts` en Task 29) — `PantallaSeguimiento` arma las opciones de `OpcionTarjeta` traduciendo cada clave vía `t.pantallas.seguimiento.etapas`. Ambas pantallas caben en el helper simple `renderPantalla` de Task 2 (una sola ruta, sin parámetros).
 
 **Files:**
 - Modify: `web/src/screens/PantallaSeguimiento/PantallaSeguimiento.tsx`
@@ -6133,7 +6976,7 @@ Cierra el mapeo de los 4 destinos de `BarraInferior` (Task 19): `avisos` → `Pa
 - Test: `web/src/screens/PantallaDocumentos/PantallaDocumentos.test.tsx`
 
 **Interfaces:**
-- Consumes: `AppShell` (Task 26), `OpcionTarjeta` (Task 10), `CampoTexto` (Task 8), `Boton` (Task 6), `ChecklistDocumentos` (Task 22), `useSesion` (Task 25), `formatoFechaCorta` (Task 29).
+- Consumes: `AppShell` (Task 27), `OpcionTarjeta` (Task 11), `CampoTexto` (Task 9), `Boton` (Task 7), `ChecklistDocumentos` (Task 23), `useSesion` (Task 26), `useT`/`useIdioma` de `../../i18n/LocaleContext`, `renderPantalla` de `../../test/utilidades` (Task 2), `formatoFechaCorta` (Task 30).
 
 - [ ] **Step 1: Test de `PantallaSeguimiento` (falla primero)**
 
@@ -6141,9 +6984,9 @@ Create `web/src/screens/PantallaSeguimiento/PantallaSeguimiento.test.tsx`:
 
 ```tsx
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { renderPantalla } from '../../test/utilidades';
 import { PantallaSeguimiento } from './PantallaSeguimiento';
 import { PERFIL_DESCONOCIDO } from '../../types/dominio';
 import * as SesionContextModulo from '../../state/SesionContext';
@@ -6174,38 +7017,30 @@ function mockSesion(overrides: Partial<ReturnType<typeof SesionContextModulo.use
   return { marcarEtapa, guardarFolio };
 }
 
-function renderPantalla() {
-  return render(
-    <MemoryRouter initialEntries={['/avisos']}>
-      <PantallaSeguimiento />
-    </MemoryRouter>,
-  );
-}
-
 describe('PantallaSeguimiento', () => {
   it('sin fecha real de llamado, dice "Sin fecha publicada" en vez de inventar una', () => {
     mockSesion();
-    renderPantalla();
+    renderPantalla(<PantallaSeguimiento />, { ruta: '/avisos' });
     expect(screen.getByText('Sin fecha publicada')).toBeInTheDocument();
     expect(screen.getByText(/Fecha prevista/)).toBeInTheDocument();
   });
 
   it('elegir una etapa llama a marcarEtapa', async () => {
     const { marcarEtapa } = mockSesion();
-    renderPantalla();
+    renderPantalla(<PantallaSeguimiento />, { ruta: '/avisos' });
     await userEvent.click(screen.getByText('Postulé'));
     expect(marcarEtapa).toHaveBeenCalledWith('postule');
   });
 
   it('en la etapa "papeles" no pide folio todavía', () => {
     mockSesion({ seguimiento: { etapa: 'papeles' } });
-    renderPantalla();
+    renderPantalla(<PantallaSeguimiento />, { ruta: '/avisos' });
     expect(screen.queryByLabelText('¿Cuál es tu número de folio?')).not.toBeInTheDocument();
   });
 
   it('tras postular, pide el folio y lo guarda', async () => {
     const { guardarFolio } = mockSesion({ seguimiento: { etapa: 'postule' } });
-    renderPantalla();
+    renderPantalla(<PantallaSeguimiento />, { ruta: '/avisos' });
     await userEvent.type(screen.getByLabelText('¿Cuál es tu número de folio?'), '12345');
     await userEvent.click(screen.getByRole('button', { name: 'Guardar folio' }));
     expect(guardarFolio).toHaveBeenCalledWith('12345');
@@ -6213,7 +7048,7 @@ describe('PantallaSeguimiento', () => {
 
   it('dice que el estado no se consulta solo', () => {
     mockSesion();
-    renderPantalla();
+    renderPantalla(<PantallaSeguimiento />, { ruta: '/avisos' });
     expect(screen.getByText(/El estado no se consulta solo/)).toBeInTheDocument();
   });
 });
@@ -6222,7 +7057,7 @@ describe('PantallaSeguimiento', () => {
 - [ ] **Step 2: Ejecutar y verificar que falla**
 
 Run: `npm run test -w web`
-Expected: FAIL — el placeholder de Task 26 no tiene el seguimiento real.
+Expected: FAIL — el placeholder de Task 27 no tiene el seguimiento real.
 
 - [ ] **Step 3: Implementar `PantallaSeguimiento`**
 
@@ -6236,14 +7071,11 @@ import { OpcionTarjeta } from '../../components/molecules/OpcionTarjeta/OpcionTa
 import { CampoTexto } from '../../components/atoms/CampoTexto/CampoTexto';
 import { Boton } from '../../components/atoms/Boton/Boton';
 import { useSesion } from '../../state/SesionContext';
+import { useT, useIdioma } from '../../i18n/LocaleContext';
 import { formatoFechaCorta } from '../../lib/fecha';
 
-const ETAPAS = [
-  { value: 'papeles', titulo: 'Reuniendo documentos', detalle: 'Todavía estás juntando tus papeles.' },
-  { value: 'postule', titulo: 'Postulé', detalle: 'Ya entregaste tu postulación en el sitio del MINVU.' },
-  { value: 'evaluacion', titulo: 'En evaluación', detalle: 'El Serviu está revisando tu postulación.' },
-  { value: 'resultado', titulo: 'Resultado publicado', detalle: 'Ya salió el resultado de tu postulación.' },
-];
+/** Claves puras, sin traducir — `PantallaSeguimiento` las traduce vía `t.pantallas.seguimiento.etapas`. */
+const CLAVES_ETAPA = ['papeles', 'postule', 'evaluacion', 'resultado'] as const;
 
 /**
  * Quinta pantalla: el próximo llamado y la etapa en que está la persona. No hay consulta
@@ -6251,16 +7083,23 @@ const ETAPAS = [
  */
 export function PantallaSeguimiento() {
   const { resultados, seguimiento, marcarEtapa, guardarFolio } = useSesion();
+  const t = useT();
+  const { idioma } = useIdioma();
   const [folioBorrador, setFolioBorrador] = useState(seguimiento.folio ?? '');
 
   const fechaReglas = resultados[0]?.regla.fechaConsulta;
+  const opciones = CLAVES_ETAPA.map((clave) => ({
+    value: clave,
+    titulo: t.pantallas.seguimiento.etapas[clave].titulo,
+    detalle: t.pantallas.seguimiento.etapas[clave].detalle,
+  }));
 
   return (
-    <AppShell titulo="Avisos" destino="avisos">
+    <AppShell titulo={t.pantallas.seguimiento.titulo} destino="avisos">
       <Stack spacing={4}>
         {fechaReglas && (
           <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: 'var(--ink-muted)' }}>
-            Reglas al {formatoFechaCorta(fechaReglas)}
+            {t.pantallas.seguimiento.reglasAl(formatoFechaCorta(fechaReglas, idioma))}
           </Typography>
         )}
 
@@ -6275,7 +7114,7 @@ export function PantallaSeguimiento() {
               color: 'var(--ink-brand)',
             }}
           >
-            Próximo llamado
+            {t.pantallas.seguimiento.proximoLlamado}
           </Typography>
           <Typography
             sx={{
@@ -6287,41 +7126,41 @@ export function PantallaSeguimiento() {
               mt: 0.5,
             }}
           >
-            Sin fecha publicada
+            {t.comun.sinFechaPublicada}
           </Typography>
           <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: 'var(--ink-brand)', mt: 0.5 }}>
-            Fecha prevista. Te confirmamos cuando el Serviu la publique.
+            {t.pantallas.seguimiento.fechaPrevista}
           </Typography>
         </Box>
 
         <Stack spacing={2}>
           <Typography sx={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '18px', color: 'var(--ink-strong)' }}>
-            ¿En qué etapa estás?
+            {t.pantallas.seguimiento.enQueEtapa}
           </Typography>
           <OpcionTarjeta
             name="etapa-seguimiento"
             value={seguimiento.etapa}
             onChange={(e) => marcarEtapa(e.target.value as typeof seguimiento.etapa)}
-            opciones={ETAPAS}
+            opciones={opciones}
           />
         </Stack>
 
         {seguimiento.etapa !== 'papeles' && (
           <Stack spacing={1.5}>
             <CampoTexto
-              pregunta="¿Cuál es tu número de folio?"
-              ayuda="Lo entrega el sitio del MINVU al terminar tu postulación."
+              pregunta={t.pantallas.seguimiento.preguntaFolio}
+              ayuda={t.pantallas.seguimiento.ayudaFolio}
               value={folioBorrador}
               onChange={(e) => setFolioBorrador(e.target.value)}
             />
             <Boton variant="outlined" onClick={() => guardarFolio(folioBorrador)} disabled={!folioBorrador.trim()}>
-              Guardar folio
+              {t.pantallas.seguimiento.guardarFolio}
             </Boton>
           </Stack>
         )}
 
         <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: 'var(--ink-muted)' }}>
-          El estado no se consulta solo: tú marcas la etapa y nosotros te recordamos lo que falta.
+          {t.pantallas.seguimiento.notaEstado}
         </Typography>
       </Stack>
     </AppShell>
@@ -6340,9 +7179,9 @@ Create `web/src/screens/PantallaDocumentos/PantallaDocumentos.test.tsx`:
 
 ```tsx
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { renderPantalla } from '../../test/utilidades';
 import { PantallaDocumentos } from './PantallaDocumentos';
 import { PERFIL_DESCONOCIDO } from '../../types/dominio';
 import * as SesionContextModulo from '../../state/SesionContext';
@@ -6372,18 +7211,10 @@ function mockSesion(overrides: Partial<ReturnType<typeof SesionContextModulo.use
   return { marcarDocumento };
 }
 
-function renderPantalla() {
-  return render(
-    <MemoryRouter initialEntries={['/documentos']}>
-      <PantallaDocumentos />
-    </MemoryRouter>,
-  );
-}
-
 describe('PantallaDocumentos', () => {
   it('sin ningún programa elegible, invita a volver a la entrevista', () => {
     mockSesion();
-    renderPantalla();
+    renderPantalla(<PantallaDocumentos />, { ruta: '/documentos' });
     expect(screen.getByText(/Todavía no calificas para ningún programa/)).toBeInTheDocument();
   });
 
@@ -6394,7 +7225,7 @@ describe('PantallaDocumentos', () => {
         { programa: 'DS52', documentos: [{ nombre: 'Formulario A-01' }], fuente: 'y' },
       ],
     });
-    renderPantalla();
+    renderPantalla(<PantallaDocumentos />, { ruta: '/documentos' });
     expect(screen.getByText('DS49 — Casa propia sin crédito')).toBeInTheDocument();
     expect(screen.getByText('DS52 — Arriendo')).toBeInTheDocument();
   });
@@ -6403,7 +7234,7 @@ describe('PantallaDocumentos', () => {
     const { marcarDocumento } = mockSesion({
       plan: [{ programa: 'DS49', documentos: [{ nombre: 'Tu cédula' }], fuente: 'x' }],
     });
-    renderPantalla();
+    renderPantalla(<PantallaDocumentos />, { ruta: '/documentos' });
     await userEvent.click(screen.getByRole('checkbox', { name: 'Tu cédula' }));
     expect(marcarDocumento).toHaveBeenCalledWith('DS49:Tu cédula', true);
   });
@@ -6413,7 +7244,7 @@ describe('PantallaDocumentos', () => {
 - [ ] **Step 6: Ejecutar y verificar que falla**
 
 Run: `npm run test -w web`
-Expected: FAIL — el placeholder de Task 26 no tiene el checklist agregado.
+Expected: FAIL — el placeholder de Task 27 no tiene el checklist agregado.
 
 - [ ] **Step 7: Implementar `PantallaDocumentos`**
 
@@ -6427,31 +7258,25 @@ import {
   type DocumentoChecklist,
 } from '../../components/organisms/ChecklistDocumentos/ChecklistDocumentos';
 import { useSesion } from '../../state/SesionContext';
-import type { Programa } from '../../types/dominio';
-
-const NOMBRE_COMUN: Record<Programa, string> = {
-  DS49: 'Casa propia sin crédito',
-  DS1: 'Sectores medios',
-  DS19: 'Integración social',
-  DS52: 'Arriendo',
-};
+import { useT } from '../../i18n/LocaleContext';
 
 /** Los documentos de todos los programas donde la persona califica, agrupados por programa. */
 export function PantallaDocumentos() {
   const { plan, documentosListos, marcarDocumento } = useSesion();
+  const t = useT();
 
   if (plan.length === 0) {
     return (
-      <AppShell titulo="Tus documentos" destino="documentos">
+      <AppShell titulo={t.pantallas.documentos.titulo} destino="documentos">
         <Typography sx={{ fontFamily: 'var(--font-sans)', color: 'var(--ink-muted)' }}>
-          Todavía no calificas para ningún programa. Vuelve a la entrevista para seguir contándonos.
+          {t.pantallas.documentos.sinProgramas}
         </Typography>
       </AppShell>
     );
   }
 
   return (
-    <AppShell titulo="Tus documentos" destino="documentos">
+    <AppShell titulo={t.pantallas.documentos.titulo} destino="documentos">
       <Stack spacing={5}>
         {plan.map((p) => {
           const items: DocumentoChecklist[] = p.documentos.map((d) => ({
@@ -6462,7 +7287,7 @@ export function PantallaDocumentos() {
           return (
             <ChecklistDocumentos
               key={p.programa}
-              programa={`${p.programa} — ${NOMBRE_COMUN[p.programa]}`}
+              programa={`${p.programa} — ${t.organisms.nombrePrograma[p.programa]}`}
               items={items}
               onToggle={(indice) => marcarDocumento(`${p.programa}:${items[indice].nombre}`, !items[indice].listo)}
             />
@@ -6481,21 +7306,21 @@ Expected: PASS.
 
 - [ ] **Step 9: Capturas de verificación visual**
 
-Run: `node web/e2e/capturar.mjs /avisos 31a-pantallaseguimiento` y `node web/e2e/capturar.mjs /documentos 31b-pantalladocumentos`
+Run: `node web/e2e/capturar.mjs /avisos 32a-pantallaseguimiento` y `node web/e2e/capturar.mjs /documentos 32b-pantalladocumentos`
 Expected: dos PNG generados. `/avisos` muestra "Sin fecha publicada" en el bloque azul suave y las cuatro tarjetas de etapa; `/documentos` muestra el mensaje de "todavía no calificas" (correcto sin sesión previa).
 
 - [ ] **Step 10: Commit**
 
 ```bash
 git add web/src/screens/PantallaSeguimiento web/src/screens/PantallaDocumentos
-git commit -m "feat(web): pantallas PantallaSeguimiento y PantallaDocumentos"
+git commit -m "feat(web): pantallas PantallaSeguimiento y PantallaDocumentos bilingues"
 ```
 
 ---
 
-### Task 32: Verificación end-to-end y build de producción
+### Task 33: Verificación end-to-end y build de producción
 
-Sin un backend real corriendo en local, `POST /api/chat` no tiene a dónde ir bajo `npm run dev` (Vite no lo proxea a nada). Este task usa `page.route()` de Playwright para interceptar esa llamada con una respuesta de fixture realista — la misma técnica de "sustituir solo la red, nunca la interfaz" que usan los tests de pantalla desde Task 28 en adelante — y así recorrer el flujo completo con clics reales sobre la app real.
+Sin un backend real corriendo en local, `POST /api/chat` no tiene a dónde ir bajo `npm run dev` (Vite no lo proxea a nada). Este task usa `page.route()` de Playwright para interceptar esa llamada con una respuesta de fixture realista — la misma técnica de "sustituir solo la red, nunca la interfaz" que usan los tests de pantalla desde Task 29 en adelante — y así recorrer el flujo completo con clics reales sobre la app real. Además de las 5 pantallas, verifica los dos requisitos nuevos de este plan: el selector de idioma cambiando el texto en vivo, y la columna centrada en una pantalla ancha.
 
 **Files:**
 - Create: `web/e2e/flujo-demo.mjs`
@@ -6574,49 +7399,61 @@ async function capturar(nombre) {
 }
 
 await page.goto(base + '/', { waitUntil: 'networkidle' });
-await capturar('32a-bienvenida');
+await capturar('33a-bienvenida');
 
 await page.getByRole('button', { name: 'Empezar' }).click();
 await page.getByLabel('Escribe tu respuesta').fill('Somos 4 personas, no tenemos casa propia.');
 await page.getByRole('button', { name: 'Enviar' }).click();
 await page.waitForSelector('text=Anotado. Calificas para DS49');
-await capturar('32b-entrevista-con-respuesta');
+await capturar('33b-entrevista-con-respuesta');
 
 await page.getByRole('button', { name: /Mi plan/ }).click();
 await page.waitForURL('**/resultado');
-await capturar('32c-resultado');
+await capturar('33c-resultado');
 
 await page.getByRole('button', { name: 'Ver los documentos' }).click();
 await page.waitForURL('**/plan/DS49');
-await capturar('32d-plan');
+await capturar('33d-plan');
 
 await page.getByRole('button', { name: /Documentos/ }).click();
 await page.waitForURL('**/documentos');
-await capturar('32e-documentos');
+await capturar('33e-documentos');
 
 await page.getByRole('button', { name: /Avisos/ }).click();
 await page.waitForURL('**/avisos');
 await page.getByText('Postulé').click();
-await capturar('32f-avisos');
+await capturar('33f-avisos');
+
+// Idioma: tocar EN debe cambiar el texto en vivo, sin recargar ni perder la ruta.
+await page.getByRole('button', { name: 'English' }).click();
+await page.waitForSelector('text=Alerts');
+await capturar('33g-avisos-en-ingles');
+
+// Responsivo: en un ancho de escritorio, la columna se centra sobre surface-sunken en vez de
+// estirarse a todo el ancho — nunca un layout de escritorio nuevo.
+await page.setViewportSize({ width: 1024, height: 800 });
+await capturar('33h-avisos-ancho-escritorio');
 
 await browser.close();
-console.log('Flujo completo capturado en web/e2e/capturas/32*.png');
+console.log('Flujo completo capturado en web/e2e/capturas/33*.png');
 ```
 
 - [ ] **Step 3: Ejecutar el flujo completo**
 
-Run: `node web/e2e/flujo-demo.mjs` (con `npm run dev -w web` todavía corriendo desde Task 4)
-Expected: el script corre sin errores y deja 6 capturas `32a`…`32f` en `web/e2e/capturas/`.
+Run: `node web/e2e/flujo-demo.mjs` (con `npm run dev -w web` todavía corriendo desde Task 5)
+Expected: el script corre sin errores y deja 8 capturas `33a`…`33h` en `web/e2e/capturas/`.
 
-- [ ] **Step 4: Revisar las 6 capturas una por una**
+- [ ] **Step 4: Revisar las 8 capturas una por una**
 
 Abre cada PNG con la herramienta de lectura de archivos y verifica contra el design system:
-- `32a`: bienvenida completa, sin campos de texto.
-- `32b`: burbuja de la persona a la derecha, burbuja del agente a la izquierda con "Escuchar", y el sello `DS49 · Califica` apareciendo tras la respuesta (evento derivado del cambio de estado, no del texto del modelo).
-- `32c`: `TarjetaPrograma` de los 4 programas, ordenados DS49 (califica) → DS1 (falta) → DS19/DS52 (no aplica).
-- `32d`: los 4 pasos del plan de DS49, con el paso 1 citando la regla real y el paso 4 con el enlace a `postulacionenlinea.minvu.cl`.
-- `32e`: el checklist de documentos de DS49.
-- `32f`: "Postulé" seleccionado y el campo de folio visible.
+- `33a`: bienvenida completa, sin campos de texto.
+- `33b`: burbuja de la persona a la derecha, burbuja del agente a la izquierda con "Escuchar", y el sello `DS49 · Califica` apareciendo tras la respuesta (evento derivado del cambio de estado, no del texto del modelo).
+- `33c`: `TarjetaPrograma` de los 4 programas, ordenados DS49 (califica) → DS1 (falta) → DS19/DS52 (no aplica).
+- `33d`: los 4 pasos del plan de DS49, con el paso 1 citando la regla real y el paso 4 con el enlace a `postulacionenlinea.minvu.cl`.
+- `33e`: el checklist de documentos de DS49.
+- `33f`: "Postulé" seleccionado y el campo de folio visible.
+- `33g`: la cabecera dice "Alerts", "My plan"/"Documents"/"Talk" en la barra inferior, y el resto de la pantalla también cambió de idioma — no solo el selector.
+- `33h`: la columna de 480 px centrada, con el fondo `surface-sunken` visible a los costados — nunca contenido estirado a todo el ancho de 1024 px.
 
 Si algo no calza con el design system (color, espacio, copy), es un bug — vuelve a la task del componente responsable y corrígelo antes de seguir.
 
@@ -6629,23 +7466,22 @@ Expected: compila sin errores de tipos y genera `web/dist/`.
 
 ```bash
 git add web/e2e/flujo-demo.mjs
-git commit -m "test(web): script de verificacion end-to-end con Playwright"
+git commit -m "test(web): script de verificacion end-to-end con Playwright, idioma y responsivo"
 ```
 
 - [ ] **Step 7: Avisar al usuario lo que queda fuera de este plan**
 
 Al terminar, informa explícitamente estos puntos — no son bugs de esta implementación, son huecos reales entre el design system (pensado como sistema completo) y lo que el backend de este hackathon entrega hoy:
 
-1. **`TarjetaPorQue` sin datos reales** (Task 24): el motor de reglas del backend necesitaría devolver un arreglo de sub-reglas evaluadas (con el dato de la persona) en vez de un solo `motivo`, para que el desglose regla-por-regla se pueda mostrar de verdad.
-2. **Sin fechas de llamado reales** (Tasks 23, 30, 31): `ResultadoPrograma` no trae `apertura`/`cierre`/`serviu`. Toda la interfaz usa el texto de repliegue del propio design system («Sin fecha publicada») en vez de inventar una fecha.
-3. **Dictado por voz sin Web Speech API real** (Task 8): `CampoTexto` muestra el botón de micrófono como afordancia visual (así lo define `index.d.ts` del design system), pero no reconoce voz — cablear eso es trabajo aparte.
-4. **Sin la opción en inglés** que pide el spec técnico (`docs/superpowers/specs/2026-09-20-rumbo-a-casa-design.md`): este plan construyó solo la versión en español.
-5. **Sin descarga `.ics`**: el spec la menciona como parte del plan de papeles, pero `backend/src/chat/papeles.ts` todavía no la genera — no hay nada que la interfaz pueda consumir todavía.
-6. **`PasoAPaso` en `PantallaEntrevista` no permite volver a un paso ya contestado** (Task 13 lo construye con esa capacidad, vía `onActivarPaso`, pero Task 28 no la conecta): la entrevista es una conversación libre con el modelo, no un formulario por campos, así que "volver al paso 2" no tiene un mecanismo honesto sin que el backend soporte rebobinar la conversación. Hoy, para corregir un dato, la persona se lo vuelve a decir al agente en el chat.
+1. **`TarjetaPorQue` sin datos reales** (Task 25): el motor de reglas del backend necesitaría devolver un arreglo de sub-reglas evaluadas (con el dato de la persona) en vez de un solo `motivo`, para que el desglose regla-por-regla se pueda mostrar de verdad.
+2. **Sin fechas de llamado reales** (Tasks 24, 31, 32): `ResultadoPrograma` no trae `apertura`/`cierre`/`serviu`. Toda la interfaz usa el texto de repliegue del propio design system («Sin fecha publicada») en vez de inventar una fecha.
+3. **Dictado por voz sin Web Speech API real** (Task 9): `CampoTexto` muestra el botón de micrófono como afordancia visual (así lo define `index.d.ts` del design system), pero no reconoce voz — cablear eso es trabajo aparte.
+4. **Sin descarga `.ics`**: el spec la menciona como parte del plan de papeles, pero `backend/src/chat/papeles.ts` todavía no la genera — no hay nada que la interfaz pueda consumir todavía.
+5. **`PasoAPaso` en `PantallaEntrevista` no permite volver a un paso ya contestado** (Task 14 lo construye con esa capacidad, vía `onActivarPaso`, pero Task 29 no la conecta): la entrevista es una conversación libre con el modelo, no un formulario por campos, así que "volver al paso 2" no tiene un mecanismo honesto sin que el backend soporte rebobinar la conversación. Hoy, para corregir un dato, la persona se lo vuelve a decir al agente en el chat.
 
 ---
 
 ## Cierre del plan
 
-Con las 32 tareas completas, `web/` pasa de un esqueleto con un solo `fetch` a las cinco pantallas del flujo (`Bienvenida`, `Entrevista`, `Resultado`, `Plan`, `Seguimiento`) más `Documentos`, organizadas en atomic design (`atoms/molecules/organisms/templates` bajo `web/src/components/`, pantallas en `web/src/screens/`), con un tema MUI real construido desde los tokens del design system, conectadas a la API real del backend con manejo explícito de sus 4 códigos de error y un modo demo que reutiliza el motor de reglas real. La página `/catalogo` queda como una guía de estilo viva con los 25 componentes construidos.
+Con las 33 tareas completas, `web/` pasa de un esqueleto con un solo `fetch` a las cinco pantallas del flujo (`Bienvenida`, `Entrevista`, `Resultado`, `Plan`, `Seguimiento`) más `Documentos`, organizadas en atomic design (`atoms/molecules/organisms/templates` bajo `web/src/components/`, pantallas en `web/src/screens/`), con un tema MUI real construido desde los tokens del design system, bilingües (español por defecto, inglés con un selector siempre visible en la cabecera) y responsivas (la misma columna móvil, centrada en pantallas anchas), conectadas a la API real del backend con manejo explícito de sus 4 códigos de error y un modo demo que reutiliza el motor de reglas real. La página `/catalogo` queda como una guía de estilo viva con los 24 componentes construidos.
 
