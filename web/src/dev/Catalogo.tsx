@@ -1,5 +1,6 @@
 import { Stack, Typography } from '@mui/material';
 import { Simbolo } from '../components/atoms/Simbolo/Simbolo';
+import { Icono, NOMBRES_ICONO } from '../components/atoms/Icono/Icono';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -19,6 +20,18 @@ export function Catalogo() {
             <Simbolo tamano={48} tono="claro" />
           </div>
           <Simbolo tamano={48} tono="mono" />
+        </Stack>
+      </section>
+
+      <section>
+        <Typography variant="overline">Icono</Typography>
+        <Stack direction="row" spacing={3} sx={{ mt: 2, flexWrap: 'wrap' }}>
+          {NOMBRES_ICONO.map((nombre) => (
+            <Stack key={nombre} alignItems="center" spacing={0.5}>
+              <Icono nombre={nombre} />
+              <Typography variant="caption">{nombre}</Typography>
+            </Stack>
+          ))}
         </Stack>
       </section>
     </Stack>
