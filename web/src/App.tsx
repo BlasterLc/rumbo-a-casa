@@ -1,27 +1,20 @@
-import { useEffect, useState } from 'react';
-
-type Estado = { message: string; region: string } | 'cargando' | 'error';
+import { LocaleProvider } from './i18n/LocaleContext';
+import { Catalogo } from './dev/Catalogo';
 
 export function App() {
-  const [estado, setEstado] = useState<Estado>('cargando');
-
-  useEffect(() => {
-    fetch('/api/hello')
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then(setEstado)
-      .catch(() => setEstado('error'));
-  }, []);
-
   return (
-    <main>
-      <h1>Rumbo a Casa</h1>
-      {estado === 'cargando' && <p>Conectando con el servidor…</p>}
-      {estado === 'error' && <p>No se pudo conectar con el servidor.</p>}
-      {typeof estado === 'object' && (
-        <p>
-          {estado.message} (región: {estado.region})
-        </p>
-      )}
-    </main>
+    <LocaleProvider>
+      <AppInterno />
+    </LocaleProvider>
+  );
+}
+
+function AppInterno() {
+  if (window.location.pathname === '/catalogo') return <Catalogo />;
+  return (
+    <div style={{ padding: 24, fontFamily: 'sans-serif' }}>
+      Rumbo a Casa — interfaz en construcción. Visita <a href="/catalogo">/catalogo</a> para ver los
+      componentes ya hechos.
+    </div>
   );
 }
