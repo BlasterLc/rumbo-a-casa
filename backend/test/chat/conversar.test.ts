@@ -8,6 +8,7 @@ import {
 } from '../../src/chat/conversar';
 import { HERRAMIENTAS } from '../../src/chat/herramientas';
 import { PERFIL_VACIO } from '../../src/chat/perfil';
+import { construirSystemPrompt } from '../../src/chat/prompt';
 import { respuestaHerramienta, respuestaTexto } from './fakes';
 
 const MODELO = 'modelo-de-prueba';
@@ -111,5 +112,31 @@ describe('conversar', () => {
   it('si Bedrock falla, propaga el error', async () => {
     const invocar = vi.fn().mockRejectedValueOnce(new Error('ThrottlingException'));
     await expect(conversar(invocar, MODELO, entrada('hola'))).rejects.toThrow('ThrottlingException');
+  });
+
+  it('usa el prompt del idioma pedido y, sin idioma, el de español', async () => {
+    const invocarEn = vi.fn().mockResolvedValueOnce(respuestaTexto('Hi!'));
+    await conversar(invocarEn, MODELO, { ...entrada('Hola'), idioma: 'en' });
+    expect(invocarEn.mock.calls[0][0].system).toEqual([{ text: construirSystemPrompt('en') }]);
+
+    const invocarSin = vi.fn().mockResolvedValueOnce(respuestaTexto('¡Hola!'));
+    await conversar(invocarSin, MODELO, entrada('Hola'));
+    expect(invocarSin.mock.calls[0][0].system).toEqual([{ text: construirSystemPrompt('es') }]);
+  });
+
+  it('las herramientas le devuelven al modelo los resultados en el idioma pedido', async () => {
+    const invocar = vi
+      .fn()
+      .mockResolvedValueOnce(respuestaHerramienta('evaluar_elegibilidad', {}))
+      .mockResolvedValueOnce(respuestaTexto('Done.'));
+    await conversar(invocar, MODELO, { ...entrada('Hola'), idioma: 'en' });
+
+    const segunda = invocar.mock.calls[1][0].messages as Message[];
+    const resultado = segunda[segunda.length - 1].content?.[0].toolResult?.content?.[0] as {
+      json: { resultados: { motivo: string }[] };
+    };
+    expect(resultado.json.resultados[0].motivo).toBe(
+      'I need more information to check whether you qualify for DS49.',
+    );
   });
 });
