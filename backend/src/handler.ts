@@ -15,10 +15,16 @@ import { RepositorioDynamo, type RepositorioSesiones } from './chat/sesion-repos
 export const MAX_MENSAJES_POR_SESION = 40;
 export const MODELO_POR_DEFECTO = 'us.anthropic.claude-haiku-4-5-20251001-v1:0';
 
+// Tiempo total que puede consumir Bedrock en un mensaje (todas las vueltas del bucle
+// de herramientas juntas). La Lambda muere a los 28 s (ver infra/lib/rumbo-stack.ts):
+// pasado este presupuesto se corta con un 503 limpio en vez de un 502 crudo.
+export const PRESUPUESTO_BEDROCK_MS = 24_000;
+
 export interface DependenciasChat {
   repositorio: RepositorioSesiones;
   invocar: InvocarConverse;
   modelId: string;
+  presupuestoMs?: number;
 }
 
 type Resultado = APIGatewayProxyStructuredResultV2;
@@ -57,9 +63,14 @@ async function atenderChat(event: APIGatewayProxyEventV2, deps: DependenciasChat
     });
   }
 
+  // Una sola señal para todo el mensaje: aborta cualquier llamada a Bedrock en curso
+  // cuando se agota el presupuesto, incluidos los reintentos del SDK.
+  const abortSignal = AbortSignal.timeout(deps.presupuestoMs ?? PRESUPUESTO_BEDROCK_MS);
+  const invocar: InvocarConverse = (input) => deps.invocar(input, { abortSignal });
+
   let salida: SalidaConversar;
   try {
-    salida = await conversar(deps.invocar, deps.modelId, {
+    salida = await conversar(invocar, deps.modelId, {
       perfil: sesion.perfil,
       historial: sesion.historial,
       mensaje,
@@ -123,17 +134,14 @@ function crearDependenciasReales(): DependenciasChat {
   if (!dependenciasReales) {
     const tabla = process.env.TABLA_SESIONES;
     if (!tabla) throw new Error('Falta la variable de entorno TABLA_SESIONES');
-    // Sin este timeout, el SDK no limita cuánto puede tardar una llamada a Bedrock
-    // (por defecto es 0 = sin límite). `conversar` puede hacer hasta
-    // MAX_VUELTAS_HERRAMIENTAS (6) llamadas Converse seguidas; sin un tope por
-    // llamada, una demora o colgada empuja la solicitud entera más allá de los
-    // 28s de Lambda (ver infra/lib/rumbo-stack.ts) y esta última la mata con un
-    // 502 crudo en vez de que `atenderChat` alcance a devolver el 503 esperado.
-    // 3000ms por intento y como máximo 2 intentos acotan el peor caso a 21s
-    // (5 llamadas exitosas a tope de 3s + 1 llamada fallida con reintento),
-    // dejando margen cómodo dentro de los 28s.
+    // `Converse` no hace streaming: el modelo no envía ningún byte hasta terminar de
+    // generar, así que una respuesta larga (como la explicación final de los 4
+    // programas) tarda varios segundos "en silencio". El timeout por inactividad del
+    // socket debe ser holgado (3 s cortaba esas respuestas); el tope real por mensaje
+    // lo pone PRESUPUESTO_BEDROCK_MS en atenderChat. Este valor solo protege contra
+    // un socket colgado, y queda bajo los 28 s de la Lambda.
     const bedrock = new BedrockRuntimeClient({
-      requestHandler: { requestTimeout: 3000 },
+      requestHandler: { requestTimeout: 20_000 },
       maxAttempts: 2,
     });
     const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
@@ -141,7 +149,7 @@ function crearDependenciasReales(): DependenciasChat {
     });
     dependenciasReales = {
       repositorio: new RepositorioDynamo(dynamo, tabla),
-      invocar: (input) => bedrock.send(new ConverseCommand(input)),
+      invocar: (input, opciones) => bedrock.send(new ConverseCommand(input), opciones),
       modelId: process.env.MODEL_ID ?? MODELO_POR_DEFECTO,
     };
   }
