@@ -50,10 +50,8 @@ Browser ──► CloudFront ──┬─► S3 (single-page app)
 backend/   Lambda handler, chat loop, rules engine, paper checklist, demo, tests
 infra/     CDK stack (CloudFront, S3, Lambda, DynamoDB, IAM) and its tests
 web/       Single-page app served from S3
-docs/      Programs reference, technical guide, design spec and implementation plans, evidence
+docs/      Programs reference (sources cited by the rules engine) and evidence
 ```
-
-The design spec and the step-by-step plans the coding agent worked from are in [`docs/superpowers/`](docs/superpowers).
 
 ## Run the tests
 

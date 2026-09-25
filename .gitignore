@@ -22,3 +22,9 @@ docs/contrato-api-chat.md
 # PDFs/formularios oficiales crudos de MINVU (investigación de fuente):
 # las reglas ya destiladas y citadas viven en docs/programas-subsidio.md.
 dsDocs/
+
+# Documentos de diseño y planes de trabajo, y guía de estudio del stack:
+# quedan solo en la máquina local; el repo publica el código, el README,
+# docs/programas-subsidio.md (que cita el motor de reglas) y docs/evidence/.
+docs/superpowers/
+docs/stack-tecnico.md

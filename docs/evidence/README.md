@@ -9,7 +9,7 @@ Verified 2026-09-22: `GET /` returns 200. `GET /api/hello` returns `{"message":"
 - Stack: `RumboACasa`
 - Region: `us-east-1`
 - Deployed: 2026-09-22
-- Foundation stack (tasks 1-7 of `docs/superpowers/plans/2026-09-20-fundacion-aws.md`): CloudFront + S3 (single-page app) + Lambda Function URL.
+- Foundation stack: CloudFront + S3 (single-page app) + Lambda Function URL.
 
 ## Proof of coding agent connection
 
