@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Rumbo a Casa">
+  <rect x="8" y="36" width="14" height="20" rx="6" fill="#7fb3ee"></rect>
+  <rect x="25" y="26" width="14" height="30" rx="6" fill="#7fb3ee"></rect>
+  <path d="M42 23a7 7 0 0 1 14 0v27a6 6 0 0 1-6 6h-2a6 6 0 0 1-6-6z" fill="#e8a07a"></path>
+</svg>
