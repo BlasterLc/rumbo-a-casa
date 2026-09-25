@@ -1,5 +1,5 @@
 import type { Perfil } from './perfil.schema';
-import { resultadoDecision, resultadoFaltaDato, type ResultadoPrograma } from './tipos';
+import { IDIOMA_POR_DEFECTO, resultadoDecision, resultadoFaltaDato, type Idioma, type ResultadoPrograma } from './tipos';
 
 const REGLA_DS19 = {
   decreto: 'D.S. N°19 (V. y U.) de 2016, mod. D.S. N°16 (V. y U.) de 2020',
@@ -11,7 +11,7 @@ const CAMPOS_REQUERIDOS = ['tienePropiedad', 'subsidioPrevio', 'tramoRSH'] as co
 
 const SUBSIDIOS_RUTA_A = ['DS49', 'DS1_T1', 'damnificado_2014'];
 
-export function evaluarDS19(perfil: Perfil): ResultadoPrograma {
+export function evaluarDS19(perfil: Perfil, _idioma: Idioma = IDIOMA_POR_DEFECTO): ResultadoPrograma {
   const faltantes = CAMPOS_REQUERIDOS.filter((campo) => perfil[campo] === 'desconocido');
   if (faltantes.length > 0) {
     return resultadoFaltaDato('DS19', faltantes, REGLA_DS19);

@@ -1,4 +1,4 @@
-import type { Programa, ResultadoPrograma } from '../rules-engine/index';
+import { IDIOMA_POR_DEFECTO, type Idioma, type Programa, type ResultadoPrograma } from '../rules-engine/index';
 
 export interface Documento {
   nombre: string;
@@ -88,7 +88,7 @@ const CERTIFICADO_SUBSIDIO: Documento = {
   detalle: 'El certificado de tu subsidio DS49, DS1 Tramo 1 o de damnificado.',
 };
 
-export function generarPlanPapeles(resultados: ResultadoPrograma[]): PlanPrograma[] {
+export function generarPlanPapeles(resultados: ResultadoPrograma[], _idioma: Idioma = IDIOMA_POR_DEFECTO): PlanPrograma[] {
   return resultados
     .filter((r) => r.estado === 'elegible')
     .map((r) => {

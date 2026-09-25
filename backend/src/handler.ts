@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { evaluarTodosLosProgramas } from './rules-engine/index';
+import { IDIOMAS, IDIOMA_POR_DEFECTO, evaluarTodosLosProgramas } from './rules-engine/index';
 import { conversar, type InvocarConverse, type SalidaConversar } from './chat/conversar';
 import { generarPlanPapeles } from './chat/papeles';
 import { construirDemo } from './chat/demo';
@@ -38,6 +38,7 @@ const json = (statusCode: number, body: unknown): Resultado => ({
 const SolicitudChat = z.object({
   sessionId: z.uuid(),
   mensaje: z.string().trim().min(1).max(2000),
+  idioma: z.enum(IDIOMAS).default(IDIOMA_POR_DEFECTO),
 });
 
 function leerCuerpo(event: APIGatewayProxyEventV2): unknown {
@@ -53,7 +54,7 @@ function leerCuerpo(event: APIGatewayProxyEventV2): unknown {
 async function atenderChat(event: APIGatewayProxyEventV2, deps: DependenciasChat): Promise<Resultado> {
   const solicitud = SolicitudChat.safeParse(leerCuerpo(event));
   if (!solicitud.success) return json(400, { error: 'solicitud_invalida' });
-  const { sessionId, mensaje } = solicitud.data;
+  const { sessionId, mensaje, idioma } = solicitud.data;
 
   const sesion = await deps.repositorio.obtener(sessionId);
   if (sesion.mensajes >= MAX_MENSAJES_POR_SESION) {
@@ -74,6 +75,7 @@ async function atenderChat(event: APIGatewayProxyEventV2, deps: DependenciasChat
       perfil: sesion.perfil,
       historial: sesion.historial,
       mensaje,
+      idioma,
     });
   } catch (error) {
     console.error('Bedrock falló', error);
@@ -90,12 +92,12 @@ async function atenderChat(event: APIGatewayProxyEventV2, deps: DependenciasChat
     mensajes: sesion.mensajes + 1,
   });
 
-  const resultados = evaluarTodosLosProgramas(salida.perfil);
+  const resultados = evaluarTodosLosProgramas(salida.perfil, idioma);
   return json(200, {
     respuesta: salida.respuesta,
     perfil: salida.perfil,
     resultados,
-    plan: generarPlanPapeles(resultados),
+    plan: generarPlanPapeles(resultados, idioma),
   });
 }
 

@@ -1,5 +1,5 @@
 import type { Perfil } from './perfil.schema';
-import { resultadoDecision, resultadoFaltaDato, type ResultadoPrograma } from './tipos';
+import { IDIOMA_POR_DEFECTO, resultadoDecision, resultadoFaltaDato, type Idioma, type ResultadoPrograma } from './tipos';
 
 const REGLA_DS52 = {
   decreto: 'D.S. N°52 de 2013, Res. Ex. N°809/2026 (Región Metropolitana)',
@@ -24,7 +24,7 @@ function decidir(perfil: Perfil, elegible: boolean, motivo: string): ResultadoPr
   return resultadoDecision('DS52', elegible, motivo, REGLA_DS52, detalle);
 }
 
-export function evaluarDS52(perfil: Perfil): ResultadoPrograma {
+export function evaluarDS52(perfil: Perfil, _idioma: Idioma = IDIOMA_POR_DEFECTO): ResultadoPrograma {
   const faltantes = CAMPOS_REQUERIDOS.filter((campo) => perfil[campo] === 'desconocido');
   if (faltantes.length > 0) {
     return resultadoFaltaDato('DS52', faltantes, REGLA_DS52);

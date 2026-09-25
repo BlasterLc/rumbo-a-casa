@@ -209,3 +209,26 @@ describe('POST /api/chat', () => {
     expect(JSON.parse(res.body as string)).toEqual({ error: 'error_interno' });
   });
 });
+
+describe('campo idioma de POST /api/chat', () => {
+  it.each([['fr'], ['EN'], [''], [null], [1], [['en']]])(
+    'responde 400 sin llamar a Bedrock si idioma es %j',
+    async (idioma) => {
+      const { handlerChat, invocar } = armar();
+      const res = await handlerChat(
+        peticionChat(JSON.stringify({ sessionId: randomUUID(), mensaje: 'Hola', idioma })),
+      );
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res.body as string)).toEqual({ error: 'solicitud_invalida' });
+      expect(invocar).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([['es'], ['en'], [undefined]])('acepta idioma %s (ausente = español)', async (idioma) => {
+    const { handlerChat } = armar();
+    const res = await handlerChat(
+      peticionChat(JSON.stringify({ sessionId: randomUUID(), mensaje: 'Hola', idioma })),
+    );
+    expect(res.statusCode).toBe(200);
+  });
+});

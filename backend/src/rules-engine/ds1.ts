@@ -1,5 +1,5 @@
 import type { Perfil } from './perfil.schema';
-import { resultadoDecision, resultadoFaltaDato, type ResultadoPrograma } from './tipos';
+import { IDIOMA_POR_DEFECTO, resultadoDecision, resultadoFaltaDato, type Idioma, type ResultadoPrograma } from './tipos';
 import { obtenerZonaDS1 } from './zonas';
 
 const REGLA_DS1 = {
@@ -37,7 +37,7 @@ function topeIngresoPorTamano(tamanoGrupo: number): number {
 
 const conPuntosDeMiles = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-export function evaluarDS1(perfil: Perfil): ResultadoPrograma {
+export function evaluarDS1(perfil: Perfil, _idioma: Idioma = IDIOMA_POR_DEFECTO): ResultadoPrograma {
   const faltantes = CAMPOS_REQUERIDOS.filter((campo) => perfil[campo] === 'desconocido');
   if (faltantes.length > 0) {
     return resultadoFaltaDato('DS1', faltantes, REGLA_DS1);

@@ -4,7 +4,7 @@ import type {
   ConverseCommandOutput,
   Message,
 } from '@aws-sdk/client-bedrock-runtime';
-import type { Perfil } from '../rules-engine/index';
+import { IDIOMA_POR_DEFECTO, type Idioma, type Perfil } from '../rules-engine/index';
 import { HERRAMIENTAS, ejecutarHerramienta } from './herramientas';
 
 export type InvocarConverse = (
@@ -48,6 +48,7 @@ export interface EntradaConversar {
   perfil: Perfil;
   historial: Message[];
   mensaje: string;
+  idioma?: Idioma;
 }
 
 export interface SalidaConversar {
@@ -68,6 +69,7 @@ export async function conversar(
   entrada: EntradaConversar,
 ): Promise<SalidaConversar> {
   let perfil = entrada.perfil;
+  const idioma = entrada.idioma ?? IDIOMA_POR_DEFECTO;
   const inicio: Message[] = [...entrada.historial, { role: 'user', content: [{ text: entrada.mensaje }] }];
   const enCurso: Message[] = [...inicio];
 
@@ -93,7 +95,7 @@ export async function conversar(
 
     enCurso.push({ role: 'assistant', content: contenido });
     const resultados = pedidos.map(({ toolUse }): ContentBlock => {
-      const r = ejecutarHerramienta(toolUse?.name ?? '', toolUse?.input, perfil);
+      const r = ejecutarHerramienta(toolUse?.name ?? '', toolUse?.input, perfil, idioma);
       perfil = r.perfil;
       return {
         toolResult: {

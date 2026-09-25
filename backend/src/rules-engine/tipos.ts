@@ -1,5 +1,9 @@
 export type ConDesconocido<T> = T | 'desconocido';
 
+export const IDIOMAS = ['es', 'en'] as const;
+export type Idioma = (typeof IDIOMAS)[number];
+export const IDIOMA_POR_DEFECTO: Idioma = 'es';
+
 export type EstadoElegibilidad = 'elegible' | 'no_elegible' | 'falta_dato';
 
 export interface Regla {

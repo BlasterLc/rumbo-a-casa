@@ -1,5 +1,5 @@
 import type { Perfil } from './perfil.schema';
-import { resultadoDecision, resultadoFaltaDato, type ResultadoPrograma } from './tipos';
+import { IDIOMA_POR_DEFECTO, resultadoDecision, resultadoFaltaDato, type Idioma, type ResultadoPrograma } from './tipos';
 
 const REGLA_DS49 = {
   decreto: 'D.S. N°49 (V. y U.) de 2011',
@@ -11,7 +11,7 @@ const CAMPOS_REQUERIDOS = [
   'tramoRSH', 'tienePropiedad', 'ahorroUF', 'postulanteEdad', 'integrantesGrupoFamiliar',
 ] as const;
 
-export function evaluarDS49(perfil: Perfil): ResultadoPrograma {
+export function evaluarDS49(perfil: Perfil, _idioma: Idioma = IDIOMA_POR_DEFECTO): ResultadoPrograma {
   const faltantes = CAMPOS_REQUERIDOS.filter((campo) => perfil[campo] === 'desconocido');
   if (faltantes.length > 0) {
     return resultadoFaltaDato('DS49', faltantes, REGLA_DS49);
