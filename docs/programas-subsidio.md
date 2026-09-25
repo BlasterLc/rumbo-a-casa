@@ -1,8 +1,8 @@
 # Programas de subsidio habitacional — reglas y fuentes
 
-Investigado 2026-09-21/22 contra fuentes oficiales (minvu.gob.cl, chileatiende.gob.cl, folletos oficiales MINVU/Serviu Metropolitana) y verificado con el usuario. Este documento es la fuente de verdad que implementa `backend/src/rules-engine/` — cada regla codificada debe citar el decreto (y, cuando corresponda, la resolución del llamado vigente) listados aquí. Los PDFs originales usados como fuente quedan en `dsDocs/` (no versionado, solo referencia local).
+Investigado 2026-09-21/22 contra fuentes oficiales (minvu.gob.cl, chileatiende.gob.cl, folletos oficiales MINVU/Serviu Metropolitana). Este documento es la fuente de verdad que implementa `backend/src/rules-engine/` — cada regla codificada debe citar el decreto (y, cuando corresponda, la resolución del llamado vigente) listados aquí. Los PDFs originales usados como fuente quedan en `dsDocs/` (no versionado, solo referencia local).
 
-Perfil de entrada compartido para los 4 programas (ver spec técnico): grupo familiar, tramo RSH, ingresos, ahorro acreditado, región/comuna, propiedad existente, objetivo. Cuando falte un dato necesario para evaluar un programa, el motor devuelve `falta_dato` con la lista de campos pendientes — nunca asume.
+Perfil de entrada compartido para los 4 programas: grupo familiar, tramo RSH, ingresos, ahorro acreditado, región/comuna, propiedad existente, objetivo. Cuando falte un dato necesario para evaluar un programa, el motor devuelve `falta_dato` con la lista de campos pendientes — nunca asume.
 
 Los montos de subsidio en UF son **informativos**, no condicionan `elegible`/`no_elegible`: dependen también de características de la vivienda (m², tipo, ubicación exacta) que el perfil de la familia no captura. La elegibilidad se decide solo con los campos del perfil.
 
@@ -32,7 +32,7 @@ Los montos de subsidio en UF son **informativos**, no condicionan `elegible`/`no
 | Superficie adicional (vivienda > 37,5 m²) | hasta 50 UF |
 | Premio al ahorro adicional (sobre las 10 UF acreditadas) | hasta 30 UF (Estado aporta 1,5 UF por cada UF adicional ahorrada) |
 
-**Simulador oficial para el monto exacto** (especialmente en las 4 zonas sin cifra publicada): `simuladorsubsidiods49.minvu.cl` — ver nota de integración en el spec técnico, sección "Backlog técnico". Es ASP.NET MVC 5 server-rendered; no se puede embeber (`X-Frame-Options: SAMEORIGIN`, CSP `frame-ancestors 'self'`). Para el MVP se linkea, no se scrapea.
+**Simulador oficial para el monto exacto** (especialmente en las 4 zonas sin cifra publicada): `simuladorsubsidiods49.minvu.cl`. Es ASP.NET MVC 5 server-rendered; no se puede embeber (`X-Frame-Options: SAMEORIGIN`, CSP `frame-ancestors 'self'`). Para el MVP se linkea, no se scrapea.
 
 **Modalidades:** compra nueva o usada, construcción en nuevo terreno, sitio propio, densificación. Postulación individual o colectiva (comités/cooperativas).
 
@@ -40,7 +40,7 @@ Los montos de subsidio en UF son **informativos**, no condicionan `elegible`/`no
 
 ## DS1 — Sistema Integrado de Subsidio Habitacional (Sectores Medios)
 
-**Decreto:** D.S. N°1 de 2011. Llamado 2026: Resolución Exenta N°669/2026. **Fuente:** chileatiende.gob.cl, infografía oficial MINVU "Montos de subsidio según alternativa" (aportada por el usuario).
+**Decreto:** D.S. N°1 de 2011. Llamado 2026: Resolución Exenta N°669/2026. **Fuente:** chileatiende.gob.cl, infografía oficial MINVU "Montos de subsidio según alternativa".
 
 **Elegibilidad general:** 18+, no propietario (ni de un sitio con destino habitacional), cuenta de ahorro con ≥12 meses de antigüedad.
 

@@ -7,7 +7,10 @@ import type {
 import type { Perfil } from '../rules-engine/index';
 import { HERRAMIENTAS, ejecutarHerramienta } from './herramientas';
 
-export type InvocarConverse = (input: ConverseCommandInput) => Promise<ConverseCommandOutput>;
+export type InvocarConverse = (
+  input: ConverseCommandInput,
+  opciones?: { abortSignal?: AbortSignal },
+) => Promise<ConverseCommandOutput>;
 
 export const MAX_VUELTAS_HERRAMIENTAS = 6;
 

@@ -79,8 +79,13 @@ describe('crearDependenciasReales (configuración de Bedrock en producción)', (
       maxAttempts?: number;
     };
 
-    expect(config.requestHandler?.requestTimeout).toBeGreaterThan(0);
-    expect(config.requestHandler?.requestTimeout).toBeLessThanOrEqual(8000);
+    // Converse no es streaming: el modelo no envía ningún byte hasta terminar de
+    // generar, así que una respuesta larga (la explicación final de los 4 programas)
+    // tarda varios segundos en silencio. Con 3000 ms esa respuesta fallaba siempre,
+    // por eso hay un piso. El techo deja margen dentro de los 28 s de la Lambda; el
+    // tope real por mensaje lo pone el presupuesto de tiempo del handler.
+    expect(config.requestHandler?.requestTimeout).toBeGreaterThanOrEqual(10000);
+    expect(config.requestHandler?.requestTimeout).toBeLessThanOrEqual(24000);
     expect(config.maxAttempts).toBeDefined();
     expect(config.maxAttempts as number).toBeLessThanOrEqual(2);
   });

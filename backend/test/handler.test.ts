@@ -23,6 +23,38 @@ describe('handler', () => {
   });
 });
 
+const peticionDemo = (metodo = 'GET') =>
+  ({ rawPath: '/api/demo', requestContext: { http: { method: metodo } } }) as unknown as APIGatewayProxyEventV2;
+
+describe('GET /api/demo', () => {
+  it('responde 200 con la conversación de ejemplo sin tocar Bedrock ni DynamoDB', async () => {
+    const obtenerDependencias = vi.fn(() => {
+      throw new Error('el demo no debe pedir dependencias');
+    });
+    const res = await crearHandler(obtenerDependencias)(peticionDemo());
+
+    expect(res.statusCode).toBe(200);
+    const cuerpo = JSON.parse(res.body as string);
+    expect(cuerpo.modo).toBe('demo');
+    expect(cuerpo.pasos.length).toBeGreaterThan(0);
+    expect(cuerpo.pasos[0]).toHaveProperty('usuario');
+    expect(cuerpo.pasos[0]).toHaveProperty('respuesta');
+    expect(cuerpo.pasos[0].resultados).toHaveLength(4);
+    expect(obtenerDependencias).not.toHaveBeenCalled();
+  });
+
+  it('funciona con el handler real aunque falte TABLA_SESIONES', async () => {
+    const res = await handler(peticionDemo());
+    expect(res.statusCode).toBe(200);
+  });
+
+  it('responde 405 si no es GET', async () => {
+    const res = await handler(peticionDemo('POST'));
+    expect(res.statusCode).toBe(405);
+    expect(JSON.parse(res.body as string)).toEqual({ error: 'metodo_no_permitido' });
+  });
+});
+
 const peticionChat = (
   body: string | undefined,
   opciones: { metodo?: string; base64?: boolean } = {},
@@ -127,6 +159,38 @@ describe('POST /api/chat', () => {
     const sesion = await repositorio.obtener(sessionId);
     expect(sesion.mensajes).toBe(0);
     expect(sesion.historial).toEqual([]);
+  });
+
+  it('comparte una señal de aborto entre todas las llamadas a Bedrock de un mensaje', async () => {
+    const invocar = vi
+      .fn()
+      .mockResolvedValueOnce(respuestaHerramienta('actualizar_perfil', { tramoRSH: 40 }))
+      .mockResolvedValueOnce(respuestaTexto('Anotado.'));
+    const { handlerChat } = armar(invocar);
+    await handlerChat(peticionChat(JSON.stringify({ sessionId: randomUUID(), mensaje: 'Tramo 40' })));
+
+    expect(invocar).toHaveBeenCalledTimes(2);
+    const senales = invocar.mock.calls.map(([, opciones]) => opciones?.abortSignal);
+    expect(senales[0]).toBeInstanceOf(AbortSignal);
+    expect(senales[1]).toBe(senales[0]);
+  });
+
+  it('responde 503 y no guarda la sesión si Bedrock excede el presupuesto de tiempo', async () => {
+    const invocar = vi.fn(
+      (_input: unknown, opciones?: { abortSignal?: AbortSignal }) =>
+        new Promise<never>((_resolver, rechazar) => {
+          opciones?.abortSignal?.addEventListener('abort', () => rechazar(opciones.abortSignal?.reason));
+        }),
+    );
+    const repositorio = new RepositorioEnMemoria();
+    const deps = { repositorio, invocar, modelId: 'modelo-de-prueba', presupuestoMs: 30 } as DependenciasChat;
+    const sessionId = randomUUID();
+
+    const res = await crearHandler(() => deps)(peticionChat(JSON.stringify({ sessionId, mensaje: 'Hola' })));
+
+    expect(res.statusCode).toBe(503);
+    expect(JSON.parse(res.body as string).error).toBe('asistente_no_disponible');
+    expect((await repositorio.obtener(sessionId)).mensajes).toBe(0);
   });
 
   it('responde 500 si falla el repositorio de sesiones', async () => {
