@@ -232,3 +232,27 @@ describe('campo idioma de POST /api/chat', () => {
     expect(res.statusCode).toBe(200);
   });
 });
+
+describe('POST /api/chat con idioma en', () => {
+  it('devuelve los resultados con los motivos en inglés', async () => {
+    const { handlerChat } = armar();
+    const res = await handlerChat(
+      peticionChat(JSON.stringify({ sessionId: randomUUID(), mensaje: 'Hola', idioma: 'en' })),
+    );
+    expect(res.statusCode).toBe(200);
+    const { resultados } = JSON.parse(res.body as string);
+    expect(resultados).toHaveLength(4);
+    for (const r of resultados) {
+      expect(r.motivo).toMatch(/^I need more information to check whether you qualify for DS/);
+    }
+  });
+
+  it('sin idioma devuelve los motivos en español', async () => {
+    const { handlerChat } = armar();
+    const res = await handlerChat(
+      peticionChat(JSON.stringify({ sessionId: randomUUID(), mensaje: 'Hola' })),
+    );
+    const { resultados } = JSON.parse(res.body as string);
+    for (const r of resultados) expect(r.motivo).toMatch(/^Me faltan datos para ver si calificas a DS/);
+  });
+});

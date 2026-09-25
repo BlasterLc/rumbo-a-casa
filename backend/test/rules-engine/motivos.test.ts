@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { evaluarDS49 } from '../../src/rules-engine/ds49';
 import { evaluarDS19 } from '../../src/rules-engine/ds19';
 import { evaluarDS1 } from '../../src/rules-engine/ds1';
+import { evaluarDS52 } from '../../src/rules-engine/ds52';
 import type { Perfil } from '../../src/rules-engine/perfil.schema';
 
 const base: Perfil = {
@@ -201,5 +202,85 @@ describe('motivos de DS1', () => {
     const perfil = { ...base, tramoRSH: 40, ahorroUF: 12 } as Perfil;
     expect(evaluarDS1(perfil, 'en').detalle).toEqual({ causa: 'ahorro', ahorroMinimoUF: 30, faltanteUF: 18 });
     expect(evaluarDS1(perfil, 'en').estado).toBe('no_elegible');
+  });
+});
+
+describe('motivos de DS52', () => {
+  const casos: [string, Perfil, string, string][] = [
+    [
+      'ya es propietario',
+      { ...base, tienePropiedad: true },
+      'Ya tienes una vivienda propia, y este programa es para quienes aún no la tienen.',
+      'You already own a home, and this program is for people who do not own one yet.',
+    ],
+    [
+      'subsidio previo',
+      { ...base, subsidioPrevio: 'DS49' },
+      'Ya recibiste un subsidio habitacional antes.',
+      'You have already received a housing subsidy before.',
+    ],
+    [
+      'menor de edad',
+      { ...base, postulanteEdad: 17 },
+      'Para postular tienes que tener 18 años o más.',
+      'You must be 18 or older to apply.',
+    ],
+    [
+      'sin cónyuge, conviviente ni hijo',
+      { ...base, integrantesGrupoFamiliar: [] },
+      'Debes postular al menos con cónyuge, conviviente civil, conviviente o hijo, salvo que tengas 60 años o más.',
+      'You must apply with at least a spouse, civil partner, partner or child, unless you are 60 or older.',
+    ],
+    [
+      'RSH sobre 70%',
+      { ...base, tramoRSH: 80 },
+      'Tu tramo del Registro Social de Hogares (RSH) debe ser 70% o menos.',
+      'Your Registro Social de Hogares (RSH) bracket must be 70% or lower.',
+    ],
+    [
+      'ahorro bajo 4 UF',
+      { ...base, ahorroUF: 2 },
+      'Necesitas un ahorro mínimo de 4 UF.',
+      'You need at least 4 UF in savings.',
+    ],
+    [
+      'ingreso fuera de rango',
+      { ...base, ingresoFamiliarMensualUF: 80 },
+      'Tu ingreso familiar mensual debe estar entre 7 y 25 UF para un grupo de 2 personas.',
+      'Your monthly household income must be between 7 and 25 UF for a household of 2 people.',
+    ],
+    [
+      'cumple',
+      base,
+      'Cumples los requisitos de DS52: RSH ≤70%, ahorro ≥4 UF, ingreso dentro del rango, sin vivienda propia ni subsidio previo.',
+      'You meet the DS52 requirements: RSH 70% or lower, savings of at least 4 UF, income within the range, and no home of your own or previous subsidy.',
+    ],
+    [
+      'faltan datos',
+      { ...base, ingresoFamiliarMensualUF: 'desconocido' },
+      'Me faltan datos para ver si calificas a DS52.',
+      'I need more information to check whether you qualify for DS52.',
+    ],
+  ];
+
+  it.each(casos)('%s', (_nombre, perfil, esperadoEs, esperadoEn) => {
+    expect(evaluarDS52(perfil).motivo).toBe(esperadoEs);
+    expect(evaluarDS52(perfil, 'es').motivo).toBe(esperadoEs);
+    expect(evaluarDS52(perfil, 'en').motivo).toBe(esperadoEn);
+  });
+
+  it('fuera de la Región Metropolitana la nota sale en el idioma pedido', () => {
+    const perfil = { ...base, region: 'Valparaíso' } as Perfil;
+    expect(evaluarDS52(perfil, 'es').detalle?.nota).toBe(
+      'Los requisitos de ingreso y los montos corresponden al llamado de la Región Metropolitana; pueden variar según tu región o comuna, verifica en minvu.gob.cl.',
+    );
+    expect(evaluarDS52(perfil, 'en').detalle?.nota).toBe(
+      'The income requirements and amounts are those of the Metropolitan Region call; they may vary by your region or commune, check at minvu.gob.cl.',
+    );
+  });
+
+  it('en la Región Metropolitana no hay nota en ningún idioma', () => {
+    expect(evaluarDS52(base, 'en').detalle).toBeUndefined();
+    expect(evaluarDS52(base, 'es').detalle).toBeUndefined();
   });
 });
