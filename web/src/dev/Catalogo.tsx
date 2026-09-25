@@ -1,6 +1,7 @@
 import { Stack, Typography } from '@mui/material';
 import { Simbolo } from '../components/atoms/Simbolo/Simbolo';
 import { Icono, NOMBRES_ICONO } from '../components/atoms/Icono/Icono';
+import { Boton } from '../components/atoms/Boton/Boton';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -32,6 +33,18 @@ export function Catalogo() {
               <Typography variant="caption">{nombre}</Typography>
             </Stack>
           ))}
+        </Stack>
+      </section>
+
+      <section>
+        <Typography variant="overline">Boton</Typography>
+        <Stack spacing={2} sx={{ mt: 2, maxWidth: 320 }}>
+          <Boton>Ver mi plan</Boton>
+          <Boton variant="outlined">Ver el detalle</Boton>
+          <Boton variant="outlined" color="secondary" icono="mic">Contar hablando</Boton>
+          <Boton variant="text">Ahora no</Boton>
+          <Boton icono="externo">Ir a postulacionenlinea.minvu.cl</Boton>
+          <Boton loading>Guardando…</Boton>
         </Stack>
       </section>
     </Stack>
