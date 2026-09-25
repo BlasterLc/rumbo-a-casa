@@ -2,6 +2,7 @@ import { Stack, Typography } from '@mui/material';
 import { Simbolo } from '../components/atoms/Simbolo/Simbolo';
 import { Icono, NOMBRES_ICONO } from '../components/atoms/Icono/Icono';
 import { Boton } from '../components/atoms/Boton/Boton';
+import { ChipFiltro, ChipEtiqueta } from '../components/atoms/Chip/Chip';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -45,6 +46,17 @@ export function Catalogo() {
           <Boton variant="text">Ahora no</Boton>
           <Boton icono="externo">Ir a postulacionenlinea.minvu.cl</Boton>
           <Boton loading>Guardando…</Boton>
+        </Stack>
+      </section>
+
+      <section>
+        <Typography variant="overline">Chip</Typography>
+        <Stack direction="row" spacing={1.5} sx={{ mt: 2, flexWrap: 'wrap' }}>
+          <ChipFiltro label="Todos" activo />
+          <ChipFiltro label="Arriendo" />
+          <ChipFiltro label="Sin crédito" />
+          <ChipEtiqueta label="Región del Biobío" />
+          <ChipEtiqueta label="Tramo 40%" />
         </Stack>
       </section>
     </Stack>
