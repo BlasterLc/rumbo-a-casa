@@ -171,7 +171,7 @@ describe('evaluarDS1', () => {
       const r = evaluarDS1({ ...base, tramoRSH: 95, ahorroUF: 85, ingresoFamiliarMensualCLP: 5_000_000 });
       expect(r.estado).toBe('no_elegible');
       expect(r.motivo).toBe(
-        'Con 85 UF de ahorro te correspondería el Tramo 3 (RSH ≤90%), pero tu tramo RSH es 95% y el ingreso familiar supera el tope de $3.386.546 para 2 personas.',
+        'Con 85 UF de ahorro te correspondería el Tramo 3 (RSH ≤90%), pero tu tramo RSH es 95% y tu ingreso familiar supera el tope de $3.386.546 para 2 personas.',
       );
     });
 

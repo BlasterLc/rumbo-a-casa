@@ -98,7 +98,7 @@ describe('motivos de DS19', () => {
     [
       'ruta B',
       base,
-      'Ruta B: no tienes subsidio previo, tu RSH es ≤90% y no eres propietario. El ahorro mínimo depende del proyecto al que postules.',
+      'Ruta B: no tienes subsidio previo, tu RSH es ≤90% y no tienes vivienda propia. El ahorro mínimo depende del proyecto al que postules.',
       'Route B: you have no previous subsidy, your RSH is 90% or lower and you do not own a home. The minimum savings depend on the project you apply to.',
     ],
     [
@@ -169,8 +169,8 @@ describe('motivos de DS1', () => {
     [
       'Tramo 3: RSH e ingreso exceden',
       { ...base, tramoRSH: 95, ahorroUF: 85, ingresoFamiliarMensualCLP: 5_000_000 },
-      'Con 85 UF de ahorro te correspondería el Tramo 3 (RSH ≤90%), pero tu tramo RSH es 95% y el ingreso familiar supera el tope de $3.386.546 para 2 personas.',
-      'With 85 UF in savings you would fall under Tier 3 (RSH 90% or lower), but your RSH bracket is 95% and your household income is above the limit of $3,386,546 for 2 people.',
+      'Con 85 UF de ahorro te correspondería el Tramo 3 (RSH ≤90%), pero tu tramo RSH es 95% y tu ingreso familiar supera el tope de $3.386.546 para 2 personas.',
+      'With 85 UF in savings you would fall under Tier 3 (RSH 90% or lower), but your RSH bracket is 95% and your household income is above the limit of CLP 3,386,546 for 2 people.',
     ],
     [
       'adulto mayor: el tope de RSH del mensaje es 90%',
@@ -217,7 +217,7 @@ describe('motivos de DS52', () => {
       'subsidio previo',
       { ...base, subsidioPrevio: 'DS49' },
       'Ya recibiste un subsidio habitacional antes.',
-      'You have already received a housing subsidy before.',
+      'You have already received a housing subsidy.',
     ],
     [
       'menor de edad',

@@ -74,7 +74,7 @@ const es: Mensajes = {
     rshExcede: (ahorroUF, tramo, rshMaximo, rsh, ingreso) => {
       const base = `Con ${ahorroUF} UF de ahorro te correspondería el Tramo ${tramo} (RSH ≤${rshMaximo}%), pero tu tramo RSH es ${rsh}%`;
       return ingreso
-        ? `${base} y el ingreso familiar supera el tope de $${conSeparador(ingreso.topeCLP, '.')} para ${contarPersonasEs(ingreso.personas)}.`
+        ? `${base} y tu ingreso familiar supera el tope de $${conSeparador(ingreso.topeCLP, '.')} para ${contarPersonasEs(ingreso.personas)}.`
         : `${base}.`;
     },
   },
@@ -82,7 +82,7 @@ const es: Mensajes = {
     rutaA:
       'Ruta A: ya tienes un subsidio previo (DS49, DS1 Tramo 1 o damnificado desde 2014), así que puedes acceder a una vivienda de 1.200-1.400 UF pagada en su totalidad, sin crédito hipotecario.',
     rutaB:
-      'Ruta B: no tienes subsidio previo, tu RSH es ≤90% y no eres propietario. El ahorro mínimo depende del proyecto al que postules.',
+      'Ruta B: no tienes subsidio previo, tu RSH es ≤90% y no tienes vivienda propia. El ahorro mínimo depende del proyecto al que postules.',
     sinHabilitacion:
       'No tienes un subsidio previo que te habilite (Ruta A) y tu tramo RSH supera el 90% que exige la Ruta B.',
   },
@@ -124,7 +124,7 @@ const en: Mensajes = {
     rshExcede: (ahorroUF, tramo, rshMaximo, rsh, ingreso) => {
       const base = `With ${ahorroUF} UF in savings you would fall under Tier ${tramo} (RSH ${rshMaximo}% or lower), but your RSH bracket is ${rsh}%`;
       return ingreso
-        ? `${base} and your household income is above the limit of $${conSeparador(ingreso.topeCLP, ',')} for ${contarPersonasEn(ingreso.personas)}.`
+        ? `${base} and your household income is above the limit of CLP ${conSeparador(ingreso.topeCLP, ',')} for ${contarPersonasEn(ingreso.personas)}.`
         : `${base}.`;
     },
   },
@@ -137,7 +137,7 @@ const en: Mensajes = {
       'You have no previous subsidy that qualifies you (Route A), and your RSH bracket is above the 90% that Route B requires.',
   },
   ds52: {
-    subsidioPrevio: 'You have already received a housing subsidy before.',
+    subsidioPrevio: 'You have already received a housing subsidy.',
     sinNucleo:
       'You must apply with at least a spouse, civil partner, partner or child, unless you are 60 or older.',
     rshMaximo: 'Your Registro Social de Hogares (RSH) bracket must be 70% or lower.',

@@ -16,6 +16,11 @@ describe('construirSystemPrompt', () => {
     expect(en).not.toContain('Responde siempre en español');
   });
 
+  it('el prompt en inglés repite en inglés la directiva de idioma; el de español no', () => {
+    expect(construirSystemPrompt('en')).toContain('Always reply in English');
+    expect(construirSystemPrompt('es')).not.toContain('Always reply in English');
+  });
+
   it('en español pide tuteo singular y prohíbe usted, ustedes e impersonal', () => {
     const es = construirSystemPrompt('es');
     expect(es).toContain('Háblale de tú, siempre en singular');

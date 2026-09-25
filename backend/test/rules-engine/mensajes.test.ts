@@ -53,10 +53,10 @@ describe('catálogo de mensajes del motor', () => {
   it('rshExcede con tope de ingreso usa el separador de miles de cada idioma', () => {
     const ingreso = { topeCLP: 3_386_546, personas: 2 };
     expect(MENSAJES.es.ds1.rshExcede(85, 3, 90, 95, ingreso)).toBe(
-      'Con 85 UF de ahorro te correspondería el Tramo 3 (RSH ≤90%), pero tu tramo RSH es 95% y el ingreso familiar supera el tope de $3.386.546 para 2 personas.',
+      'Con 85 UF de ahorro te correspondería el Tramo 3 (RSH ≤90%), pero tu tramo RSH es 95% y tu ingreso familiar supera el tope de $3.386.546 para 2 personas.',
     );
     expect(MENSAJES.en.ds1.rshExcede(85, 3, 90, 95, ingreso)).toBe(
-      'With 85 UF in savings you would fall under Tier 3 (RSH 90% or lower), but your RSH bracket is 95% and your household income is above the limit of $3,386,546 for 2 people.',
+      'With 85 UF in savings you would fall under Tier 3 (RSH 90% or lower), but your RSH bracket is 95% and your household income is above the limit of CLP 3,386,546 for 2 people.',
     );
   });
 
