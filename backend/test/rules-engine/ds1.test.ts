@@ -151,4 +151,34 @@ describe('evaluarDS1', () => {
     expect(r.estado).toBe('elegible');
     expect(r.detalle?.tramo).toBe(3);
   });
+  describe('motivo de no_elegible por ahorro o RSH', () => {
+    it('dice que falta ahorro, con cuánto hay y cuánto pide el primer tramo, sin culpar al RSH', () => {
+      const r = evaluarDS1({ ...base, tramoRSH: 40, ahorroUF: 12 });
+      expect(r.estado).toBe('no_elegible');
+      expect(r.motivo).toBe('No alcanza el ahorro mínimo de DS1: hay 12 UF y el primer tramo pide 30 UF.');
+      expect(r.motivo).not.toMatch(/RSH/);
+      expect(r.detalle).toEqual({ causa: 'ahorro', ahorroMinimoUF: 30, faltanteUF: 18 });
+    });
+
+    it('dice que el RSH supera el máximo del tramo que alcanza el ahorro', () => {
+      const r = evaluarDS1({ ...base, tramoRSH: 85, ahorroUF: 45 });
+      expect(r.estado).toBe('no_elegible');
+      expect(r.motivo).toBe('Con 45 UF de ahorro correspondería el Tramo 2 (RSH ≤80%), pero el tramo RSH es 85%.');
+      expect(r.detalle).toEqual({ causa: 'rsh', tramo: 2, rshMaximo: 80 });
+    });
+
+    it('en el Tramo 3 explica también el tope de ingreso familiar', () => {
+      const r = evaluarDS1({ ...base, tramoRSH: 95, ahorroUF: 85, ingresoFamiliarMensualCLP: 5_000_000 });
+      expect(r.estado).toBe('no_elegible');
+      expect(r.motivo).toBe(
+        'Con 85 UF de ahorro correspondería el Tramo 3 (RSH ≤90%), pero el tramo RSH es 95% y el ingreso familiar supera el tope de $3.386.546 para 2 personas.',
+      );
+    });
+
+    it('usa el máximo de RSH de 90% para adultos mayores en el mensaje', () => {
+      const r = evaluarDS1({ ...base, postulanteEdad: 65, tramoRSH: 95, ahorroUF: 45 });
+      expect(r.estado).toBe('no_elegible');
+      expect(r.motivo).toBe('Con 45 UF de ahorro correspondería el Tramo 2 (RSH ≤90%), pero el tramo RSH es 95%.');
+    });
+  });
 });

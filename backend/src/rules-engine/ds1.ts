@@ -35,6 +35,8 @@ function topeIngresoPorTamano(tamanoGrupo: number): number {
   return TOPES_INGRESO_TRAMO3_CLP[tamanoGrupo] ?? TOPE_INGRESO_TRAMO3_4_MAS_CLP;
 }
 
+const conPuntosDeMiles = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
 export function evaluarDS1(perfil: Perfil): ResultadoPrograma {
   const faltantes = CAMPOS_REQUERIDOS.filter((campo) => perfil[campo] === 'desconocido');
   if (faltantes.length > 0) {
@@ -95,10 +97,28 @@ export function evaluarDS1(perfil: Perfil): ResultadoPrograma {
     }
   }
 
-  return resultadoDecision(
-    'DS1',
-    false,
-    'No cumple el ahorro mínimo ni el tramo RSH (o el tope de ingreso familiar) de ningún tramo de DS1.',
-    REGLA_DS1,
-  );
+  // Ningún tramo calificó: se explica cuál es el obstáculo real, sin mezclar causas.
+  const tramosPorAhorro = TRAMOS.filter((t) => ahorroUF >= t.ahorroMinUF);
+  if (tramosPorAhorro.length === 0) {
+    const { ahorroMinUF } = TRAMOS[0];
+    return resultadoDecision(
+      'DS1',
+      false,
+      `No alcanza el ahorro mínimo de DS1: hay ${ahorroUF} UF y el primer tramo pide ${ahorroMinUF} UF.`,
+      REGLA_DS1,
+      { causa: 'ahorro', ahorroMinimoUF: ahorroMinUF, faltanteUF: Math.round((ahorroMinUF - ahorroUF) * 100) / 100 },
+    );
+  }
+
+  const mejor = tramosPorAhorro[tramosPorAhorro.length - 1];
+  const rshMaximo = esAdultoMayor ? 90 : mejor.rshMax;
+  let motivo = `Con ${ahorroUF} UF de ahorro correspondería el Tramo ${mejor.tramo} (RSH ≤${rshMaximo}%), pero el tramo RSH es ${tramoRSH}%`;
+  if (mejor.tramo === 3 && tamanoGrupo !== undefined) {
+    motivo += ` y el ingreso familiar supera el tope de $${conPuntosDeMiles(topeIngresoPorTamano(tamanoGrupo))} para ${tamanoGrupo} personas`;
+  }
+  return resultadoDecision('DS1', false, `${motivo}.`, REGLA_DS1, {
+    causa: 'rsh',
+    tramo: mejor.tramo,
+    rshMaximo,
+  });
 }
