@@ -59,4 +59,31 @@ describe('catálogo de mensajes del motor', () => {
       'With 85 UF in savings you would fall under Tier 3 (RSH 90% or lower), but your RSH bracket is 95% and your household income is above the limit of $3,386,546 for 2 people.',
     );
   });
+
+  it('un solo integrante se cuenta en singular', () => {
+    const ingreso = { topeCLP: 2_589_712, personas: 1 };
+    const rshEs = MENSAJES.es.ds1.rshExcede(85, 3, 90, 95, ingreso);
+    const rshEn = MENSAJES.en.ds1.rshExcede(85, 3, 90, 95, ingreso);
+    expect(rshEs.endsWith('para 1 persona.')).toBe(true);
+    expect(rshEs).not.toContain('personas');
+    expect(rshEn.endsWith('for 1 person.')).toBe(true);
+    expect(rshEn).not.toContain('people');
+    expect(MENSAJES.es.ds52.ingresoFueraDeRango(7, 25, 1)).toBe(
+      'Tu ingreso familiar mensual debe estar entre 7 y 25 UF para un grupo de 1 persona.',
+    );
+    expect(MENSAJES.en.ds52.ingresoFueraDeRango(7, 25, 1)).toBe(
+      'Your monthly household income must be between 7 and 25 UF for a household of 1 person.',
+    );
+  });
+
+  it('dos integrantes siguen en plural', () => {
+    expect(MENSAJES.es.ds1.rshExcede(85, 3, 90, 95, { topeCLP: 3_386_546, personas: 2 })).toMatch(
+      /para 2 personas\.$/,
+    );
+    expect(MENSAJES.en.ds1.rshExcede(85, 3, 90, 95, { topeCLP: 3_386_546, personas: 2 })).toMatch(
+      /for 2 people\.$/,
+    );
+    expect(MENSAJES.es.ds52.ingresoFueraDeRango(7, 25, 2)).toMatch(/grupo de 2 personas\.$/);
+    expect(MENSAJES.en.ds52.ingresoFueraDeRango(7, 25, 2)).toMatch(/household of 2 people\.$/);
+  });
 });

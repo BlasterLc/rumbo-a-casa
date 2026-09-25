@@ -48,6 +48,9 @@ export interface Mensajes {
 const conSeparador = (n: number, separador: string) =>
   n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, separador);
 
+const contarPersonasEs = (n: number) => `${n} ${n === 1 ? 'persona' : 'personas'}`;
+const contarPersonasEn = (n: number) => `${n} ${n === 1 ? 'person' : 'people'}`;
+
 const es: Mensajes = {
   faltanDatos: (programa) => `Me faltan datos para ver si calificas a ${programa}.`,
   yaPropietario: 'Ya tienes una vivienda propia, y este programa es para quienes aún no la tienen.',
@@ -71,7 +74,7 @@ const es: Mensajes = {
     rshExcede: (ahorroUF, tramo, rshMaximo, rsh, ingreso) => {
       const base = `Con ${ahorroUF} UF de ahorro te correspondería el Tramo ${tramo} (RSH ≤${rshMaximo}%), pero tu tramo RSH es ${rsh}%`;
       return ingreso
-        ? `${base} y el ingreso familiar supera el tope de $${conSeparador(ingreso.topeCLP, '.')} para ${ingreso.personas} personas.`
+        ? `${base} y el ingreso familiar supera el tope de $${conSeparador(ingreso.topeCLP, '.')} para ${contarPersonasEs(ingreso.personas)}.`
         : `${base}.`;
     },
   },
@@ -90,7 +93,7 @@ const es: Mensajes = {
     rshMaximo: 'Tu tramo del Registro Social de Hogares (RSH) debe ser 70% o menos.',
     ahorroMinimo: 'Necesitas un ahorro mínimo de 4 UF.',
     ingresoFueraDeRango: (minimoUF, maximoUF, personas) =>
-      `Tu ingreso familiar mensual debe estar entre ${minimoUF} y ${maximoUF} UF para un grupo de ${personas} personas.`,
+      `Tu ingreso familiar mensual debe estar entre ${minimoUF} y ${maximoUF} UF para un grupo de ${contarPersonasEs(personas)}.`,
     cumple:
       'Cumples los requisitos de DS52: RSH ≤70%, ahorro ≥4 UF, ingreso dentro del rango, sin vivienda propia ni subsidio previo.',
     notaFueraDeRM:
@@ -121,7 +124,7 @@ const en: Mensajes = {
     rshExcede: (ahorroUF, tramo, rshMaximo, rsh, ingreso) => {
       const base = `With ${ahorroUF} UF in savings you would fall under Tier ${tramo} (RSH ${rshMaximo}% or lower), but your RSH bracket is ${rsh}%`;
       return ingreso
-        ? `${base} and your household income is above the limit of $${conSeparador(ingreso.topeCLP, ',')} for ${ingreso.personas} people.`
+        ? `${base} and your household income is above the limit of $${conSeparador(ingreso.topeCLP, ',')} for ${contarPersonasEn(ingreso.personas)}.`
         : `${base}.`;
     },
   },
@@ -140,7 +143,7 @@ const en: Mensajes = {
     rshMaximo: 'Your Registro Social de Hogares (RSH) bracket must be 70% or lower.',
     ahorroMinimo: 'You need at least 4 UF in savings.',
     ingresoFueraDeRango: (minimoUF, maximoUF, personas) =>
-      `Your monthly household income must be between ${minimoUF} and ${maximoUF} UF for a household of ${personas} people.`,
+      `Your monthly household income must be between ${minimoUF} and ${maximoUF} UF for a household of ${contarPersonasEn(personas)}.`,
     cumple:
       'You meet the DS52 requirements: RSH 70% or lower, savings of at least 4 UF, income within the range, and no home of your own or previous subsidy.',
     notaFueraDeRM:
