@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { evaluarDS49 } from '../../src/rules-engine/ds49';
 import { evaluarDS19 } from '../../src/rules-engine/ds19';
+import { evaluarDS1 } from '../../src/rules-engine/ds1';
 import type { Perfil } from '../../src/rules-engine/perfil.schema';
 
 const base: Perfil = {
@@ -123,5 +124,82 @@ describe('motivos de DS19', () => {
     const perfil = { ...base, subsidioPrevio: 'DS49' } as Perfil;
     expect(evaluarDS19(perfil, 'en').detalle).toEqual({ ruta: 'A' });
     expect(evaluarDS19(perfil, 'en').estado).toBe(evaluarDS19(perfil, 'es').estado);
+  });
+});
+
+describe('motivos de DS1', () => {
+  const casos: [string, Perfil, string, string][] = [
+    [
+      'ya es propietario',
+      { ...base, tienePropiedad: true },
+      'Ya tienes una vivienda propia o un sitio con destino habitacional, y este programa es para quienes aún no los tienen.',
+      'You already own a home or a plot zoned for housing, and this program is for people who do not own either yet.',
+    ],
+    [
+      'menor de edad',
+      { ...base, postulanteEdad: 17 },
+      'Para postular tienes que tener 18 años o más.',
+      'You must be 18 or older to apply.',
+    ],
+    [
+      'cuenta de ahorro reciente',
+      { ...base, antiguedadCuentaAhorroMeses: 6 },
+      'Tu cuenta de ahorro debe tener al menos 12 meses de antigüedad.',
+      'Your savings account must be at least 12 months old.',
+    ],
+    [
+      'califica al Tramo 1',
+      { ...base, tramoRSH: 50, ahorroUF: 35 },
+      'Calificas al Tramo 1 de DS1 (ahorro ≥30 UF, RSH ≤60%).',
+      'You qualify for DS1 Tier 1 (savings of at least 30 UF, RSH 60% or lower).',
+    ],
+    [
+      'no alcanza el ahorro',
+      { ...base, tramoRSH: 40, ahorroUF: 12 },
+      'No alcanzas el ahorro mínimo de DS1: tienes 12 UF y el primer tramo pide 30 UF.',
+      'You do not reach the DS1 minimum savings: you have 12 UF and the first tier asks for 30 UF.',
+    ],
+    [
+      'el RSH excede el tramo que alcanza el ahorro',
+      { ...base, tramoRSH: 85, ahorroUF: 45 },
+      'Con 45 UF de ahorro te correspondería el Tramo 2 (RSH ≤80%), pero tu tramo RSH es 85%.',
+      'With 45 UF in savings you would fall under Tier 2 (RSH 80% or lower), but your RSH bracket is 85%.',
+    ],
+    [
+      'Tramo 3: RSH e ingreso exceden',
+      { ...base, tramoRSH: 95, ahorroUF: 85, ingresoFamiliarMensualCLP: 5_000_000 },
+      'Con 85 UF de ahorro te correspondería el Tramo 3 (RSH ≤90%), pero tu tramo RSH es 95% y el ingreso familiar supera el tope de $3.386.546 para 2 personas.',
+      'With 85 UF in savings you would fall under Tier 3 (RSH 90% or lower), but your RSH bracket is 95% and your household income is above the limit of $3,386,546 for 2 people.',
+    ],
+    [
+      'adulto mayor: el tope de RSH del mensaje es 90%',
+      { ...base, postulanteEdad: 65, tramoRSH: 95, ahorroUF: 45 },
+      'Con 45 UF de ahorro te correspondería el Tramo 2 (RSH ≤90%), pero tu tramo RSH es 95%.',
+      'With 45 UF in savings you would fall under Tier 2 (RSH 90% or lower), but your RSH bracket is 95%.',
+    ],
+    [
+      'faltan datos',
+      { ...base, ahorroUF: 'desconocido' },
+      'Me faltan datos para ver si calificas a DS1.',
+      'I need more information to check whether you qualify for DS1.',
+    ],
+    [
+      'faltan datos del Tramo 3',
+      { ...base, tramoRSH: 95, ahorroUF: 85, ingresoFamiliarMensualCLP: 'desconocido' },
+      'Me faltan datos para ver si calificas a DS1.',
+      'I need more information to check whether you qualify for DS1.',
+    ],
+  ];
+
+  it.each(casos)('%s', (_nombre, perfil, esperadoEs, esperadoEn) => {
+    expect(evaluarDS1(perfil).motivo).toBe(esperadoEs);
+    expect(evaluarDS1(perfil, 'es').motivo).toBe(esperadoEs);
+    expect(evaluarDS1(perfil, 'en').motivo).toBe(esperadoEn);
+  });
+
+  it('el idioma no cambia el estado ni el detalle estructurado', () => {
+    const perfil = { ...base, tramoRSH: 40, ahorroUF: 12 } as Perfil;
+    expect(evaluarDS1(perfil, 'en').detalle).toEqual({ causa: 'ahorro', ahorroMinimoUF: 30, faltanteUF: 18 });
+    expect(evaluarDS1(perfil, 'en').estado).toBe('no_elegible');
   });
 });

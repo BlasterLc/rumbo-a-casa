@@ -1,5 +1,12 @@
 import type { Perfil } from './perfil.schema';
-import { IDIOMA_POR_DEFECTO, resultadoDecision, resultadoFaltaDato, type Idioma, type ResultadoPrograma } from './tipos';
+import {
+  IDIOMA_POR_DEFECTO,
+  resultadoDecision,
+  resultadoFaltaDato,
+  type Idioma,
+  type ResultadoPrograma,
+} from './tipos';
+import { MENSAJES } from './mensajes';
 import { obtenerZonaDS1 } from './zonas';
 
 const REGLA_DS1 = {
@@ -35,12 +42,11 @@ function topeIngresoPorTamano(tamanoGrupo: number): number {
   return TOPES_INGRESO_TRAMO3_CLP[tamanoGrupo] ?? TOPE_INGRESO_TRAMO3_4_MAS_CLP;
 }
 
-const conPuntosDeMiles = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-export function evaluarDS1(perfil: Perfil, _idioma: Idioma = IDIOMA_POR_DEFECTO): ResultadoPrograma {
+export function evaluarDS1(perfil: Perfil, idioma: Idioma = IDIOMA_POR_DEFECTO): ResultadoPrograma {
+  const m = MENSAJES[idioma];
   const faltantes = CAMPOS_REQUERIDOS.filter((campo) => perfil[campo] === 'desconocido');
   if (faltantes.length > 0) {
-    return resultadoFaltaDato('DS1', faltantes, REGLA_DS1);
+    return resultadoFaltaDato('DS1', faltantes, REGLA_DS1, idioma);
   }
 
   const tramoRSH = perfil.tramoRSH as number;
@@ -50,13 +56,13 @@ export function evaluarDS1(perfil: Perfil, _idioma: Idioma = IDIOMA_POR_DEFECTO)
   const esAdultoMayor = postulanteEdad >= 60;
 
   if (perfil.tienePropiedad === true) {
-    return resultadoDecision('DS1', false, 'Ya es propietario de una vivienda o de un sitio con destino habitacional.', REGLA_DS1);
+    return resultadoDecision('DS1', false, m.yaPropietarioOSitio, REGLA_DS1);
   }
   if (postulanteEdad < 18) {
-    return resultadoDecision('DS1', false, 'El postulante debe ser mayor de 18 años.', REGLA_DS1);
+    return resultadoDecision('DS1', false, m.menorDeEdad, REGLA_DS1);
   }
   if (antiguedadMeses < 12) {
-    return resultadoDecision('DS1', false, 'La cuenta de ahorro debe tener al menos 12 meses de antigüedad.', REGLA_DS1);
+    return resultadoDecision('DS1', false, m.ds1.antiguedadCuenta, REGLA_DS1);
   }
 
   const tamanoGrupo =
@@ -80,7 +86,7 @@ export function evaluarDS1(perfil: Perfil, _idioma: Idioma = IDIOMA_POR_DEFECTO)
       if (perfil.ingresoFamiliarMensualCLP === 'desconocido') faltantesTramo3.push('ingresoFamiliarMensualCLP');
       if (perfil.integrantesGrupoFamiliar === 'desconocido') faltantesTramo3.push('integrantesGrupoFamiliar');
       if (faltantesTramo3.length > 0) {
-        return resultadoFaltaDato('DS1', faltantesTramo3, REGLA_DS1);
+        return resultadoFaltaDato('DS1', faltantesTramo3, REGLA_DS1, idioma);
       }
     }
 
@@ -90,7 +96,7 @@ export function evaluarDS1(perfil: Perfil, _idioma: Idioma = IDIOMA_POR_DEFECTO)
       return resultadoDecision(
         'DS1',
         true,
-        `Califica para el Tramo ${tramo.tramo} de DS1 (ahorro ≥${tramo.ahorroMinUF} UF, RSH ≤${rshMaxEfectivo}%).`,
+        m.ds1.califica(tramo.tramo, tramo.ahorroMinUF, rshMaxEfectivo),
         REGLA_DS1,
         { tramo: tramo.tramo, zona },
       );
@@ -104,7 +110,7 @@ export function evaluarDS1(perfil: Perfil, _idioma: Idioma = IDIOMA_POR_DEFECTO)
     return resultadoDecision(
       'DS1',
       false,
-      `No alcanza el ahorro mínimo de DS1: hay ${ahorroUF} UF y el primer tramo pide ${ahorroMinUF} UF.`,
+      m.ds1.sinAhorro(ahorroUF, ahorroMinUF),
       REGLA_DS1,
       { causa: 'ahorro', ahorroMinimoUF: ahorroMinUF, faltanteUF: Math.round((ahorroMinUF - ahorroUF) * 100) / 100 },
     );
@@ -112,13 +118,15 @@ export function evaluarDS1(perfil: Perfil, _idioma: Idioma = IDIOMA_POR_DEFECTO)
 
   const mejor = tramosPorAhorro[tramosPorAhorro.length - 1];
   const rshMaximo = esAdultoMayor ? 90 : mejor.rshMax;
-  let motivo = `Con ${ahorroUF} UF de ahorro correspondería el Tramo ${mejor.tramo} (RSH ≤${rshMaximo}%), pero el tramo RSH es ${tramoRSH}%`;
-  if (mejor.tramo === 3 && tamanoGrupo !== undefined) {
-    motivo += ` y el ingreso familiar supera el tope de $${conPuntosDeMiles(topeIngresoPorTamano(tamanoGrupo))} para ${tamanoGrupo} personas`;
-  }
-  return resultadoDecision('DS1', false, `${motivo}.`, REGLA_DS1, {
-    causa: 'rsh',
-    tramo: mejor.tramo,
-    rshMaximo,
-  });
+  const ingreso =
+    mejor.tramo === 3 && tamanoGrupo !== undefined
+      ? { topeCLP: topeIngresoPorTamano(tamanoGrupo), personas: tamanoGrupo }
+      : undefined;
+  return resultadoDecision(
+    'DS1',
+    false,
+    m.ds1.rshExcede(ahorroUF, mejor.tramo, rshMaximo, tramoRSH, ingreso),
+    REGLA_DS1,
+    { causa: 'rsh', tramo: mejor.tramo, rshMaximo },
+  );
 }
