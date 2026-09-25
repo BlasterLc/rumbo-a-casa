@@ -1,0 +1,111 @@
+# Contrato de API: `POST /api/chat`
+
+Para conectar el chat y las tarjetas de resultado en la SPA. Complementa `docs/stack-tecnico.md`.
+
+## Endpoint
+
+```
+POST https://d26duk07atmc3z.cloudfront.net/api/chat
+Content-Type: application/json
+```
+
+## Request
+
+```json
+{
+  "sessionId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "mensaje": "Hola, somos una familia de 3 en Valparaíso y queremos arrendar"
+}
+```
+
+- `sessionId`: **UUID v4** generado por la SPA en el primer mensaje y guardado en `localStorage` (así la conversación persiste si la familia recarga la página). No lo genera el backend.
+- `mensaje`: texto de 1 a 2000 caracteres. Se recorta espacios en blanco antes de validar.
+
+## Respuestas
+
+| Código | Cuerpo | Cuándo | Qué debería hacer la SPA |
+|---|---|---|---|
+| `200` | `{ respuesta, perfil, resultados, plan }` | OK | Mostrar `respuesta` en el chat y las tarjetas con `resultados`/`plan` |
+| `400` | `{ error: "solicitud_invalida" }` | `sessionId` no es UUID, `mensaje` vacío/>2000 caracteres, o el cuerpo llega roto | Error de cliente — no debería pasar si la SPA arma bien la petición |
+| `405` | `{ error: "metodo_no_permitido" }` | Se llamó con otro método que no es POST | No debería pasar en uso normal |
+| `429` | `{ error: "limite_mensajes", mensaje: string }` | La sesión llegó a 40 mensajes | Mostrar el `mensaje` y ofrecer empezar una conversación nueva (nuevo `sessionId`) |
+| `503` | `{ error: "asistente_no_disponible", mensaje: string }` | Bedrock falló o está saturado (throttling, timeout, cuenta en verificación) | Mostrar el `mensaje` y **ofrecer el modo demo** |
+| `500` | `{ error: "error_interno" }` | Falla inesperada (ej. DynamoDB caído) | Error genérico, reintentar más tarde |
+
+## Forma de los datos del `200`
+
+### `perfil` — el perfil familiar tal como quedó después de este mensaje
+
+13 campos, cada uno puede valer `"desconocido"` si todavía no se sabe:
+
+```ts
+{
+  postulanteEdad: number | "desconocido",
+  region: "Arica y Parinacota" | "Tarapacá" | "Antofagasta" | "Atacama" | "Coquimbo" |
+          "Valparaíso" | "Metropolitana" | "O'Higgins" | "Maule" | "Ñuble" | "Biobío" |
+          "La Araucanía" | "Los Ríos" | "Los Lagos" | "Aysén" | "Magallanes" | "desconocido",
+  zonaEspecial: "chiloe" | "palena" | "isla_de_pascua" | "juan_fernandez" | "ninguna" | "desconocido",
+  tramoRSH: number | "desconocido",              // 0-100
+  tienePropiedad: boolean | "desconocido",
+  ahorroUF: number | "desconocido",
+  antiguedadCuentaAhorroMeses: number | "desconocido",
+  ingresoFamiliarMensualUF: number | "desconocido",
+  ingresoFamiliarMensualCLP: number | "desconocido",
+  integrantesGrupoFamiliar: Array<{ edad: number, discapacidadCertificada: boolean }> | "desconocido",
+  excepcionPostulacionIndividualDS49: boolean | "desconocido",
+  subsidioPrevio: "DS49" | "DS1_T1" | "damnificado_2014" | "ninguno" | "desconocido",
+  objetivo: "comprar" | "construir" | "arrendar" | "desconocido",
+}
+```
+
+### `resultados` — SIEMPRE los 4 programas, en este orden: DS49, DS1, DS19, DS52
+
+```ts
+Array<{
+  programa: "DS49" | "DS1" | "DS19" | "DS52",
+  estado: "elegible" | "no_elegible" | "falta_dato",
+  motivo: string,                    // explicación en lenguaje natural
+  camposFaltantes?: string[],        // solo si estado === "falta_dato"
+  regla: { decreto: string, fuente: string, fechaConsulta: string },
+  detalle?: Record<string, unknown>, // ver nota importante abajo
+}>
+```
+
+**⚠️ Importante para la UI — la nota de DS52 fuera de la Región Metropolitana:** cuando `region` no es `"Metropolitana"` (incluye `"desconocido"`), el resultado de DS52 trae `detalle.nota` con una advertencia tipo *"los montos son de RM, pueden variar según tu región/comuna, verifica en minvu.gob.cl"*. **Esta nota vive en `resultados[].detalle.nota`, no en `plan`** — hay que leerla desde `resultados`, no asumir que solo mostrando `plan` alcanza. Si la tarjeta de DS52 no muestra esto, una familia fuera de Santiago puede llevarse una cifra equivocada.
+
+### `plan` — solo los programas con `estado === "elegible"`, en el mismo orden que `resultados`
+
+```ts
+Array<{
+  programa: "DS49" | "DS1" | "DS19" | "DS52",
+  documentos: Array<{ nombre: string, detalle?: string }>,
+  fuente: string,   // de dónde sale esa lista de papeles
+}>
+```
+
+Si ningún programa sale elegible, `plan` es `[]` (no falta el campo, es un arreglo vacío).
+
+## Notas generales
+
+- No hace falta login, CAPTCHA ni pedir Clave Única, RUT o datos bancarios — el asistente nunca los pide.
+- El asistente responde en el idioma en que se le escribe (español o inglés).
+- Cada respuesta `200` recalcula `resultados`/`plan` con el perfil actualizado — no hace falta pedirlos aparte, siempre vienen juntos con `respuesta`.
+
+## Estado actual (2026-09-24)
+
+El endpoint ya está desplegado y en producción. `/api/hello` responde `200` normal, confirmando que el resto de la infraestructura (Lambda, DynamoDB, CloudFront) funciona bien.
+
+`POST /api/chat` sigue devolviendo `503` (`asistente_no_disponible`), pero **la causa cambió** entre la primera prueba de humo y la repetición de hoy:
+
+- **04:17 UTC** — `ThrottlingException: Too many tokens per day, please wait before trying again` (tope diario de tokens de Bedrock, como se documentó originalmente).
+- **18:20 UTC** — ya no es throttling. Ahora es `ResourceNotFoundException: Model use case details have not been submitted for this account. Fill out the Anthropic use case details form before using the model. If you have already filled out the form, try again in 15 minutes.` (HTTP 404 client-side, confirmado en CloudWatch, log group `/aws/lambda/RumboACasa-ApiFnE0725F78-8cEcvHA0u5fO`).
+
+El modelo configurado en la Lambda (`MODEL_ID`) es `us.anthropic.claude-haiku-4-5-20251001-v1:0`. Este error es un requisito de la cuenta, no un bug de código ni de permisos IAM: **falta llenar el "Anthropic use case details form"** en la consola de Bedrock (Model access) para poder invocar modelos Anthropic en esta cuenta. Acción pendiente: completar ese formulario en la consola de Bedrock y reintentar la prueba de humo (el propio mensaje de error indica esperar ~15 minutos después de enviarlo).
+
+- **22:24 UTC** — se llenó el formulario y se reintentó. El `ResourceNotFoundException` ya no aparece, pero cambió de nuevo el error: `AccessDeniedException: Model access is denied due to IAM user or service role is not authorized to perform the required AWS Marketplace actions (aws-marketplace:ViewSubscriptions, aws-marketplace:Subscribe) to enable access to this model.` (HTTP 403 client-side, confirmado en CloudWatch, mismo log group).
+
+Esta vez sí es un problema de permisos IAM: al rol de ejecución de la Lambda (`apiFn`, ver `infra/lib/rumbo-stack.ts:52-61`) solo se le otorgó `bedrock:InvokeModel`, pero los modelos de Anthropic en Bedrock se distribuyen vía AWS Marketplace y la primera invocación necesita completar una suscripción — para eso el rol que invoca necesita también `aws-marketplace:ViewSubscriptions` y `aws-marketplace:Subscribe` (o bien la suscripción se completa una vez desde la consola con un usuario que sí tenga esos permisos). Acción pendiente: agregar esas acciones al `PolicyStatement` de `apiFn` en `infra/lib/rumbo-stack.ts`, desplegar, y reintentar la prueba de humo.
+
+- **22:33–22:35 UTC** — se agregó `aws-marketplace:ViewSubscriptions`/`aws-marketplace:Subscribe` al rol de `apiFn` y se desplegó (`cdk deploy`), pero el mismo `AccessDeniedException` persistió: el permiso IAM era necesario pero no suficiente. `bedrock:GetFoundationModelAvailability` mostró `agreementAvailability.status: "NOT_AVAILABLE"` — a la cuenta le faltaba aceptar el **acuerdo de AWS Marketplace (EULA)** del modelo, un paso separado del "use case form". Se aceptó vía `bedrock:CreateFoundationModelAgreement` (con el `offerToken` de `ListFoundationModelAgreementOffers`); `agreementAvailability.status` pasó a `"AVAILABLE"`.
+- **22:35 UTC** — tras aceptar el acuerdo, `POST /api/chat` sigue en `503`, pero **ya no es un error de permisos**: volvió el `ThrottlingException: Too many tokens per day, please wait before trying again.` — el mismo límite documentado originalmente a las 04:17 UTC. Es decir, el modelo ya es invocable; lo que bloquea ahora es la cuota diaria de tokens de Bedrock para esta cuenta. Acción pendiente: esperar el reset de la cuota diaria o pedir un aumento de cuota (Service Quotas → Bedrock) y reintentar la prueba de humo.
+- **22:41 UTC** — se repitió la prueba de humo (`POST /api/chat` con el mismo payload de ejemplo de este documento). Sigue devolviendo `503` (`asistente_no_disponible`). Se confirmó en CloudWatch (mismo log group) que la causa **no cambió**: sigue siendo `ThrottlingException: Too many tokens per day, please wait before trying again.` (HTTP 429 client-side). No aparecieron ni el `ResourceNotFoundException` ni el `AccessDeniedException` de los intentos anteriores — el modelo sigue siendo invocable, el bloqueo sigue siendo únicamente la cuota diaria de tokens. Acción pendiente sin cambios: esperar el reset de la cuota o pedir un aumento vía Service Quotas.
