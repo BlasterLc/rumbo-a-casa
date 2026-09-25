@@ -1,6 +1,7 @@
 import { TextField, IconButton, InputAdornment, Typography, type TextFieldProps } from '@mui/material';
 import { Icono } from '../Icono/Icono';
 import { useT } from '../../../i18n/LocaleContext';
+import { color, fontFamily } from '../../../theme/tokens';
 
 export interface CampoTextoProps extends Omit<TextFieldProps, 'label' | 'helperText' | 'error'> {
   /** La pregunta completa en lenguaje natural, no el nombre del campo. */
@@ -9,9 +10,11 @@ export interface CampoTextoProps extends Omit<TextFieldProps, 'label' | 'helperT
   ayuda?: string;
   /** Qué hacer para arreglarlo. Reemplaza a la ayuda. */
   error?: string;
-  /** Muestra el botón de micrófono como adorno final (afordancia visual; el reconocimiento de
-   * voz lo cablea quien use el campo). */
+  /** Muestra el botón de micrófono como adorno final. El reconocimiento de voz en sí (Web Speech
+   * API) lo cablea quien use el campo, a través de `onDictar`. */
   dictado?: boolean;
+  /** Se llama al presionar el botón de dictado. Sin esta prop, el botón es solo visual. */
+  onDictar?: () => void;
   /** Equivalencia calculada, por ejemplo el monto en UF. */
   equivalencia?: string;
 }
@@ -25,6 +28,7 @@ export function CampoTexto({
   ayuda,
   error,
   dictado,
+  onDictar,
   equivalencia,
   InputProps,
   sx,
@@ -41,20 +45,20 @@ export function CampoTexto({
           ...InputProps,
           endAdornment: dictado ? (
             <InputAdornment position="end">
-              <IconButton aria-label={t.atoms.campoTexto.dictarPorVoz} sx={{ color: 'var(--accent)' }}>
+              <IconButton aria-label={t.atoms.campoTexto.dictarPorVoz} onClick={onDictar} sx={{ color: color.accent }}>
                 <Icono nombre="mic" />
               </IconButton>
             </InputAdornment>
           ) : InputProps?.endAdornment,
         }}
         sx={{
-          '& .MuiFormHelperText-root': { color: error ? 'var(--ink-danger)' : 'var(--ink-muted)' },
+          '& .MuiFormHelperText-root': { color: error ? color['ink-danger'] : color['ink-muted'] },
           ...sx,
         }}
         {...props}
       />
       {equivalencia && (
-        <Typography sx={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: 'var(--ink-muted)', mt: 0.5 }}>
+        <Typography sx={{ fontFamily: fontFamily.mono, fontSize: '15px', color: color['ink-muted'], mt: 0.5 }}>
           {equivalencia}
         </Typography>
       )}

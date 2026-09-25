@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { renderConIdioma } from '../../../test/utilidades';
 import { CampoTexto } from './CampoTexto';
 
@@ -35,6 +36,15 @@ describe('CampoTexto', () => {
   it('muestra el botón de dictado cuando se pide, con su etiqueta traducida', () => {
     renderConIdioma(<CampoTexto pregunta="¿En qué región vives?" dictado value="" onChange={() => {}} />);
     expect(screen.getByRole('button', { name: 'Dictar por voz' })).toBeInTheDocument();
+  });
+
+  it('el botón de dictado llama a onDictar al presionarlo, para que quien use el campo lo cablee', async () => {
+    const onDictar = vi.fn();
+    renderConIdioma(
+      <CampoTexto pregunta="¿En qué región vives?" dictado onDictar={onDictar} value="" onChange={() => {}} />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Dictar por voz' }));
+    expect(onDictar).toHaveBeenCalledOnce();
   });
 
   it('muestra la equivalencia calculada bajo el campo, en vez de pedirla directamente en UF', () => {

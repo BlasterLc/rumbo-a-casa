@@ -1,5 +1,6 @@
 import { ToggleButtonGroup, ToggleButton } from '@mui/material';
 import { useIdioma, type Idioma } from '../../../i18n/LocaleContext';
+import { color, sizePx } from '../../../theme/tokens';
 
 /**
  * El nombre de un idioma no se traduce: "Español" e "English" van siempre en su propio idioma.
@@ -17,16 +18,16 @@ export function SelectorIdioma() {
       size="small"
       sx={{
         '& .MuiToggleButton-root': {
-          color: 'var(--ink-on-brand)',
-          borderColor: 'var(--ink-on-brand)',
-          minWidth: 'var(--size-touch)',
-          minHeight: 'var(--size-touch)',
+          color: color['ink-on-brand'],
+          borderColor: color['ink-on-brand'],
+          minWidth: sizePx['size-touch'],
+          minHeight: sizePx['size-touch'],
           fontWeight: 700,
           fontSize: '13px',
         },
         '& .Mui-selected': {
-          backgroundColor: 'var(--surface-brand-soft) !important',
-          color: 'var(--ink-brand) !important',
+          backgroundColor: `${color['surface-brand-soft']} !important`,
+          color: `${color['ink-brand']} !important`,
         },
       }}
     >
