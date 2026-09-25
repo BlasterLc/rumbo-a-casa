@@ -256,3 +256,67 @@ describe('POST /api/chat con idioma en', () => {
     for (const r of resultados) expect(r.motivo).toMatch(/^Me faltan datos para ver si calificas a DS/);
   });
 });
+
+describe('errores de POST /api/chat según el idioma', () => {
+  it('429 con idioma en devuelve el mensaje en inglés', async () => {
+    const { handlerChat, repositorio } = armar();
+    const sessionId = randomUUID();
+    const llena = await repositorio.obtener(sessionId);
+    await repositorio.guardar({ ...llena, mensajes: MAX_MENSAJES_POR_SESION });
+
+    const res = await handlerChat(
+      peticionChat(JSON.stringify({ sessionId, mensaje: 'Hi', idioma: 'en' })),
+    );
+    expect(res.statusCode).toBe(429);
+    expect(JSON.parse(res.body as string)).toEqual({
+      error: 'limite_mensajes',
+      mensaje: 'This conversation has reached its message limit. You can start a new one.',
+    });
+  });
+
+  it('503 con idioma en devuelve el mensaje en inglés, y sin idioma en español', async () => {
+    const invocar = vi.fn().mockRejectedValue(new Error('ThrottlingException'));
+    const { handlerChat } = armar(invocar);
+
+    const en = await handlerChat(
+      peticionChat(JSON.stringify({ sessionId: randomUUID(), mensaje: 'Hi', idioma: 'en' })),
+    );
+    expect(JSON.parse(en.body as string)).toEqual({
+      error: 'asistente_no_disponible',
+      mensaje: 'The assistant is not available right now. You can try the demo mode.',
+    });
+
+    const es = await handlerChat(peticionChat(JSON.stringify({ sessionId: randomUUID(), mensaje: 'Hola' })));
+    expect(JSON.parse(es.body as string).mensaje).toBe(
+      'El asistente no está disponible en este momento. Puedes probar el modo demo.',
+    );
+  });
+
+  it('cambiar de idioma a mitad de la sesión: la petición nueva sale en inglés y la sesión sigue', async () => {
+    const invocar = vi
+      .fn()
+      .mockResolvedValueOnce(respuestaTexto('Hola, ¿en qué región vives?'))
+      .mockResolvedValueOnce(respuestaTexto('Great, thanks!'));
+    const { handlerChat, repositorio } = armar(invocar);
+    const sessionId = randomUUID();
+
+    await handlerChat(peticionChat(JSON.stringify({ sessionId, mensaje: 'Hola', idioma: 'es' })));
+    const segunda = await handlerChat(
+      peticionChat(JSON.stringify({ sessionId, mensaje: 'Now in English please', idioma: 'en' })),
+    );
+
+    expect(segunda.statusCode).toBe(200);
+    const cuerpo = JSON.parse(segunda.body as string);
+    expect(cuerpo.respuesta).toBe('Great, thanks!');
+    expect(cuerpo.resultados[0].motivo).toMatch(/^I need more information/);
+
+    // El prompt de la segunda llamada a Bedrock es el de inglés, aunque el historial esté en español.
+    const promptSegunda = (invocar.mock.calls[1][0] as { system: { text: string }[] }).system[0].text;
+    expect(promptSegunda).toContain('Responde siempre en inglés');
+
+    // La sesión guardada conserva el historial completo y cuenta los dos mensajes.
+    const sesion = await repositorio.obtener(sessionId);
+    expect(sesion.mensajes).toBe(2);
+    expect(sesion.historial).toHaveLength(4);
+  });
+});

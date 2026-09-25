@@ -6,6 +6,7 @@ import type {
 } from '@aws-sdk/client-bedrock-runtime';
 import { IDIOMA_POR_DEFECTO, type Idioma, type Perfil } from '../rules-engine/index';
 import { HERRAMIENTAS, ejecutarHerramienta } from './herramientas';
+import { MENSAJES_CHAT } from './mensajes';
 import { construirSystemPrompt } from './prompt';
 
 export type InvocarConverse = (
@@ -15,8 +16,8 @@ export type InvocarConverse = (
 
 export const MAX_VUELTAS_HERRAMIENTAS = 6;
 
-export const RESPUESTA_RESPALDO =
-  'Perdón, me enredé procesando tu mensaje. ¿Me lo puedes repetir con otras palabras?';
+// Se mantiene exportada por compatibilidad: es la respuesta de respaldo en español.
+export const RESPUESTA_RESPALDO = MENSAJES_CHAT.es.respaldo;
 
 // Se mantiene exportado por compatibilidad: es el prompt en español.
 export const SYSTEM_PROMPT = construirSystemPrompt('es');
@@ -47,6 +48,7 @@ export async function conversar(
 ): Promise<SalidaConversar> {
   let perfil = entrada.perfil;
   const idioma = entrada.idioma ?? IDIOMA_POR_DEFECTO;
+  const respaldo = MENSAJES_CHAT[idioma].respaldo;
   const inicio: Message[] = [...entrada.historial, { role: 'user', content: [{ text: entrada.mensaje }] }];
   const enCurso: Message[] = [...inicio];
 
@@ -62,7 +64,7 @@ export async function conversar(
     const pedidos = contenido.filter((bloque) => bloque.toolUse);
 
     if (salida.stopReason !== 'tool_use' || pedidos.length === 0) {
-      const respuesta = textoDe(contenido) || RESPUESTA_RESPALDO;
+      const respuesta = textoDe(contenido) || respaldo;
       return {
         perfil,
         historial: [...enCurso, { role: 'assistant', content: [{ text: respuesta }] }],
@@ -88,7 +90,7 @@ export async function conversar(
 
   return {
     perfil,
-    historial: [...inicio, { role: 'assistant', content: [{ text: RESPUESTA_RESPALDO }] }],
-    respuesta: RESPUESTA_RESPALDO,
+    historial: [...inicio, { role: 'assistant', content: [{ text: respaldo }] }],
+    respuesta: respaldo,
   };
 }

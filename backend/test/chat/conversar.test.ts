@@ -7,6 +7,7 @@ import {
   conversar,
 } from '../../src/chat/conversar';
 import { HERRAMIENTAS } from '../../src/chat/herramientas';
+import { MENSAJES_CHAT } from '../../src/chat/mensajes';
 import { PERFIL_VACIO } from '../../src/chat/perfil';
 import { construirSystemPrompt } from '../../src/chat/prompt';
 import { respuestaHerramienta, respuestaTexto } from './fakes';
@@ -138,5 +139,12 @@ describe('conversar', () => {
     expect(resultado.json.resultados[0].motivo).toBe(
       'I need more information to check whether you qualify for DS49.',
     );
+  });
+
+  it('la respuesta de respaldo sale en el idioma pedido', async () => {
+    const invocar = vi.fn().mockResolvedValueOnce(respuestaTexto('   '));
+    const salida = await conversar(invocar, MODELO, { ...entrada('hi'), idioma: 'en' });
+    expect(salida.respuesta).toBe(MENSAJES_CHAT.en.respaldo);
+    expect(MENSAJES_CHAT.es.respaldo).toBe(RESPUESTA_RESPALDO);
   });
 });

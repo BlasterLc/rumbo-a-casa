@@ -8,6 +8,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { IDIOMAS, IDIOMA_POR_DEFECTO, evaluarTodosLosProgramas } from './rules-engine/index';
 import { conversar, type InvocarConverse, type SalidaConversar } from './chat/conversar';
+import { MENSAJES_CHAT } from './chat/mensajes';
 import { generarPlanPapeles } from './chat/papeles';
 import { construirDemo } from './chat/demo';
 import { RepositorioDynamo, type RepositorioSesiones } from './chat/sesion-repositorio';
@@ -60,7 +61,7 @@ async function atenderChat(event: APIGatewayProxyEventV2, deps: DependenciasChat
   if (sesion.mensajes >= MAX_MENSAJES_POR_SESION) {
     return json(429, {
       error: 'limite_mensajes',
-      mensaje: 'Esta conversación llegó a su límite de mensajes. Puedes empezar una nueva.',
+      mensaje: MENSAJES_CHAT[idioma].limiteMensajes,
     });
   }
 
@@ -81,7 +82,7 @@ async function atenderChat(event: APIGatewayProxyEventV2, deps: DependenciasChat
     console.error('Bedrock falló', error);
     return json(503, {
       error: 'asistente_no_disponible',
-      mensaje: 'El asistente no está disponible en este momento. Puedes probar el modo demo.',
+      mensaje: MENSAJES_CHAT[idioma].asistenteNoDisponible,
     });
   }
 
