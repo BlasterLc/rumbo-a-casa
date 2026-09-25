@@ -28,3 +28,12 @@ Final assistant message (turn 4), verbatim:
 > Dado que quieren **comprar**, les recomiendo enfocarse en **DS49** o **DS19**.
 >
 > ¿Les gustaría que les prepare la lista de documentos que necesitan para postular a estos programas?
+
+## Second run, after the DS1 reason fix (commit `17d1bf9`)
+
+Same fictional family and messages, run against the public URL after the deploy. All four turns returned `200` (3.3 s, 1.2 s, 3.1 s and 8.9 s) with the same verdicts as above. The rules engine now says why DS1 does not apply, and the model repeats it faithfully:
+
+- Engine reason for DS1: `No alcanza el ahorro mínimo de DS1: hay 12 UF y el primer tramo pide 30 UF.` with `detalle: { causa: "ahorro", ahorroMinimoUF: 30, faltanteUF: 18 }`.
+- Model, in turn 4 (verbatim): "**No califican para DS1** porque necesitarían 30 UF ahorradas y ustedes tienen 12 UF (les faltan 18 UF)."
+
+In the first run, before the fix, the model said DS1 "requiere más ahorro o un tramo RSH más alto", repeating a generic engine reason that blamed the RSH bracket too.
