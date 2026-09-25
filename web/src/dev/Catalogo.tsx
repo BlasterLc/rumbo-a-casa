@@ -3,6 +3,7 @@ import { Simbolo } from '../components/atoms/Simbolo/Simbolo';
 import { Icono, NOMBRES_ICONO } from '../components/atoms/Icono/Icono';
 import { Boton } from '../components/atoms/Boton/Boton';
 import { ChipFiltro, ChipEtiqueta } from '../components/atoms/Chip/Chip';
+import { CampoTexto } from '../components/atoms/CampoTexto/CampoTexto';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -57,6 +58,32 @@ export function Catalogo() {
           <ChipFiltro label="Sin crédito" />
           <ChipEtiqueta label="Región del Biobío" />
           <ChipEtiqueta label="Tramo 40%" />
+        </Stack>
+      </section>
+
+      <section>
+        <Typography variant="overline">CampoTexto</Typography>
+        <Stack spacing={3} sx={{ mt: 2 }}>
+          <CampoTexto
+            pregunta="¿Cuántas personas viven contigo?"
+            ayuda="Con esto vemos si entras en el 40% del Registro Social de Hogares."
+            value=""
+            onChange={() => {}}
+          />
+          <CampoTexto
+            pregunta="¿Cuánto tienes ahorrado?"
+            equivalencia="12,3 UF"
+            value="500000"
+            inputMode="numeric"
+            onChange={() => {}}
+          />
+          <CampoTexto pregunta="¿En qué región vives?" dictado value="" onChange={() => {}} />
+          <CampoTexto
+            pregunta="¿Cuál es tu correo?"
+            error="Escribe un correo con arroba, por ejemplo nombre@correo.cl."
+            value="no-es-un-correo"
+            onChange={() => {}}
+          />
         </Stack>
       </section>
     </Stack>
