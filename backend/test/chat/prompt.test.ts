@@ -28,6 +28,19 @@ describe('construirSystemPrompt', () => {
     expect(es).not.toContain('How you speak (English)');
   });
 
+  it('en español el tuteo singular vale aunque la persona hable en plural, con ejemplos', () => {
+    const es = construirSystemPrompt('es');
+    expect(es).toContain('Aunque hable en plural');
+    expect(es).toContain('¿En qué región vives?');
+    expect(es).toContain('¿Tú o alguien de tu grupo familiar es dueño de una vivienda?');
+  });
+
+  it.each(['es', 'en'] as const)('[%s] solo permite la negrita como formato, que es lo único que la interfaz dibuja', (idioma) => {
+    const prompt = construirSystemPrompt(idioma);
+    expect(prompt).toContain(idioma === 'es' ? '**negrita**' : '**bold**');
+    expect(prompt).toContain(idioma === 'es' ? 'No uses ninguna otra marca de Markdown' : 'Do not use any other Markdown');
+  });
+
   it('en inglés trae las reglas de tono en inglés', () => {
     const en = construirSystemPrompt('en');
     expect(en).toContain('How you speak (English)');
