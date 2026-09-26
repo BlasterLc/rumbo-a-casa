@@ -8,6 +8,7 @@ import { SelloElegibilidad } from '../components/molecules/SelloElegibilidad/Sel
 import { OpcionTarjeta } from '../components/molecules/OpcionTarjeta/OpcionTarjeta';
 import { Alerta } from '../components/molecules/Alerta/Alerta';
 import { AvisoLimite } from '../components/molecules/AvisoLimite/AvisoLimite';
+import { PasoAPaso } from '../components/molecules/PasoAPaso/PasoAPaso';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -138,6 +139,13 @@ export function Catalogo() {
           <AvisoLimite />
           <AvisoLimite conSalida />
         </Stack>
+      </section>
+
+      <section>
+        <Typography variant="overline">PasoAPaso</Typography>
+        <div style={{ marginTop: 16 }}>
+          <PasoAPaso pasos={['Familia', 'Vivienda', 'Ahorro', 'Ingreso', 'Región']} activo={2} onActivarPaso={() => {}} />
+        </div>
       </section>
     </Stack>
   );
