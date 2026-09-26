@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.base.json",
-  "compilerOptions": { "jsx": "react-jsx", "lib": ["ES2022", "DOM"], "noEmit": true },
+  "compilerOptions": { "jsx": "react-jsx", "lib": ["ES2022", "DOM"], "noEmit": true, "types": ["@testing-library/jest-dom"] },
   "include": ["src", "vite.config.ts"]
 }

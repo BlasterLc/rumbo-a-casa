@@ -2,6 +2,10 @@
   "name": "@rumbo/backend",
   "private": true,
   "type": "module",
+  "exports": {
+    "./rules-engine": "./src/rules-engine/index.ts",
+    "./chat/papeles": "./src/chat/papeles.ts"
+  },
   "scripts": {
     "test": "vitest run"
   },

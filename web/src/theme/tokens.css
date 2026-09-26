@@ -1,0 +1,78 @@
+:root {
+  /* Color */
+  --surface-base: #f7f5f1;
+  --surface-raised: #ffffff;
+  --surface-sunken: #efece6;
+  --surface-brand: #123a6b;
+  --surface-brand-soft: #e4edf8;
+  --surface-accent-soft: #fbede2;
+  --surface-success-soft: #dff0e6;
+  --surface-warning-soft: #fdf0d9;
+  --surface-danger-soft: #fbe4e2;
+  --ink-strong: #14181f;
+  --ink: #2a3039;
+  --ink-muted: #56606e;
+  --ink-on-brand: #ffffff;
+  --ink-on-fill: #ffffff;
+  --ink-brand: #16457e;
+  --ink-accent: #8a3d1e;
+  --ink-success: #14563b;
+  --ink-warning: #7a4700;
+  --ink-danger: #93201f;
+  --brand: #1b4d8f;
+  --brand-strong: #123a6b;
+  --accent: #b5542e;
+  --accent-strong: #8f3f1f;
+  --success: #1c6b4b;
+  --warning: #9a5b00;
+  --danger: #b02525;
+  --border: #dbd6cd;
+  --border-strong: #7c8593;
+  --focus-ring: #1b4d8f;
+  --scrim: rgba(16, 22, 32, 0.55);
+
+  /* Espacio */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+
+  /* Radio */
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 22px; --radius-pill: 999px;
+
+  /* Sombra */
+  --shadow-sm: 0 1px 2px rgba(20, 24, 31, 0.08);
+  --shadow-md: 0 4px 14px rgba(20, 24, 31, 0.1);
+  --shadow-lg: 0 12px 32px rgba(20, 24, 31, 0.14);
+
+  /* Tamaño */
+  --size-touch: 48px; --size-control: 56px; --size-icon: 24px; --size-mic: 72px; --size-chip-compacto: 26px;
+  --size-measure: 36ch;
+
+  /* Tipografía */
+  --font-display: "Bricolage Grotesque", "Figtree", system-ui, sans-serif;
+  --font-sans: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+html, body { margin: 0; }
+
+/* surface-sunken, no surface-base: en pantallas anchas esto queda visible a los costados de la
+   columna centrada de 480 px (Task 27, Task 28), que sí pinta surface-base. Si los dos fueran
+   iguales, el centrado no se notaría. */
+body {
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Nada tocable baja de 48 px. */
+.MuiIconButton-root, .MuiBottomNavigationAction-root {
+  min-width: var(--size-touch);
+  min-height: var(--size-touch);
+}
+
+/* El anillo de foco no se quita nunca. */
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}

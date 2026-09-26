@@ -1,27 +1,30 @@
-import { useEffect, useState } from 'react';
-
-type Estado = { message: string; region: string } | 'cargando' | 'error';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { LocaleProvider } from './i18n/LocaleContext';
+import { SesionProvider } from './state/SesionContext';
+import { Catalogo } from './dev/Catalogo';
+import { PantallaBienvenida } from './screens/PantallaBienvenida/PantallaBienvenida';
+import { PantallaEntrevista } from './screens/PantallaEntrevista/PantallaEntrevista';
+import { PantallaResultado } from './screens/PantallaResultado/PantallaResultado';
+import { PantallaPlan } from './screens/PantallaPlan/PantallaPlan';
+import { PantallaDocumentos } from './screens/PantallaDocumentos/PantallaDocumentos';
+import { PantallaSeguimiento } from './screens/PantallaSeguimiento/PantallaSeguimiento';
 
 export function App() {
-  const [estado, setEstado] = useState<Estado>('cargando');
-
-  useEffect(() => {
-    fetch('/api/hello')
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then(setEstado)
-      .catch(() => setEstado('error'));
-  }, []);
-
   return (
-    <main>
-      <h1>Rumbo a Casa</h1>
-      {estado === 'cargando' && <p>Conectando con el servidor…</p>}
-      {estado === 'error' && <p>No se pudo conectar con el servidor.</p>}
-      {typeof estado === 'object' && (
-        <p>
-          {estado.message} (región: {estado.region})
-        </p>
-      )}
-    </main>
+    <LocaleProvider>
+      <SesionProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<PantallaBienvenida />} />
+            <Route path="/hablar" element={<PantallaEntrevista />} />
+            <Route path="/resultado" element={<PantallaResultado />} />
+            <Route path="/plan/:programa" element={<PantallaPlan />} />
+            <Route path="/documentos" element={<PantallaDocumentos />} />
+            <Route path="/avisos" element={<PantallaSeguimiento />} />
+            <Route path="/catalogo" element={<Catalogo />} />
+          </Routes>
+        </BrowserRouter>
+      </SesionProvider>
+    </LocaleProvider>
   );
 }
