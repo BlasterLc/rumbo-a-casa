@@ -6,6 +6,7 @@ import { ChipFiltro, ChipEtiqueta } from '../components/atoms/Chip/Chip';
 import { CampoTexto } from '../components/atoms/CampoTexto/CampoTexto';
 import { SelloElegibilidad } from '../components/molecules/SelloElegibilidad/SelloElegibilidad';
 import { OpcionTarjeta } from '../components/molecules/OpcionTarjeta/OpcionTarjeta';
+import { Alerta } from '../components/molecules/Alerta/Alerta';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -118,6 +119,16 @@ export function Catalogo() {
             ]}
           />
         </div>
+      </section>
+
+      <section>
+        <Typography variant="overline">Alerta</Typography>
+        <Stack spacing={2} sx={{ mt: 2 }}>
+          <Alerta severity="info" accion="Ver mi plan">Calificas para DS49.</Alerta>
+          <Alerta severity="success" titulo="Documento listo">Guardamos tu certificado del RSH.</Alerta>
+          <Alerta severity="warning">El llamado del DS1 cierra el 28 de octubre. Te faltan 2 documentos.</Alerta>
+          <Alerta severity="error">Este llamado ya cerró.</Alerta>
+        </Stack>
       </section>
     </Stack>
   );
