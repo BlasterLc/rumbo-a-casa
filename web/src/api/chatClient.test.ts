@@ -17,9 +17,21 @@ afterEach(() => {
 });
 
 describe('enviarMensaje', () => {
+  it('manda el idioma en el cuerpo del POST para que el asistente conteste en ese idioma', async () => {
+    mockFetch(200, { respuesta: 'Hi', perfil: {}, resultados: [], plan: [] });
+    await enviarMensaje('id-1', 'Hello', 'en');
+    const [url, init] = vi.mocked(fetch).mock.calls[0];
+    expect(url).toBe('/api/chat');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      sessionId: 'id-1',
+      mensaje: 'Hello',
+      idioma: 'en',
+    });
+  });
+
   it('200: devuelve respuesta, perfil, resultados y plan', async () => {
     mockFetch(200, { respuesta: 'Hola', perfil: {}, resultados: [], plan: [] });
-    const r = await enviarMensaje('id-1', 'Hola');
+    const r = await enviarMensaje('id-1', 'Hola', 'es');
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.respuesta).toBe('Hola');
   });
@@ -29,7 +41,7 @@ describe('enviarMensaje', () => {
       error: 'limite_mensajes',
       mensaje: 'Esta conversación llegó a su límite de mensajes. Puedes empezar una nueva.',
     });
-    const r = await enviarMensaje('id-1', 'Hola');
+    const r = await enviarMensaje('id-1', 'Hola', 'es');
     expect(r.ok).toBe(false);
     if (!r.ok) {
       expect(r.codigo).toBe('limite_mensajes');
@@ -42,27 +54,27 @@ describe('enviarMensaje', () => {
       error: 'asistente_no_disponible',
       mensaje: 'El asistente no está disponible en este momento. Puedes probar el modo demo.',
     });
-    const r = await enviarMensaje('id-1', 'Hola');
+    const r = await enviarMensaje('id-1', 'Hola', 'es');
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.codigo).toBe('asistente_no_disponible');
   });
 
   it('400: expone solicitud_invalida cuando el backend rechaza la solicitud', async () => {
     mockFetch(400, { error: 'solicitud_invalida' });
-    const r = await enviarMensaje('id-1', 'Hola');
+    const r = await enviarMensaje('id-1', 'Hola', 'es');
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.codigo).toBe('solicitud_invalida');
   });
 
   it('500: cae a error_interno', async () => {
     mockFetch(500, { error: 'error_interno' });
-    const r = await enviarMensaje('id-1', 'Hola');
+    const r = await enviarMensaje('id-1', 'Hola', 'es');
     if (!r.ok) expect(r.codigo).toBe('error_interno');
   });
 
   it('sin red: nunca lanza, vuelve como codigo "red"', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
-    const r = await enviarMensaje('id-1', 'Hola');
+    const r = await enviarMensaje('id-1', 'Hola', 'es');
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.codigo).toBe('red');
   });

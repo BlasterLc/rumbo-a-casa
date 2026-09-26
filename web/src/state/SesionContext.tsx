@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { enviarMensaje, type ChatError } from '../api/chatClient';
-import { useT } from '../i18n/LocaleContext';
+import { useIdioma, useT } from '../i18n/LocaleContext';
 import {
   PERFIL_DESCONOCIDO,
   evaluarTodosLosProgramas,
@@ -96,6 +96,7 @@ const SesionContext = createContext<SesionContextValue | undefined>(undefined);
  * "modo demo activado" que agrega a la transcripción. */
 export function SesionProvider({ children }: { children: ReactNode }) {
   const t = useT();
+  const { idioma } = useIdioma();
   const [estado, setEstado] = useState<EstadoSesion>(() => leerStorage() ?? sesionNueva());
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<ChatError | undefined>();
@@ -112,7 +113,7 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     }));
     setCargando(true);
     setError(undefined);
-    const resultado = await enviarMensaje(estado.sessionId, mensaje);
+    const resultado = await enviarMensaje(estado.sessionId, mensaje, idioma);
     setCargando(false);
     if (!resultado.ok) {
       setError(resultado);
@@ -134,8 +135,8 @@ export function SesionProvider({ children }: { children: ReactNode }) {
   };
 
   const activarDemo = (perfilDemo: Perfil) => {
-    const resultados = evaluarTodosLosProgramas(perfilDemo);
-    const plan = generarPlanPapeles(resultados);
+    const resultados = evaluarTodosLosProgramas(perfilDemo, idioma);
+    const plan = generarPlanPapeles(resultados, idioma);
     setEstado((prev) => ({
       ...prev,
       esDemo: true,

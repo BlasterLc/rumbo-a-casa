@@ -1,4 +1,4 @@
-import type { Perfil, ResultadoPrograma, PlanPrograma } from '../types/dominio';
+import type { Idioma, Perfil, ResultadoPrograma, PlanPrograma } from '../types/dominio';
 
 export interface ChatOk {
   ok: true;
@@ -29,13 +29,17 @@ export type ChatResultado = ChatOk | ChatError;
  * `{ ok: false }`, para que la pantalla decida cómo mostrarlo — nunca depende de un catch
  * genérico que oculte el 429/503 documentado por el backend.
  */
-export async function enviarMensaje(sessionId: string, mensaje: string): Promise<ChatResultado> {
+export async function enviarMensaje(
+  sessionId: string,
+  mensaje: string,
+  idioma: Idioma,
+): Promise<ChatResultado> {
   let res: Response;
   try {
     res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ sessionId, mensaje }),
+      body: JSON.stringify({ sessionId, mensaje, idioma }),
     });
   } catch {
     return { ok: false, status: 0, codigo: 'red' };

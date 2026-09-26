@@ -50,6 +50,21 @@ describe('SesionProvider', () => {
     await waitFor(() => expect(screen.getByTestId('transcript-length')).toHaveTextContent('2'));
   });
 
+  it('al enviar un turno manda el idioma activo de la interfaz al backend', async () => {
+    window.localStorage.setItem('rumbo-idioma', 'en');
+    const espia = vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({
+      ok: true,
+      respuesta: 'Hi, which region do you live in?',
+      perfil: PERFIL_DESCONOCIDO,
+      resultados: [],
+      plan: [],
+    });
+    conProveedores();
+    await userEvent.click(screen.getByRole('button', { name: 'enviar' }));
+    await waitFor(() => expect(espia).toHaveBeenCalledTimes(1));
+    expect(espia).toHaveBeenCalledWith(expect.any(String), 'Hola', 'en');
+  });
+
   it('un error del backend queda expuesto, nunca se pierde en silencio', async () => {
     vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({
       ok: false,
