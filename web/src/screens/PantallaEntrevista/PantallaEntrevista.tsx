@@ -21,7 +21,7 @@ const LIMITE_MENSAJE = 2000;
  * inválidos antes de llamar al backend y ofrece el modo demo si el asistente falla.
  */
 export function PantallaEntrevista() {
-  const { transcript, eventos, perfil, cargando, error, enviarTurno, activarDemo } = useSesion();
+  const { transcript, eventos, perfil, resultados, cargando, error, enviarTurno, activarDemo } = useSesion();
   const t = useT();
   const [borrador, setBorrador] = useState('');
 
@@ -39,7 +39,7 @@ export function PantallaEntrevista() {
       <Stack spacing={3}>
         <PasoAPaso
           pasos={GRUPOS_ENTREVISTA.map((g) => t.pantallas.entrevista.pasos[g.clave])}
-          activo={pasoActivo(perfil)}
+          activo={pasoActivo(perfil, resultados)}
         />
 
         <Stack spacing={2}>

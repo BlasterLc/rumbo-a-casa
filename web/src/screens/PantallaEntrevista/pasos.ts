@@ -1,4 +1,4 @@
-import type { Perfil } from '../../types/dominio';
+import type { Perfil, ResultadoPrograma } from '../../types/dominio';
 
 export type ClavePasoEntrevista = 'familia' | 'vivienda' | 'ahorro' | 'ingreso' | 'region';
 
@@ -19,8 +19,19 @@ export const GRUPOS_ENTREVISTA: ReadonlyArray<{ clave: ClavePasoEntrevista; camp
   { clave: 'region', campos: ['region', 'zonaEspecial'] },
 ];
 
-/** El primer grupo con un campo todavía 'desconocido'; si todos están completos, el último. */
-export function pasoActivo(perfil: Perfil): number {
-  const indice = GRUPOS_ENTREVISTA.findIndex((g) => g.campos.some((c) => perfil[c] === 'desconocido'));
+/**
+ * El paso activo sale de lo que el motor todavía necesita (`camposFaltantes` de cada resultado),
+ * no de exigir los 13 campos del perfil: hay campos opcionales según el caso (la excepción de
+ * postulación individual solo importa sin otros integrantes) o alternativos entre sí (ingreso en
+ * CLP o en UF), y con ellos sin conocer el motor igual puede dar los cuatro veredictos.
+ * Devuelve el primer grupo con un campo que aún se necesita; si el motor ya no pide nada,
+ * el último. Sin resultados todavía (sesión nueva) es el primero.
+ */
+export function pasoActivo(perfil: Perfil, resultados: ResultadoPrograma[]): number {
+  if (resultados.length === 0) return 0;
+  const pendientes = new Set(
+    resultados.flatMap((r) => (r.camposFaltantes ?? []).filter((c) => perfil[c as keyof Perfil] === 'desconocido')),
+  );
+  const indice = GRUPOS_ENTREVISTA.findIndex((g) => g.campos.some((c) => pendientes.has(c)));
   return indice === -1 ? GRUPOS_ENTREVISTA.length - 1 : indice;
 }
