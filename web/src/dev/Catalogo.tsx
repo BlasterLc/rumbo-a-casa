@@ -19,6 +19,7 @@ import { BarraInferior } from '../components/organisms/BarraInferior/BarraInferi
 import { BloqueHero } from '../components/organisms/BloqueHero/BloqueHero';
 import { TarjetaPrograma } from '../components/organisms/TarjetaPrograma/TarjetaPrograma';
 import { ChecklistDocumentos } from '../components/organisms/ChecklistDocumentos/ChecklistDocumentos';
+import { LineaDeLlamados } from '../components/organisms/LineaDeLlamados/LineaDeLlamados';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -265,6 +266,27 @@ export function Catalogo() {
               { nombre: 'Certificado de ahorro', vence: '30 sep 2026', listo: false },
             ]}
             onToggle={() => {}}
+          />
+        </div>
+      </section>
+
+      <section>
+        <Typography variant="overline">LineaDeLlamados</Typography>
+        <div style={{ marginTop: 16 }}>
+          <LineaDeLlamados
+            titulo="Próximos llamados"
+            llamados={[
+              { programa: 'DS49', fechas: '3 mar 2026 – 30 mar 2026', serviu: 'Serviu Metropolitana', estado: 'cerrado' },
+              {
+                programa: 'DS1',
+                fechas: 'Sin fecha publicada',
+                serviu: 'Por confirmar con tu Serviu regional',
+                estado: 'porVenir',
+                porConfirmar: true,
+                accion: 'Avisarme cuando se publique',
+              },
+            ]}
+            onAccion={() => {}}
           />
         </div>
       </section>
