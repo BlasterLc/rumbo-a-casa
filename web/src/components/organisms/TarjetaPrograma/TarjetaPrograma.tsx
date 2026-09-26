@@ -36,8 +36,11 @@ export function TarjetaPrograma({
 }: TarjetaProgramaProps) {
   const t = useT();
   return (
-    <Card variant="outlined" sx={{ borderColor: 'var(--border)' }}>
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+    <Card
+      variant="outlined"
+      sx={{ borderColor: 'var(--border)', height: '100%', display: 'flex', flexDirection: 'column' }}
+    >
+      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
           <Typography
             sx={{

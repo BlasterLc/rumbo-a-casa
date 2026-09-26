@@ -1,10 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { LocaleProvider } from '../../i18n/LocaleContext';
 import { PantallaResultado } from './PantallaResultado';
 import { PERFIL_DESCONOCIDO, type ResultadoPrograma } from '../../types/dominio';
+import { simularEscritorio, cssActual, type ControlEscritorio } from '../../test/utilidades';
 import * as SesionContextModulo from '../../state/SesionContext';
 
 const REGLA = {
@@ -90,5 +91,57 @@ describe('PantallaResultado', () => {
     renderPantalla();
     await userEvent.click(screen.getByRole('button', { name: 'Ver los documentos' }));
     expect(await screen.findByText('pantalla plan')).toBeInTheDocument();
+  });
+});
+
+describe('PantallaResultado en escritorio', () => {
+  let control: ControlEscritorio;
+  beforeEach(() => {
+    control = simularEscritorio(true);
+  });
+  afterEach(() => {
+    control.restaurar();
+    window.localStorage.clear();
+  });
+
+  const DOS_PROGRAMAS: ResultadoPrograma[] = [
+    { programa: 'DS49', estado: 'elegible', motivo: 'Cumples los requisitos.', regla: REGLA },
+    { programa: 'DS1', estado: 'no_elegible', motivo: 'Tu ahorro no alcanza.', regla: REGLA },
+  ];
+
+  it('el hero es el único h1 y no se repite un título aparte', () => {
+    mockSesion(DOS_PROGRAMAS);
+    renderPantalla();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Calificas para 1 programa');
+    expect(screen.queryByText('Tu resultado')).not.toBeInTheDocument();
+  });
+
+  it('el hero lista como chips los programas que califican', () => {
+    mockSesion(DOS_PROGRAMAS);
+    renderPantalla();
+    expect(screen.getByText('DS49')).toBeInTheDocument();
+    expect(screen.queryByText('DS1')).not.toBeInTheDocument();
+  });
+
+  it('las tarjetas van en una grilla de dos columnas desde 900 px', () => {
+    mockSesion(DOS_PROGRAMAS);
+    renderPantalla();
+    expect(cssActual()).toMatch(/@media \(min-width:900px\)\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
+  });
+
+  it('ofrece Volver y mantiene la acción de cada tarjeta', async () => {
+    mockSesion(DOS_PROGRAMAS);
+    renderPantalla();
+    expect(screen.getByRole('button', { name: 'Volver' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Ver los documentos' }));
+    expect(await screen.findByText('pantalla plan')).toBeInTheDocument();
+  });
+
+  it('sin resultados: hero sin chips, mensaje de datos insuficientes y sin grilla vacía', () => {
+    mockSesion([]);
+    renderPantalla();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Revisamos tus cuatro programas');
+    expect(screen.getByText(/Todavía no tenemos datos suficientes/)).toBeInTheDocument();
+    expect(screen.queryByText('DS49')).not.toBeInTheDocument();
   });
 });

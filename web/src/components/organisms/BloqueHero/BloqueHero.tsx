@@ -10,38 +10,48 @@ export interface BloqueHeroProps {
 
 /**
  * Cabecera de pantalla con los bloques de color de la portada: fondo `surface-brand`, franja de
- * marca al pie, título y bajada en `ink-on-brand`.
+ * marca al pie, título y bajada en `ink-on-brand`. En escritorio el texto va a la izquierda y los chips a la derecha;
+ * en móvil, apilados como siempre.
  */
 export function BloqueHero({ titulo, bajada, chips }: BloqueHeroProps) {
   return (
     <Box sx={{ backgroundColor: 'var(--surface-brand)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-      <Stack spacing={2} sx={{ p: 'var(--space-6)' }}>
-        <Typography
-          sx={{
-            fontFamily: typeTokens['display-l'].fontFamily,
-            fontWeight: typeTokens['display-l'].fontWeight,
-            fontSize: typeTokens['display-l'].fontSize,
-            lineHeight: typeTokens['display-l'].lineHeight,
-            letterSpacing: typeTokens['display-l'].letterSpacing,
-            color: 'var(--ink-on-brand)',
-          }}
-        >
-          {titulo}
-        </Typography>
-        {bajada && (
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'stretch', md: 'flex-end' }}
+        spacing={{ xs: 2, md: 'var(--space-6)' }}
+        sx={{ p: { xs: 'var(--space-6)', md: 'var(--space-6) var(--space-7) var(--space-4)' } }}
+      >
+        <Stack spacing={2}>
           <Typography
+            component="h1"
             sx={{
-              fontFamily: typeTokens['body-l'].fontFamily,
-              fontSize: typeTokens['body-l'].fontSize,
+              fontFamily: typeTokens['display-l'].fontFamily,
+              fontWeight: typeTokens['display-l'].fontWeight,
+              fontSize: { xs: typeTokens['display-l'].fontSize, md: typeTokens['display-xl'].fontSize },
+              lineHeight: { xs: typeTokens['display-l'].lineHeight, md: typeTokens['display-xl'].lineHeight },
+              letterSpacing: typeTokens['display-l'].letterSpacing,
               color: 'var(--ink-on-brand)',
-              maxWidth: 'var(--size-measure)',
             }}
           >
-            {bajada}
+            {titulo}
           </Typography>
-        )}
+          {bajada && (
+            <Typography
+              sx={{
+                fontFamily: typeTokens['body-l'].fontFamily,
+                fontSize: typeTokens['body-l'].fontSize,
+                color: 'var(--ink-on-brand)',
+                maxWidth: 'var(--size-measure)',
+              }}
+            >
+              {bajada}
+            </Typography>
+          )}
+        </Stack>
         {chips && chips.length > 0 && (
-          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
             {chips.map((c) => (
               <Chip
                 key={c}
