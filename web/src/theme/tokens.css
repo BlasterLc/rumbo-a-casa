@@ -44,7 +44,7 @@
   --shadow-lg: 0 12px 32px rgba(20, 24, 31, 0.14);
 
   /* Tamaño */
-  --size-touch: 48px; --size-control: 56px; --size-icon: 24px; --size-mic: 72px;
+  --size-touch: 48px; --size-control: 56px; --size-icon: 24px; --size-mic: 72px; --size-chip-compacto: 26px;
   --size-measure: 36ch;
 
   /* Tipografía */

@@ -58,6 +58,7 @@ export const sizePx = {
   'size-control': 56,
   'size-icon': 24,
   'size-mic': 72,
+  'size-chip-compacto': 26,
 } as const;
 
 export const sizeMeasure = '36ch';
