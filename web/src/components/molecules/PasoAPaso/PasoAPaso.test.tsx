@@ -29,4 +29,25 @@ describe('PasoAPaso', () => {
     renderConIdioma(<PasoAPaso pasos={muchos} activo={0} />);
     expect(screen.getByText('Paso 1 de 6')).toBeInTheDocument();
   });
+
+  it('por defecto el avance es horizontal, como hasta ahora', () => {
+    const { container } = renderConIdioma(<PasoAPaso pasos={pasos} activo={2} />);
+    expect(container.querySelector('.MuiStepper-horizontal')).toBeInTheDocument();
+    expect(container.querySelector('.MuiStepper-vertical')).not.toBeInTheDocument();
+  });
+
+  it('en vertical usa un avance vertical y conserva el número de paso y los nombres', () => {
+    const { container } = renderConIdioma(<PasoAPaso pasos={pasos} activo={2} orientacion="vertical" />);
+    expect(container.querySelector('.MuiStepper-vertical')).toBeInTheDocument();
+    expect(screen.getByText('Paso 3 de 5')).toBeInTheDocument();
+    expect(screen.getByText('Ahorro')).toBeInTheDocument();
+  });
+
+  it('en vertical los pasos contestados siguen siendo tocables y los pendientes no', async () => {
+    const onActivarPaso = vi.fn();
+    renderConIdioma(<PasoAPaso pasos={pasos} activo={2} orientacion="vertical" onActivarPaso={onActivarPaso} />);
+    await userEvent.click(screen.getByRole('button', { name: /Familia/ }));
+    expect(onActivarPaso).toHaveBeenCalledWith(0);
+    expect(screen.queryByRole('button', { name: /Región/ })).not.toBeInTheDocument();
+  });
 });

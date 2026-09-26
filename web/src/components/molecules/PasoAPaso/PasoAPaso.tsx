@@ -10,6 +10,8 @@ export interface PasoAPasoProps {
   pasos: string[];
   activo?: number;
   onActivarPaso?: (indice: number) => void;
+  /** Vertical para un panel lateral en escritorio; horizontal en móvil. */
+  orientacion?: 'horizontal' | 'vertical';
 }
 
 interface IconoPasoProps {
@@ -44,7 +46,7 @@ function IconoPaso({ activo, completado, icon }: IconoPasoProps) {
  * Avance de la entrevista. Responde a las dos preguntas que hacen abandonar: cuánto falta y si
  * se puede volver. Los pasos ya contestados son tocables y se pueden corregir; los pendientes, no.
  */
-export function PasoAPaso({ pasos, activo = 0, onActivarPaso }: PasoAPasoProps) {
+export function PasoAPaso({ pasos, activo = 0, onActivarPaso, orientacion = 'horizontal' }: PasoAPasoProps) {
   const t = useT();
   const pasosMostrados = pasos.slice(0, 6);
   return (
@@ -61,7 +63,12 @@ export function PasoAPaso({ pasos, activo = 0, onActivarPaso }: PasoAPasoProps) 
       >
         {t.molecules.pasoAPaso.pasoDe(Math.min(activo + 1, pasosMostrados.length), pasosMostrados.length)}
       </Typography>
-      <Stepper activeStep={activo} nonLinear alternativeLabel>
+      <Stepper
+        activeStep={activo}
+        nonLinear
+        orientation={orientacion}
+        alternativeLabel={orientacion === 'horizontal'}
+      >
         {pasosMostrados.map((nombre, indice) => {
           const completado = indice < activo;
           const tocable = indice <= activo && Boolean(onActivarPaso);
