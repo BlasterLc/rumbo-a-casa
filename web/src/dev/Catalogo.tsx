@@ -12,6 +12,7 @@ import { PasoAPaso } from '../components/molecules/PasoAPaso/PasoAPaso';
 import { Pestanas } from '../components/molecules/Pestanas/Pestanas';
 import { BurbujaChat } from '../components/molecules/BurbujaChat/BurbujaChat';
 import { Pensando } from '../components/molecules/BurbujaChat/Pensando';
+import { Franja } from '../components/organisms/Franja/Franja';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -175,6 +176,15 @@ export function Catalogo() {
             Vivimos mi pareja, mi hijo y yo.
           </BurbujaChat>
           <Pensando>Revisando el llamado de noviembre del DS1</Pensando>
+        </Stack>
+      </section>
+
+      <section>
+        <Typography variant="overline">Franja</Typography>
+        <Stack spacing={2} sx={{ mt: 2 }}>
+          <Franja tono="brand" alto={96} />
+          <Franja tono="accent" alto={96} />
+          <Franja tono="brand" alto={24} />
         </Stack>
       </section>
     </Stack>
