@@ -35,6 +35,8 @@ export const es: DiccionarioTextos = {
   organisms: {
     barraInferior: { hablar: 'Hablar', miPlan: 'Mi plan', documentos: 'Documentos', avisos: 'Avisos' },
     cabeceraApp: { volver: 'Volver', accion: 'Acción' },
+    navegacionSuperior: { etiqueta: 'Navegación principal' },
+    cabeceraEscritorio: { inicio: 'Inicio' },
     checklistDocumentos: {
       deListos: (listos, total) => `${listos} de ${total} listos`,
       vence: (fecha) => `Vence: ${fecha}`,
