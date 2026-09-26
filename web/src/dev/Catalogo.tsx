@@ -17,6 +17,7 @@ import { Logotipo } from '../components/organisms/Logotipo/Logotipo';
 import { CabeceraApp } from '../components/organisms/CabeceraApp/CabeceraApp';
 import { BarraInferior } from '../components/organisms/BarraInferior/BarraInferior';
 import { BloqueHero } from '../components/organisms/BloqueHero/BloqueHero';
+import { TarjetaPrograma } from '../components/organisms/TarjetaPrograma/TarjetaPrograma';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -226,6 +227,30 @@ export function Catalogo() {
         <div style={{ margin: '16px -20px 0', maxWidth: 360 }}>
           <CabeceraApp titulo="Tu plan para DS49" atras conFranja />
         </div>
+      </section>
+
+      <section>
+        <Typography variant="overline">TarjetaPrograma</Typography>
+        <Stack spacing={2} sx={{ mt: 2 }}>
+          <TarjetaPrograma
+            sigla="DS49"
+            nombreComun="Casa propia sin crédito"
+            estado="califica"
+            razon="Cumples los requisitos de DS49: RSH ≤40%, ahorro ≥10 UF, no propietario."
+            regla="D.S. N°49 (V. y U.) de 2011"
+            accion="Ver los documentos"
+            onAccion={() => {}}
+          />
+          <TarjetaPrograma
+            sigla="DS1"
+            nombreComun="Sectores medios"
+            estado="falta"
+            razon="Falta saber tu ahorro acreditado."
+            regla="D.S. N°1 de 2011, Res. Ex. N°669/2026"
+            accion="Ver cómo alcanzarlo"
+            onAccion={() => {}}
+          />
+        </Stack>
       </section>
     </Stack>
   );
