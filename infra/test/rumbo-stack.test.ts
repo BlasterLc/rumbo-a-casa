@@ -28,6 +28,24 @@ describe('RumboStack', () => {
     });
   });
 
+  it('reescribe las rutas de la SPA a index.html solo en el comportamiento de la web, no en /api/*', () => {
+    const t = sintetizar();
+    t.resourceCountIs('AWS::CloudFront::Function', 1);
+    t.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: Match.objectLike({
+        DefaultCacheBehavior: Match.objectLike({
+          FunctionAssociations: [Match.objectLike({ EventType: 'viewer-request' })],
+        }),
+        CacheBehaviors: Match.arrayWith([
+          Match.objectLike({
+            PathPattern: '/api/*',
+            FunctionAssociations: Match.absent(),
+          }),
+        ]),
+      }),
+    });
+  });
+
   it('expone la Lambda con una Function URL', () => {
     const t = sintetizar();
     t.hasResourceProperties('AWS::Lambda::Url', { AuthType: 'NONE' });

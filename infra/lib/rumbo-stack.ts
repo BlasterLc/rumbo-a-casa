@@ -63,11 +63,31 @@ export class RumboStack extends cdk.Stack {
       authType: lambda.FunctionUrlAuthType.NONE,
     });
 
+    // La SPA usa rutas reales (/resultado, /plan/DS49): al recargar o abrir un enlace directo, S3
+    // no tiene ese objeto y respondería 403. Se reescribe a index.html solo en el comportamiento
+    // de la web (los archivos con extensión pasan tal cual), para no enmascarar errores de /api/*.
+    const rutasDeLaSpa = new cloudfront.Function(this, 'RutasDeLaSpa', {
+      runtime: cloudfront.FunctionRuntime.JS_2_0,
+      code: cloudfront.FunctionCode.fromInline(`function handler(event) {
+  var request = event.request;
+  if (request.uri.indexOf('.') === -1) {
+    request.uri = '/index.html';
+  }
+  return request;
+}`),
+    });
+
     const distribution = new cloudfront.Distribution(this, 'Cdn', {
       defaultRootObject: 'index.html',
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(webBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        functionAssociations: [
+          {
+            function: rutasDeLaSpa,
+            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
       },
       additionalBehaviors: {
         '/api/*': {
