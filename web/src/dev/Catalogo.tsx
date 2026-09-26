@@ -13,6 +13,7 @@ import { Pestanas } from '../components/molecules/Pestanas/Pestanas';
 import { BurbujaChat } from '../components/molecules/BurbujaChat/BurbujaChat';
 import { Pensando } from '../components/molecules/BurbujaChat/Pensando';
 import { Franja } from '../components/organisms/Franja/Franja';
+import { Logotipo } from '../components/organisms/Logotipo/Logotipo';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -176,6 +177,17 @@ export function Catalogo() {
             Vivimos mi pareja, mi hijo y yo.
           </BurbujaChat>
           <Pensando>Revisando el llamado de noviembre del DS1</Pensando>
+        </Stack>
+      </section>
+
+      <section>
+        <Typography variant="overline">Logotipo</Typography>
+        <Stack spacing={3} sx={{ mt: 2 }}>
+          <Logotipo disposicion="horizontal" alto={40} />
+          <div style={{ background: '#123a6b', padding: 16, borderRadius: 12, display: 'inline-block' }}>
+            <Logotipo disposicion="horizontal" alto={32} tono="claro" />
+          </div>
+          <Logotipo disposicion="vertical" alto={48} />
         </Stack>
       </section>
 
