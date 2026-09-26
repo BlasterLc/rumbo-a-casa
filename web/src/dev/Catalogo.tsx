@@ -7,6 +7,7 @@ import { CampoTexto } from '../components/atoms/CampoTexto/CampoTexto';
 import { SelloElegibilidad } from '../components/molecules/SelloElegibilidad/SelloElegibilidad';
 import { OpcionTarjeta } from '../components/molecules/OpcionTarjeta/OpcionTarjeta';
 import { Alerta } from '../components/molecules/Alerta/Alerta';
+import { AvisoLimite } from '../components/molecules/AvisoLimite/AvisoLimite';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -128,6 +129,14 @@ export function Catalogo() {
           <Alerta severity="success" titulo="Documento listo">Guardamos tu certificado del RSH.</Alerta>
           <Alerta severity="warning">El llamado del DS1 cierra el 28 de octubre. Te faltan 2 documentos.</Alerta>
           <Alerta severity="error">Este llamado ya cerró.</Alerta>
+        </Stack>
+      </section>
+
+      <section>
+        <Typography variant="overline">AvisoLimite</Typography>
+        <Stack spacing={2} sx={{ mt: 2 }}>
+          <AvisoLimite />
+          <AvisoLimite conSalida />
         </Stack>
       </section>
     </Stack>
