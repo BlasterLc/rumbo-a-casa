@@ -15,6 +15,7 @@ import { Pensando } from '../components/molecules/BurbujaChat/Pensando';
 import { Franja } from '../components/organisms/Franja/Franja';
 import { Logotipo } from '../components/organisms/Logotipo/Logotipo';
 import { CabeceraApp } from '../components/organisms/CabeceraApp/CabeceraApp';
+import { BarraInferior } from '../components/organisms/BarraInferior/BarraInferior';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -200,13 +201,20 @@ export function Catalogo() {
           <Franja tono="brand" alto={24} />
         </Stack>
       </section>
-    </Stack>
 
-    <section>
-      <Typography variant="overline">CabeceraApp</Typography>
-      <div style={{ margin: '16px -20px 0', maxWidth: 360 }}>
-        <CabeceraApp titulo="Tu plan para DS49" atras conFranja />
-      </div>
-    </section>
+      <section>
+        <Typography variant="overline">BarraInferior</Typography>
+        <div style={{ margin: '16px -20px 0', maxWidth: 360 }}>
+          <BarraInferior value="plan" avisos={2} onChange={() => {}} />
+        </div>
+      </section>
+
+      <section>
+        <Typography variant="overline">CabeceraApp</Typography>
+        <div style={{ margin: '16px -20px 0', maxWidth: 360 }}>
+          <CabeceraApp titulo="Tu plan para DS49" atras conFranja />
+        </div>
+      </section>
+    </Stack>
   );
 }
