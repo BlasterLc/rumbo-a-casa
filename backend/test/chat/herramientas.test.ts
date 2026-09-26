@@ -82,3 +82,21 @@ describe('ejecutarHerramienta', () => {
     expect(r.perfil).toBe(perfilElegibleEnTodo);
   });
 });
+
+describe('ejecutarHerramienta con idioma', () => {
+  it('evaluar_elegibilidad devuelve los motivos en el idioma pedido', () => {
+    const en = ejecutarHerramienta('evaluar_elegibilidad', {}, perfilElegibleEnTodo, 'en');
+    const es = ejecutarHerramienta('evaluar_elegibilidad', {}, perfilElegibleEnTodo);
+    const motivoEn = (en.salida.resultados as { motivo: string }[])[0].motivo;
+    const motivoEs = (es.salida.resultados as { motivo: string }[])[0].motivo;
+    expect(motivoEn).toMatch(/^You meet the DS49 requirements/);
+    expect(motivoEs).toMatch(/^Cumples los requisitos de DS49/);
+  });
+
+  it('generar_plan devuelve los detalles en el idioma pedido', () => {
+    const en = ejecutarHerramienta('generar_plan', {}, perfilElegibleEnTodo, 'en');
+    const plan = en.salida.plan as { documentos: { nombre: string; detalle?: string }[] }[];
+    expect(plan.length).toBeGreaterThan(0);
+    for (const p of plan) for (const d of p.documentos) expect(d.detalle).toBeTruthy();
+  });
+});

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { Tool } from '@aws-sdk/client-bedrock-runtime';
-import { PerfilSchema, evaluarTodosLosProgramas, type Perfil } from '../rules-engine/index';
+import { IDIOMA_POR_DEFECTO, PerfilSchema, evaluarTodosLosProgramas, type Idioma, type Perfil } from '../rules-engine/index';
 import { aplicarCambios } from './perfil';
 import { generarPlanPapeles } from './papeles';
 
@@ -49,7 +49,12 @@ export interface ResultadoHerramienta {
   error: boolean;
 }
 
-export function ejecutarHerramienta(nombre: string, input: unknown, perfil: Perfil): ResultadoHerramienta {
+export function ejecutarHerramienta(
+  nombre: string,
+  input: unknown,
+  perfil: Perfil,
+  idioma: Idioma = IDIOMA_POR_DEFECTO,
+): ResultadoHerramienta {
   switch (nombre) {
     case 'actualizar_perfil': {
       if (typeof input !== 'object' || input === null || Array.isArray(input)) {
@@ -63,11 +68,11 @@ export function ejecutarHerramienta(nombre: string, input: unknown, perfil: Perf
       return { perfil: nuevo, salida: { aceptados, rechazados }, error: false };
     }
     case 'evaluar_elegibilidad':
-      return { perfil, salida: { resultados: evaluarTodosLosProgramas(perfil) }, error: false };
+      return { perfil, salida: { resultados: evaluarTodosLosProgramas(perfil, idioma) }, error: false };
     case 'generar_plan':
       return {
         perfil,
-        salida: { plan: generarPlanPapeles(evaluarTodosLosProgramas(perfil)) },
+        salida: { plan: generarPlanPapeles(evaluarTodosLosProgramas(perfil, idioma), idioma) },
         error: false,
       };
     default:
