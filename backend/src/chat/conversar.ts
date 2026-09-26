@@ -53,6 +53,7 @@ export async function conversar(
   const inicio: Message[] = [...entrada.historial, { role: 'user', content: [{ text: entrada.mensaje }] }];
   const enCurso: Message[] = [...inicio];
   let reintentosVacios = 0;
+  const textosPrevios: string[] = [];
 
   for (let vuelta = 0; vuelta < MAX_VUELTAS_HERRAMIENTAS; vuelta++) {
     const salida = await invocar({
@@ -66,10 +67,10 @@ export async function conversar(
     const pedidos = contenido.filter((bloque) => bloque.toolUse);
 
     if (salida.stopReason !== 'tool_use' || pedidos.length === 0) {
-      const texto = textoDe(contenido);
-      // A veces el modelo cierra el turno sin texto (sobre todo justo después de una herramienta,
-      // y ya descartó lo que escribió antes de llamarla): un reintento con los mismos mensajes
-      // casi siempre trae la respuesta, y es mejor que mostrar el respaldo.
+      // A veces el modelo escribe su respuesta, llama a una herramienta y luego cierra el turno sin
+      // texto (`end_turn` con contenido vacío): lo que ya escribió antes de la herramienta es su
+      // respuesta, así que se usa. Reintentar con los mismos mensajes no sirve, sale vacío igual.
+      const texto = textoDe(contenido) || textosPrevios.join('\n\n');
       if (!texto && reintentosVacios < REINTENTOS_RESPUESTA_VACIA) {
         reintentosVacios++;
         continue;
@@ -82,6 +83,8 @@ export async function conversar(
       };
     }
 
+    const textoPrevio = textoDe(contenido);
+    if (textoPrevio) textosPrevios.push(textoPrevio);
     enCurso.push({ role: 'assistant', content: contenido });
     const resultados = pedidos.map(({ toolUse }): ContentBlock => {
       const r = ejecutarHerramienta(toolUse?.name ?? '', toolUse?.input, perfil, idioma);

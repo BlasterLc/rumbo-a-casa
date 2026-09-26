@@ -111,27 +111,30 @@ describe('conversar', () => {
     expect(salida.respuesta).toBe(RESPUESTA_RESPALDO);
   });
 
-  it('si tras una herramienta el modelo responde vacío, reintenta y usa el texto de la segunda vez', async () => {
-    const vacia = {
-      stopReason: 'end_turn',
-      output: { message: { role: 'assistant', content: [] } },
-    } as unknown as Awaited<ReturnType<typeof respuestaTexto>>;
+  const vacia = {
+    stopReason: 'end_turn',
+    output: { message: { role: 'assistant', content: [] } },
+  } as unknown as Awaited<ReturnType<typeof respuestaTexto>>;
+
+  it('si tras una herramienta el modelo calla, la respuesta es el texto que ya había escrito antes de llamarla', async () => {
     const invocar = vi
       .fn()
       .mockResolvedValueOnce(respuestaHerramienta('actualizar_perfil', { tienePropiedad: false }))
-      .mockResolvedValueOnce(vacia)
-      .mockResolvedValueOnce(respuestaTexto('Anotado. ¿En qué región vives?'));
+      .mockResolvedValueOnce(vacia);
     const salida = await conversar(invocar, MODELO, entrada('Somos 4 y no tenemos casa'));
 
-    expect(invocar).toHaveBeenCalledTimes(3);
-    expect(salida.respuesta).toBe('Anotado. ¿En qué región vives?');
+    // Ese texto es la respuesta real del modelo: no se reintenta ni se cae al respaldo.
+    expect(invocar).toHaveBeenCalledTimes(2);
+    expect(salida.respuesta).toBe('Déjame anotarlo.');
     expect(salida.perfil.tienePropiedad).toBe(false);
-    // El reintento reenvía exactamente los mismos mensajes: el intento vacío no queda en el historial.
-    expect(invocar.mock.calls[2][0].messages).toEqual(invocar.mock.calls[1][0].messages);
-    expect(salida.historial.at(-1)).toEqual({
-      role: 'assistant',
-      content: [{ text: 'Anotado. ¿En qué región vives?' }],
-    });
+    expect(salida.historial.at(-1)).toEqual({ role: 'assistant', content: [{ text: 'Déjame anotarlo.' }] });
+  });
+
+  it('si no hay texto en ningún turno, reintenta una vez y usa el texto de la segunda vez', async () => {
+    const invocar = vi.fn().mockResolvedValueOnce(vacia).mockResolvedValueOnce(respuestaTexto('¡Hola! ¿En qué región vives?'));
+    const salida = await conversar(invocar, MODELO, entrada('hola'));
+    expect(invocar).toHaveBeenCalledTimes(2);
+    expect(salida.respuesta).toBe('¡Hola! ¿En qué región vives?');
   });
 
   it('si Bedrock falla, propaga el error', async () => {
