@@ -16,6 +16,7 @@ import { Franja } from '../components/organisms/Franja/Franja';
 import { Logotipo } from '../components/organisms/Logotipo/Logotipo';
 import { CabeceraApp } from '../components/organisms/CabeceraApp/CabeceraApp';
 import { BarraInferior } from '../components/organisms/BarraInferior/BarraInferior';
+import { BloqueHero } from '../components/organisms/BloqueHero/BloqueHero';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -206,6 +207,17 @@ export function Catalogo() {
         <Typography variant="overline">BarraInferior</Typography>
         <div style={{ margin: '16px -20px 0', maxWidth: 360 }}>
           <BarraInferior value="plan" avisos={2} onChange={() => {}} />
+        </div>
+      </section>
+
+      <section>
+        <Typography variant="overline">BloqueHero</Typography>
+        <div style={{ marginTop: 16 }}>
+          <BloqueHero
+            titulo="Averigua a qué subsidio de vivienda puedes postular"
+            bajada="Cuéntanos de tu familia en unos 5 minutos."
+            chips={['DS49', 'DS1', 'DS19', 'DS52']}
+          />
         </div>
       </section>
 
