@@ -14,6 +14,7 @@ import { BurbujaChat } from '../components/molecules/BurbujaChat/BurbujaChat';
 import { Pensando } from '../components/molecules/BurbujaChat/Pensando';
 import { Franja } from '../components/organisms/Franja/Franja';
 import { Logotipo } from '../components/organisms/Logotipo/Logotipo';
+import { CabeceraApp } from '../components/organisms/CabeceraApp/CabeceraApp';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -200,5 +201,12 @@ export function Catalogo() {
         </Stack>
       </section>
     </Stack>
+
+    <section>
+      <Typography variant="overline">CabeceraApp</Typography>
+      <div style={{ margin: '16px -20px 0', maxWidth: 360 }}>
+        <CabeceraApp titulo="Tu plan para DS49" atras conFranja />
+      </div>
+    </section>
   );
 }
