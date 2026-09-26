@@ -10,6 +10,8 @@ import { Alerta } from '../components/molecules/Alerta/Alerta';
 import { AvisoLimite } from '../components/molecules/AvisoLimite/AvisoLimite';
 import { PasoAPaso } from '../components/molecules/PasoAPaso/PasoAPaso';
 import { Pestanas } from '../components/molecules/Pestanas/Pestanas';
+import { BurbujaChat } from '../components/molecules/BurbujaChat/BurbujaChat';
+import { Pensando } from '../components/molecules/BurbujaChat/Pensando';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -161,6 +163,19 @@ export function Catalogo() {
             ]}
           />
         </div>
+      </section>
+
+      <section>
+        <Typography variant="overline">BurbujaChat y Pensando</Typography>
+        <Stack spacing={2} sx={{ mt: 2 }}>
+          <BurbujaChat autor="agente" escuchable porQue>
+            ¿Cuántas personas viven contigo, sin contarte a ti?
+          </BurbujaChat>
+          <BurbujaChat autor="persona" dictado>
+            Vivimos mi pareja, mi hijo y yo.
+          </BurbujaChat>
+          <Pensando>Revisando el llamado de noviembre del DS1</Pensando>
+        </Stack>
       </section>
     </Stack>
   );
