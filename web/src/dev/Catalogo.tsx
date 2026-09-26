@@ -9,6 +9,7 @@ import { OpcionTarjeta } from '../components/molecules/OpcionTarjeta/OpcionTarje
 import { Alerta } from '../components/molecules/Alerta/Alerta';
 import { AvisoLimite } from '../components/molecules/AvisoLimite/AvisoLimite';
 import { PasoAPaso } from '../components/molecules/PasoAPaso/PasoAPaso';
+import { Pestanas } from '../components/molecules/Pestanas/Pestanas';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -145,6 +146,20 @@ export function Catalogo() {
         <Typography variant="overline">PasoAPaso</Typography>
         <div style={{ marginTop: 16 }}>
           <PasoAPaso pasos={['Familia', 'Vivienda', 'Ahorro', 'Ingreso', 'Región']} activo={2} onActivarPaso={() => {}} />
+        </div>
+      </section>
+
+      <section>
+        <Typography variant="overline">Pestanas</Typography>
+        <div style={{ marginTop: 16 }}>
+          <Pestanas
+            etiquetaAria="Filtrar resultados"
+            pestanas={[
+              { valor: 'califica', etiqueta: 'Calificas', cuenta: 2 },
+              { valor: 'falta', etiqueta: 'Te falta', cuenta: 1 },
+              { valor: 'no_aplica', etiqueta: 'No aplica', cuenta: 1 },
+            ]}
+          />
         </div>
       </section>
     </Stack>
