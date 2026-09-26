@@ -71,3 +71,59 @@ describe('generarPlanPapeles', () => {
     expect(ds1.fuente).toContain('669/2026');
   });
 });
+
+describe('generarPlanPapeles por idioma', () => {
+  const todos = () =>
+    generarPlanPapeles([
+      resultado('DS49', 'elegible'),
+      resultado('DS1', 'elegible'),
+      resultado('DS19', 'elegible', { ruta: 'A' }),
+      resultado('DS52', 'elegible'),
+    ], 'en');
+
+  it('en español no cambia nada respecto de antes', () => {
+    const [ds49] = generarPlanPapeles([resultado('DS49', 'elegible')]);
+    expect(ds49.documentos[0]).toEqual({
+      nombre: 'Cédula de identidad vigente',
+      detalle: 'De quien postula y de cada integrante del grupo familiar mayor de 18 años.',
+    });
+    expect(ds49.documentos[2]).toEqual({ nombre: 'Formulario de Postulación Individual (FSEV)' });
+    expect(generarPlanPapeles([resultado('DS49', 'elegible')], 'es')).toEqual([ds49]);
+  });
+
+  it('en inglés el nombre oficial no se traduce', () => {
+    const es = generarPlanPapeles([resultado('DS49', 'elegible'), resultado('DS52', 'elegible')], 'es');
+    const en = generarPlanPapeles([resultado('DS49', 'elegible'), resultado('DS52', 'elegible')], 'en');
+    expect(en.map((p) => p.documentos.map((d) => d.nombre))).toEqual(
+      es.map((p) => p.documentos.map((d) => d.nombre)),
+    );
+  });
+
+  it('en inglés todo documento trae una explicación', () => {
+    for (const plan of todos()) {
+      for (const doc of plan.documentos) {
+        expect(doc.detalle, `${plan.programa}: ${doc.nombre}`).toBeTruthy();
+        expect(doc.detalle!.length).toBeGreaterThan(15);
+      }
+    }
+  });
+
+  it('en inglés la fuente cambia de idioma y DS1 sigue citando la resolución', () => {
+    const es = generarPlanPapeles([resultado('DS1', 'elegible')], 'es')[0];
+    const en = generarPlanPapeles([resultado('DS1', 'elegible')], 'en')[0];
+    expect(en.fuente).not.toBe(es.fuente);
+    expect(en.fuente).toContain('669/2026');
+  });
+
+  it('en inglés la ruta A de DS19 suma el certificado de subsidio, y la ruta B no', () => {
+    const rutaA = generarPlanPapeles([resultado('DS19', 'elegible', { ruta: 'A' })], 'en')[0];
+    const rutaB = generarPlanPapeles([resultado('DS19', 'elegible', { ruta: 'B' })], 'en')[0];
+    expect(rutaA.documentos.map((d) => d.nombre)).toContain('Certificado de subsidio vigente');
+    expect(rutaB.documentos.map((d) => d.nombre)).not.toContain('Certificado de subsidio vigente');
+  });
+
+  it('solo incluye los programas elegibles, en cualquier idioma', () => {
+    const plan = generarPlanPapeles([resultado('DS49', 'no_elegible'), resultado('DS52', 'falta_dato')], 'en');
+    expect(plan).toEqual([]);
+  });
+});

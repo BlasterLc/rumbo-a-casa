@@ -4,10 +4,15 @@ export type {
   Programa,
   EstadoElegibilidad,
   Regla,
+  Idioma,
 } from '@rumbo/backend/rules-engine';
 export type { PlanPrograma, Documento } from '@rumbo/backend/chat/papeles';
 
-export { evaluarTodosLosProgramas } from '@rumbo/backend/rules-engine';
+export {
+  evaluarTodosLosProgramas,
+  IDIOMAS,
+  IDIOMA_POR_DEFECTO,
+} from '@rumbo/backend/rules-engine';
 export { generarPlanPapeles } from '@rumbo/backend/chat/papeles';
 
 import type { Perfil } from '@rumbo/backend/rules-engine';

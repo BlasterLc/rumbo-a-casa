@@ -5,11 +5,11 @@ import { type as typeTokens, sizePx } from '../../../theme/tokens';
 
 export type EstadoElegibilidad = 'califica' | 'falta' | 'posible' | 'noAplica';
 
-const ESTILO: Record<EstadoElegibilidad, { color: string; icono: NombreIcono }> = {
-  califica: { color: 'var(--success)', icono: 'check' },
-  falta: { color: 'var(--warning)', icono: 'alerta' },
-  posible: { color: 'var(--brand)', icono: 'info' },
-  noAplica: { color: 'var(--border-strong)', icono: 'menos' },
+const ESTILO: Record<EstadoElegibilidad, { fondo: string; tinta: string; icono: NombreIcono }> = {
+  califica: { fondo: 'var(--success)', tinta: 'var(--ink-on-fill)', icono: 'check' },
+  falta: { fondo: 'var(--warning)', tinta: 'var(--ink-on-fill)', icono: 'alerta' },
+  posible: { fondo: 'var(--brand)', tinta: 'var(--ink-on-fill)', icono: 'info' },
+  noAplica: { fondo: 'var(--surface-sunken)', tinta: 'var(--ink-muted)', icono: 'menos' },
 };
 
 export interface SelloElegibilidadProps {
@@ -25,7 +25,7 @@ export interface SelloElegibilidadProps {
  */
 export function SelloElegibilidad({ estado, programa, compacto = false }: SelloElegibilidadProps) {
   const t = useT();
-  const { color, icono } = ESTILO[estado];
+  const { fondo, tinta, icono } = ESTILO[estado];
   const palabra = t.molecules.selloElegibilidad[estado];
   const texto = programa ? `${programa} · ${palabra}` : palabra;
   return (
@@ -34,13 +34,13 @@ export function SelloElegibilidad({ estado, programa, compacto = false }: SelloE
       label={texto}
       sx={{
         height: compacto ? sizePx['size-chip-compacto'] : sizePx['size-touch'],
-        backgroundColor: color,
-        color: 'var(--ink-on-fill)',
+        backgroundColor: fondo,
+        color: tinta,
         fontFamily: 'var(--font-sans)',
         fontWeight: compacto ? typeTokens.label.fontWeight : typeTokens['body-strong'].fontWeight,
         fontSize: compacto ? typeTokens.label.fontSize : typeTokens['body-strong'].fontSize,
         letterSpacing: compacto ? typeTokens.label.letterSpacing : undefined,
-        '& .MuiChip-icon': { color: 'var(--ink-on-fill)' },
+        '& .MuiChip-icon': { color: tinta },
       }}
     />
   );

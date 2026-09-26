@@ -35,12 +35,13 @@ The coding agent (Claude Code) works against the AWS account with the credential
 ## Bedrock
 
 - Chosen model: `us.anthropic.claude-haiku-4-5-20251001-v1:0` (low cost, good tool-use support; used by `chat-handler`).
-- `POST /api/chat` was deployed on 2026-09-23 (`Sesiones` table plus IAM permissions). It still answers `503` (`asistente_no_disponible`) because Bedrock rejects the invocation from this account. Error handling works as designed: a clean 503, and no session is saved.
-- Cause, according to the CloudWatch logs, which has changed over time:
-  - 2026-09-22: `AccessDeniedException` because the account was being verified (resolved).
+- `POST /api/chat` was deployed on 2026-09-23 (`Sesiones` table plus IAM permissions).
+- Until 2026-09-24 it answered `503` (`asistente_no_disponible`) because Bedrock rejected the invocation from this account. According to the CloudWatch logs the cause changed over time:
+  - 2026-09-22: `AccessDeniedException` because the account was being verified.
   - 2026-09-24 22:24 UTC: `AccessDeniedException` because the Anthropic AWS Marketplace subscription was incomplete (the "Anthropic use case details" form was under review).
-  - 2026-09-24 22:40 UTC onward: `ThrottlingException: Too many tokens per day` (the account's daily token quota). **Pending:** request an increase in Service Quotas (Bedrock) or through support.
-- Meanwhile, the live app relies on `GET /api/demo`.
+  - 2026-09-24 22:40 UTC: `ThrottlingException: Too many tokens per day` (the account's daily token quota).
+- **Working since 2026-09-25 00:37 UTC.** The first full test then exposed a bug of our own: the Bedrock client had a 3 s no-activity timeout, and `Converse` does not stream, so any long answer (a 319-token reply took about 5 s) failed with `TimeoutError`. The final explanation of the four programs failed every time. Fixed in commit `11de6b1`: a shared 24 s time budget per message (one abort signal for all calls of the turn) and a 20 s socket timeout, with tests that keep the timeout from going back below 10 s.
+- Verified against the public URL after the fix, with the same fictional family as the demo (`docs/evidence/live-chat-run.md`): a 4-turn conversation, `200` on every turn (3.4 to 7.5 s), ending with DS49, DS19 and DS52 `elegible` and DS1 `no_elegible`, the same verdicts as `GET /api/demo`.
 - To retry the direct invocation:
 
 ```
