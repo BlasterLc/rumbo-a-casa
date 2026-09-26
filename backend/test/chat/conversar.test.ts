@@ -104,10 +104,34 @@ describe('conversar', () => {
     ]);
   });
 
-  it('una respuesta sin texto usa la respuesta de respaldo', async () => {
-    const invocar = vi.fn().mockResolvedValueOnce(respuestaTexto('   '));
+  it('una respuesta sin texto se reintenta una vez y, si sigue vacía, usa el respaldo', async () => {
+    const invocar = vi.fn().mockResolvedValue(respuestaTexto('   '));
     const salida = await conversar(invocar, MODELO, entrada('hola'));
+    expect(invocar).toHaveBeenCalledTimes(2);
     expect(salida.respuesta).toBe(RESPUESTA_RESPALDO);
+  });
+
+  it('si tras una herramienta el modelo responde vacío, reintenta y usa el texto de la segunda vez', async () => {
+    const vacia = {
+      stopReason: 'end_turn',
+      output: { message: { role: 'assistant', content: [] } },
+    } as unknown as Awaited<ReturnType<typeof respuestaTexto>>;
+    const invocar = vi
+      .fn()
+      .mockResolvedValueOnce(respuestaHerramienta('actualizar_perfil', { tienePropiedad: false }))
+      .mockResolvedValueOnce(vacia)
+      .mockResolvedValueOnce(respuestaTexto('Anotado. ¿En qué región vives?'));
+    const salida = await conversar(invocar, MODELO, entrada('Somos 4 y no tenemos casa'));
+
+    expect(invocar).toHaveBeenCalledTimes(3);
+    expect(salida.respuesta).toBe('Anotado. ¿En qué región vives?');
+    expect(salida.perfil.tienePropiedad).toBe(false);
+    // El reintento reenvía exactamente los mismos mensajes: el intento vacío no queda en el historial.
+    expect(invocar.mock.calls[2][0].messages).toEqual(invocar.mock.calls[1][0].messages);
+    expect(salida.historial.at(-1)).toEqual({
+      role: 'assistant',
+      content: [{ text: 'Anotado. ¿En qué región vives?' }],
+    });
   });
 
   it('si Bedrock falla, propaga el error', async () => {
@@ -142,7 +166,7 @@ describe('conversar', () => {
   });
 
   it('la respuesta de respaldo sale en el idioma pedido', async () => {
-    const invocar = vi.fn().mockResolvedValueOnce(respuestaTexto('   '));
+    const invocar = vi.fn().mockResolvedValue(respuestaTexto('   '));
     const salida = await conversar(invocar, MODELO, { ...entrada('hi'), idioma: 'en' });
     expect(salida.respuesta).toBe(MENSAJES_CHAT.en.respaldo);
     expect(MENSAJES_CHAT.es.respaldo).toBe(RESPUESTA_RESPALDO);

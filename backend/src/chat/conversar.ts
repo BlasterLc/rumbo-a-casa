@@ -15,6 +15,7 @@ export type InvocarConverse = (
 ) => Promise<ConverseCommandOutput>;
 
 export const MAX_VUELTAS_HERRAMIENTAS = 6;
+const REINTENTOS_RESPUESTA_VACIA = 1;
 
 // Se mantiene exportada por compatibilidad: es la respuesta de respaldo en español.
 export const RESPUESTA_RESPALDO = MENSAJES_CHAT.es.respaldo;
@@ -51,6 +52,7 @@ export async function conversar(
   const respaldo = MENSAJES_CHAT[idioma].respaldo;
   const inicio: Message[] = [...entrada.historial, { role: 'user', content: [{ text: entrada.mensaje }] }];
   const enCurso: Message[] = [...inicio];
+  let reintentosVacios = 0;
 
   for (let vuelta = 0; vuelta < MAX_VUELTAS_HERRAMIENTAS; vuelta++) {
     const salida = await invocar({
@@ -64,7 +66,15 @@ export async function conversar(
     const pedidos = contenido.filter((bloque) => bloque.toolUse);
 
     if (salida.stopReason !== 'tool_use' || pedidos.length === 0) {
-      const respuesta = textoDe(contenido) || respaldo;
+      const texto = textoDe(contenido);
+      // A veces el modelo cierra el turno sin texto (sobre todo justo después de una herramienta,
+      // y ya descartó lo que escribió antes de llamarla): un reintento con los mismos mensajes
+      // casi siempre trae la respuesta, y es mejor que mostrar el respaldo.
+      if (!texto && reintentosVacios < REINTENTOS_RESPUESTA_VACIA) {
+        reintentosVacios++;
+        continue;
+      }
+      const respuesta = texto || respaldo;
       return {
         perfil,
         historial: [...enCurso, { role: 'assistant', content: [{ text: respuesta }] }],
