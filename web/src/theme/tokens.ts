@@ -59,6 +59,8 @@ export const sizePx = {
   'size-icon': 24,
   'size-mic': 72,
   'size-chip-compacto': 26,
+  'size-page': 1120,
+  'size-header': 72,
 } as const;
 
 export const sizeMeasure = '36ch';
@@ -84,6 +86,7 @@ export interface EstiloTexto {
 }
 
 export const type = {
+  'display-2xl': { fontFamily: fontFamily.display, fontSize: 'clamp(40px, 4.4vw, 56px)', lineHeight: '1.06', fontWeight: 700, letterSpacing: '-0.02em' },
   'display-xl': { fontFamily: fontFamily.display, fontSize: '40px', lineHeight: '44px', fontWeight: 700, letterSpacing: '-0.02em' },
   'display-l': { fontFamily: fontFamily.display, fontSize: '30px', lineHeight: '36px', fontWeight: 700, letterSpacing: '-0.015em' },
   'display-m': { fontFamily: fontFamily.display, fontSize: '24px', lineHeight: '30px', fontWeight: 600, letterSpacing: '-0.01em' },

@@ -46,6 +46,7 @@
   /* Tamaño */
   --size-touch: 48px; --size-control: 56px; --size-icon: 24px; --size-mic: 72px; --size-chip-compacto: 26px;
   --size-measure: 36ch;
+  --size-page: 1120px; --size-header: 72px;
 
   /* Tipografía */
   --font-display: "Bricolage Grotesque", "Figtree", system-ui, sans-serif;
@@ -55,11 +56,10 @@
 
 html, body { margin: 0; }
 
-/* surface-sunken, no surface-base: en pantallas anchas esto queda visible a los costados de la
-   columna centrada de 480 px (Task 27, Task 28), que sí pinta surface-base. Si los dos fueran
-   iguales, el centrado no se notaría. */
+/* surface-base en toda la pantalla: en escritorio el contenido ocupa hasta 1120 px y ya no hay
+   una columna de 480 px que enmarcar sobre un fondo distinto. */
 body {
-  background: var(--surface-sunken);
+  background: var(--surface-base);
   color: var(--ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

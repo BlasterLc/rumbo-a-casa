@@ -24,4 +24,11 @@ describe('Franja', () => {
     const { getByTestId } = render(<Franja alto={24} />);
     expect(getByTestId('franja')).toHaveAttribute('height', '24');
   });
+
+  it('repite el patrón cada 96 px en vez de estirarlo al ancho de la pantalla', () => {
+    const { getByTestId, container } = render(<Franja alto={96} />);
+    expect(getByTestId('franja')).not.toHaveAttribute('viewBox');
+    expect(getByTestId('franja')).not.toHaveAttribute('preserveAspectRatio');
+    expect(container.querySelector('pattern')).toHaveAttribute('width', '96');
+  });
 });

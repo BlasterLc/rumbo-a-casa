@@ -36,3 +36,59 @@ export function renderPantalla(ui: ReactNode, opciones: { ruta?: string } = {}) 
     </ThemeProvider>,
   );
 }
+
+export interface ControlEscritorio {
+  /** Simula cruzar los 900 px. Envolver en `act()`. */
+  cambiar: (activo: boolean) => void;
+  restaurar: () => void;
+}
+
+/**
+ * Simula una ventana ancha (o angosta) con un `matchMedia` falso que responde lo mismo a
+ * cualquier consulta. jsdom no trae `matchMedia`, así que sin llamar a esto `useEscritorio()`
+ * devuelve false. Llamar ANTES de renderizar y `restaurar()` en `afterEach`.
+ */
+export function simularEscritorio(activoInicial = true): ControlEscritorio {
+  let activo = activoInicial;
+  const escuchas = new Set<() => void>();
+  const original = window.matchMedia;
+  window.matchMedia = ((consulta: string) => ({
+    get matches() {
+      return activo;
+    },
+    media: consulta,
+    onchange: null,
+    addListener: (fn: () => void) => {
+      escuchas.add(fn);
+    },
+    removeListener: (fn: () => void) => {
+      escuchas.delete(fn);
+    },
+    addEventListener: (_tipo: string, fn: () => void) => {
+      escuchas.add(fn);
+    },
+    removeEventListener: (_tipo: string, fn: () => void) => {
+      escuchas.delete(fn);
+    },
+    dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia;
+  return {
+    cambiar(nuevo) {
+      activo = nuevo;
+      escuchas.forEach((fn) => fn());
+    },
+    restaurar() {
+      window.matchMedia = original;
+    },
+  };
+}
+
+/**
+ * El CSS que emotion inyectó hasta ahora. jsdom no evalúa `@media`, así que para probar reglas
+ * responsive se busca el texto de la regla en vez de usar `toHaveStyle`.
+ */
+export function cssActual(): string {
+  return Array.from(document.querySelectorAll('style'))
+    .map((s) => s.textContent ?? '')
+    .join('\n');
+}

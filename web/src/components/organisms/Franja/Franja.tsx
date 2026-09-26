@@ -16,6 +16,9 @@ const DIAMETRO_DISCO = spacePx['space-4'];
 /**
  * Banda decorativa de marca: medios redondeles sentados sobre una línea, más una huella de
  * discos. Siempre toca un borde de la pieza; dos tintas como máximo por banda.
+ *
+ * Sin viewBox: las unidades son píxeles y el patrón se repite cada 96 px. Con un viewBox y
+ * preserveAspectRatio="none" el patrón entero se estiraba al ancho de la pantalla.
  */
 export function Franja({ alto = 96, tono = 'brand', borde = 'abajo', ancho }: FranjaProps) {
   const fondo = tono === 'brand' ? 'var(--surface-brand)' : 'var(--surface-accent-soft)';
@@ -32,8 +35,6 @@ export function Franja({ alto = 96, tono = 'brand', borde = 'abajo', ancho }: Fr
       aria-hidden="true"
       width={ancho ?? '100%'}
       height={alto}
-      viewBox={`0 0 ${PASO} ${alto}`}
-      preserveAspectRatio="none"
       style={{ display: 'block', width: ancho ?? '100%', height: alto }}
     >
       <defs>
