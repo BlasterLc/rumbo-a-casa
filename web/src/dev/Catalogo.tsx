@@ -20,6 +20,7 @@ import { BloqueHero } from '../components/organisms/BloqueHero/BloqueHero';
 import { TarjetaPrograma } from '../components/organisms/TarjetaPrograma/TarjetaPrograma';
 import { ChecklistDocumentos } from '../components/organisms/ChecklistDocumentos/ChecklistDocumentos';
 import { LineaDeLlamados } from '../components/organisms/LineaDeLlamados/LineaDeLlamados';
+import { TarjetaPorQue } from '../components/organisms/TarjetaPorQue/TarjetaPorQue';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -287,6 +288,31 @@ export function Catalogo() {
               },
             ]}
             onAccion={() => {}}
+          />
+        </div>
+      </section>
+
+      <section>
+        <Typography variant="overline">TarjetaPorQue (fixture — sin conexión a datos reales aún)</Typography>
+        <div style={{ marginTop: 16 }}>
+          <TarjetaPorQue
+            titulo="Por qué calificas para DS49"
+            reglas={[
+              {
+                enunciado: 'Tramo del Registro Social de Hogares de 40% o menos.',
+                tuDato: '30,4%',
+                cumple: true,
+                fuente: 'D.S. N°49, artículo 4',
+              },
+              {
+                enunciado: 'Ahorro mínimo de 10 UF.',
+                tuDato: '8 UF',
+                cumple: false,
+                fuente: 'D.S. N°49, artículo 5',
+                arreglo: 'Ahorra 2 UF más antes del cierre del llamado.',
+              },
+            ]}
+            pie="Reglas al 22 de septiembre de 2026."
           />
         </div>
       </section>
