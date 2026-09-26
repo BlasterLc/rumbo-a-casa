@@ -4,6 +4,7 @@ import { Icono, NOMBRES_ICONO } from '../components/atoms/Icono/Icono';
 import { Boton } from '../components/atoms/Boton/Boton';
 import { ChipFiltro, ChipEtiqueta } from '../components/atoms/Chip/Chip';
 import { CampoTexto } from '../components/atoms/CampoTexto/CampoTexto';
+import { SelloElegibilidad } from '../components/molecules/SelloElegibilidad/SelloElegibilidad';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -84,6 +85,20 @@ export function Catalogo() {
             value="no-es-un-correo"
             onChange={() => {}}
           />
+        </Stack>
+      </section>
+
+      <section>
+        <Typography variant="overline">SelloElegibilidad</Typography>
+        <Stack direction="row" spacing={1.5} sx={{ mt: 2, flexWrap: 'wrap' }}>
+          <SelloElegibilidad estado="califica" programa="DS49" />
+          <SelloElegibilidad estado="falta" programa="DS1" />
+          <SelloElegibilidad estado="posible" programa="DS19" />
+          <SelloElegibilidad estado="noAplica" programa="DS52" />
+        </Stack>
+        <Stack direction="row" spacing={1.5} sx={{ mt: 2, alignItems: 'center' }}>
+          <SelloElegibilidad estado="califica" compacto />
+          <SelloElegibilidad estado="falta" compacto />
         </Stack>
       </section>
     </Stack>
