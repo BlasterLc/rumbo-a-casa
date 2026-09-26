@@ -18,6 +18,7 @@ import { CabeceraApp } from '../components/organisms/CabeceraApp/CabeceraApp';
 import { BarraInferior } from '../components/organisms/BarraInferior/BarraInferior';
 import { BloqueHero } from '../components/organisms/BloqueHero/BloqueHero';
 import { TarjetaPrograma } from '../components/organisms/TarjetaPrograma/TarjetaPrograma';
+import { ChecklistDocumentos } from '../components/organisms/ChecklistDocumentos/ChecklistDocumentos';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -251,6 +252,21 @@ export function Catalogo() {
             onAccion={() => {}}
           />
         </Stack>
+      </section>
+
+      <section>
+        <Typography variant="overline">ChecklistDocumentos</Typography>
+        <div style={{ marginTop: 16 }}>
+          <ChecklistDocumentos
+            programa="DS49"
+            items={[
+              { nombre: 'Tu cédula', oficial: 'Cédula de identidad vigente', listo: true },
+              { nombre: 'Cartola Hogar', donde: 'En línea, gratis, en registrosocial.gob.cl', listo: false },
+              { nombre: 'Certificado de ahorro', vence: '30 sep 2026', listo: false },
+            ]}
+            onToggle={() => {}}
+          />
+        </div>
       </section>
     </Stack>
   );
