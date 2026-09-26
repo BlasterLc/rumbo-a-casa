@@ -76,7 +76,7 @@ export function PasoAPaso({ pasos, activo = 0, onActivarPaso, orientacion = 'hor
           return (
             <Step key={nombre} completed={completado}>
               {tocable ? (
-                <StepButton onClick={() => onActivarPaso?.(indice)} icon={icono}>
+                <StepButton onClick={() => onActivarPaso?.(indice)} icon={icono} sx={{ minHeight: 'var(--size-touch)' }}>
                   {nombre}
                 </StepButton>
               ) : (

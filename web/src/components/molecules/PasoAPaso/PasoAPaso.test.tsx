@@ -50,4 +50,22 @@ describe('PasoAPaso', () => {
     expect(onActivarPaso).toHaveBeenCalledWith(0);
     expect(screen.queryByRole('button', { name: /Región/ })).not.toBeInTheDocument();
   });
+
+  it('en vertical el paso tocable mide al menos el tamaño mínimo tocable (48 px)', () => {
+    renderConIdioma(<PasoAPaso pasos={pasos} activo={2} orientacion="vertical" onActivarPaso={vi.fn()} />);
+    expect(screen.getByRole('button', { name: /Familia/ })).toHaveStyle({ minHeight: 'var(--size-touch)' });
+  });
+
+  it('en horizontal el paso tocable también respeta el tamaño mínimo tocable', () => {
+    renderConIdioma(<PasoAPaso pasos={pasos} activo={2} onActivarPaso={vi.fn()} />);
+    expect(screen.getByRole('button', { name: /Familia/ })).toHaveStyle({ minHeight: 'var(--size-touch)' });
+  });
+
+  it('las etiquetas van debajo del icono solo en horizontal', () => {
+    const horizontal = renderConIdioma(<PasoAPaso pasos={pasos} activo={2} />);
+    expect(horizontal.container.querySelector('.MuiStepper-alternativeLabel')).toBeInTheDocument();
+    horizontal.unmount();
+    const vertical = renderConIdioma(<PasoAPaso pasos={pasos} activo={2} orientacion="vertical" />);
+    expect(vertical.container.querySelector('.MuiStepper-alternativeLabel')).not.toBeInTheDocument();
+  });
 });
