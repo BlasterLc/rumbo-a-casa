@@ -55,7 +55,7 @@ export function BurbujaChat({ autor = 'agente', children, escuchable, dictado, p
               }),
         }}
       >
-        <Typography sx={{ fontFamily: typeTokens['body-l'].fontFamily, fontSize: typeTokens['body-l'].fontSize, color: 'var(--ink)' }}>
+        <Typography sx={{ fontFamily: typeTokens['body-l'].fontFamily, fontSize: typeTokens['body-l'].fontSize, color: 'var(--ink)', whiteSpace: 'pre-line' }}>
           {children}
         </Typography>
         {dictado && (

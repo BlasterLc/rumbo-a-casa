@@ -8,6 +8,7 @@ import { SelloElegibilidad } from '../../components/molecules/SelloElegibilidad/
 import { Alerta } from '../../components/molecules/Alerta/Alerta';
 import { CampoTexto } from '../../components/atoms/CampoTexto/CampoTexto';
 import { Boton } from '../../components/atoms/Boton/Boton';
+import { TextoConNegritas } from '../../components/atoms/TextoConNegritas/TextoConNegritas';
 import { useSesion } from '../../state/SesionContext';
 import { useT } from '../../i18n/LocaleContext';
 import { mapEstado } from '../../lib/estado';
@@ -50,7 +51,7 @@ export function PantallaEntrevista() {
               escuchable={turno.autor === 'agente'}
               dictado={turno.dictado}
             >
-              {turno.texto}
+              {turno.autor === 'agente' ? <TextoConNegritas texto={turno.texto} /> : turno.texto}
             </BurbujaChat>
           ))}
           {eventos.map((evento) => (

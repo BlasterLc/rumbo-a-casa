@@ -42,6 +42,46 @@ describe('PantallaEntrevista', () => {
     expect(await screen.findByText('Hola, ¿en qué región vives?')).toBeInTheDocument();
   });
 
+  it('las negritas del agente se ven como negritas, sin asteriscos, y la persona se muestra literal', async () => {
+    vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({
+      ok: true,
+      respuesta: 'Perfecto. **¿En qué región viven?**',
+      perfil: PERFIL_DESCONOCIDO,
+      resultados: [],
+      plan: [],
+    });
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    await userEvent.type(screen.getByLabelText('Escribe tu respuesta'), '**hola**');
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+    const negrita = await screen.findByText('¿En qué región viven?');
+    expect(negrita.tagName).toBe('STRONG');
+    expect(screen.queryByText(/\*\*¿En qué/)).not.toBeInTheDocument();
+    expect(screen.getByText('**hola**')).toBeInTheDocument();
+  });
+
+  it('el indicador de pasos avanza cuando el motor ya no pide datos de un grupo', async () => {
+    vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({
+      ok: true,
+      respuesta: 'Anotado.',
+      perfil: { ...PERFIL_DESCONOCIDO, postulanteEdad: 34, integrantesGrupoFamiliar: [] },
+      resultados: [
+        {
+          programa: 'DS49',
+          estado: 'falta_dato',
+          motivo: 'Faltan datos.',
+          camposFaltantes: ['tienePropiedad'],
+          regla: { decreto: 'D.S. N°49', fuente: 'docs/programas-subsidio.md', fechaConsulta: '2026-09-22' },
+        },
+      ],
+      plan: [],
+    });
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    expect(screen.getByText(/PASO 1 DE 5/i)).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText('Escribe tu respuesta'), 'Hola');
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+    expect(await screen.findByText(/PASO 2 DE 5/i)).toBeInTheDocument();
+  });
+
   it('un 429 muestra el mensaje exacto del backend sobre el límite de mensajes', async () => {
     vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({
       ok: false,
