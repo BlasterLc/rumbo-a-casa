@@ -75,4 +75,25 @@ describe('construirDemo', () => {
     expect(a).toEqual(b);
     expect(a.pasos[0].perfil).not.toBe(b.pasos[0].perfil);
   });
+
+  it('las respuestas del asistente hablan de tú en singular', () => {
+    for (const paso of construirDemo().pasos) {
+      expect(paso.respuesta).not.toMatch(/\b(ustedes?|les|su|sus|viven|quieren|tienen|califican)\b/i);
+    }
+  });
+
+  it('los motivos de los resultados del demo no usan impersonal', () => {
+    for (const paso of construirDemo().pasos) {
+      for (const r of paso.resultados) {
+        expect(r.motivo).not.toMatch(/\b(ustedes?|el postulante|cuenta con|es propietario)\b/i);
+      }
+    }
+  });
+
+  it('la conclusión no promete: recuerda que lo confirma el Serviu', () => {
+    const ultimo = construirDemo().pasos.at(-1)!;
+    expect(ultimo.respuesta).toContain('Serviu');
+    expect(ultimo.respuesta).toMatch(/Calificas a DS49/);
+    expect(ultimo.respuesta).toMatch(/No calificas a DS1/);
+  });
 });
