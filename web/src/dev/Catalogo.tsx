@@ -5,6 +5,7 @@ import { Boton } from '../components/atoms/Boton/Boton';
 import { ChipFiltro, ChipEtiqueta } from '../components/atoms/Chip/Chip';
 import { CampoTexto } from '../components/atoms/CampoTexto/CampoTexto';
 import { SelloElegibilidad } from '../components/molecules/SelloElegibilidad/SelloElegibilidad';
+import { OpcionTarjeta } from '../components/molecules/OpcionTarjeta/OpcionTarjeta';
 
 /**
  * Página interna de verificación visual, no es parte del flujo de la persona — sus títulos de
@@ -100,6 +101,23 @@ export function Catalogo() {
           <SelloElegibilidad estado="califica" compacto />
           <SelloElegibilidad estado="falta" compacto />
         </Stack>
+      </section>
+
+      <section>
+        <Typography variant="overline">OpcionTarjeta</Typography>
+        <div style={{ marginTop: 16 }}>
+          <OpcionTarjeta
+            pregunta="¿Dónde vives hoy?"
+            name="vivienda-catalogo"
+            value="allegado"
+            opciones={[
+              { value: 'allegado', titulo: 'Vivo de allegado', detalle: 'En la casa de un familiar, sin contrato.' },
+              { value: 'arriendo', titulo: 'Arriendo', detalle: 'Pago arriendo mensual.' },
+              { value: 'sitio_propio', titulo: 'Tengo sitio propio', detalle: 'Un terreno a mi nombre, sin construir.' },
+              { value: 'no_seguro', titulo: 'No estoy seguro' },
+            ]}
+          />
+        </div>
       </section>
     </Stack>
   );
