@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderConIdioma, cssActual } from '../../../test/utilidades';
+import { renderConIdioma } from '../../../test/utilidades';
 import { TarjetaPrograma } from './TarjetaPrograma';
 
 describe('TarjetaPrograma', () => {
@@ -55,7 +55,11 @@ describe('TarjetaPrograma', () => {
   });
 
   it('ocupa el alto de su celda para que el botón quede al pie aunque el texto sea corto', () => {
-    renderConIdioma(<TarjetaPrograma sigla="DS1" nombreComun="Sectores medios" estado="noAplica" razon="No alcanza." />);
-    expect(cssActual()).toMatch(/height:\s*100%/);
+    const { container } = renderConIdioma(
+      <TarjetaPrograma sigla="DS1" nombreComun="Sectores medios" estado="noAplica" razon="No alcanza." />,
+    );
+    const tarjeta = container.querySelector('.MuiCard-root');
+    expect(tarjeta).not.toBeNull();
+    expect(tarjeta).toHaveStyle({ height: '100%' });
   });
 });
