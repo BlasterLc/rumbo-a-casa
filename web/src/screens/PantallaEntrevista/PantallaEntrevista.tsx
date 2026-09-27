@@ -109,7 +109,7 @@ export function PantallaEntrevista() {
               role="log"
               aria-label={t.pantallas.entrevista.etiquetaConversacion}
               spacing={2}
-              sx={{ flex: 1, minHeight: 0, overflowY: 'auto', pr: 1 }}
+              sx={{ flex: 1, minHeight: 0, overflowY: 'auto', pr: 1, '& > *': { flexShrink: 0 } }}
             >
               {conversacion}
             </Stack>
