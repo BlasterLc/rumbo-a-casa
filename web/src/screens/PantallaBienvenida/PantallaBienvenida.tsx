@@ -46,7 +46,7 @@ function FraseConfianza() {
         fontFamily: typeTokens.caption.fontFamily,
         fontSize: typeTokens.caption.fontSize,
         color: 'var(--ink-muted)',
-        maxWidth: '52ch',
+        maxWidth: { md: '52ch' },
       }}
     >
       {t.pantallas.bienvenida.fraseConfianza}
