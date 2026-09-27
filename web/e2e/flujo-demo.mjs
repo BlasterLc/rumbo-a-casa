@@ -90,10 +90,47 @@ await page.getByRole('button', { name: 'English' }).click();
 await page.waitForSelector('text=Alerts');
 await capturar('33g-avisos-en-ingles');
 
-// Responsivo: en un ancho de escritorio, la columna se centra sobre surface-sunken en vez de
-// estirarse a todo el ancho — nunca un layout de escritorio nuevo.
-await page.setViewportSize({ width: 1024, height: 800 });
-await capturar('33h-avisos-ancho-escritorio');
+// Escritorio (≥ 900 px): navegación en la cabecera, contenido a 1120 px, dos columnas, sin barra
+// inferior ni scroll horizontal. El idioma se restablece a español (el paso anterior lo dejó en inglés).
+await page.evaluate(() => window.localStorage.setItem('rumbo-idioma', 'es'));
+await page.setViewportSize({ width: 1280, height: 800 });
+
+async function verificarEscritorio(nombre) {
+  const desborda = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  if (desborda) throw new Error(`Hay scroll horizontal a 1280 px en ${nombre}`);
+  const barraInferior = await page.locator('.MuiBottomNavigation-root').count();
+  if (barraInferior !== 0) throw new Error(`La barra inferior no debe verse en escritorio (${nombre})`);
+}
+
+const PANTALLAS_ESCRITORIO = [
+  ['/', '34a-escritorio-bienvenida'],
+  ['/hablar', '34b-escritorio-entrevista'],
+  ['/resultado', '34c-escritorio-resultado'],
+  ['/plan/DS49', '34d-escritorio-plan'],
+  ['/documentos', '34e-escritorio-documentos'],
+  ['/avisos', '34f-escritorio-avisos'],
+];
+
+for (const [ruta, nombre] of PANTALLAS_ESCRITORIO) {
+  await page.goto(base + ruta, { waitUntil: 'networkidle' });
+  if (ruta !== '/') await page.getByRole('navigation', { name: 'Navegación principal' }).waitFor();
+  await verificarEscritorio(nombre);
+  await capturar(nombre);
+}
+
+const fondo = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+if (fondo !== 'rgb(247, 245, 241)') throw new Error(`El fondo del body debe ser surface-base, es ${fondo}`);
+
+// Móvil no cambia: a 400 px sigue la barra inferior y no hay scroll horizontal.
+await page.setViewportSize({ width: 400, height: 800 });
+await page.goto(base + '/resultado', { waitUntil: 'networkidle' });
+await capturar('34g-movil-resultado');
+if (await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)) {
+  throw new Error('Hay scroll horizontal a 400 px');
+}
+if ((await page.locator('.MuiBottomNavigation-root').count()) !== 1) {
+  throw new Error('En móvil debe seguir la barra inferior');
+}
 
 await browser.close();
-console.log('Flujo completo capturado en web/e2e/capturas/33*.png');
+console.log('Flujo completo capturado en web/e2e/capturas/33*.png y 34*.png');
