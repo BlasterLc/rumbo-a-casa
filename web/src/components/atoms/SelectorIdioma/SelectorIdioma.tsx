@@ -34,8 +34,9 @@ export function SelectorIdioma({ tono = 'sobreMarca' }: SelectorIdiomaProps) {
           minHeight: sizePx['size-touch'],
           fontWeight: 700,
           fontSize: '13px',
-          // Sobre el azul de la cabecera el anillo global (azul) casi no se ve: ahí va blanco.
-          '&:focus-visible': { outlineColor: tinta },
+          // Sobre el azul de la cabecera el anillo global (azul) casi no se ve: ahí va blanco. MUI pone
+          // `outline: 0` en el botón y gana al foco global, así que el anillo se declara completo.
+          '&:focus-visible': { outline: `3px solid ${tinta}`, outlineOffset: '2px' },
         },
         '& .Mui-selected': {
           backgroundColor: `${fondoSeleccionado} !important`,

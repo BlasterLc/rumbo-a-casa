@@ -53,7 +53,7 @@ describe('SelectorIdioma', () => {
       </LocaleProvider>,
     );
     const clase = Array.from(container.firstElementChild!.classList).find((c) => c.startsWith('css-'))!;
-    const regla = new RegExp(`\\.${clase} \\.MuiToggleButton-root:focus-visible\\{[^}]*outline-color:${esperado}`);
+    const regla = new RegExp(`\\.${clase} \\.MuiToggleButton-root:focus-visible\\{[^}]*outline:3px solid ${esperado}`);
     expect(cssActual()).toMatch(regla);
   });
 });

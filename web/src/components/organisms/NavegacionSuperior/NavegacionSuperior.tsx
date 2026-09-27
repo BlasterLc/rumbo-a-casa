@@ -49,7 +49,8 @@ export function NavegacionSuperior({ value, avisos = 0, onChange }: NavegacionSu
               color: activo ? 'var(--ink-brand)' : 'var(--ink-on-brand)',
               backgroundColor: activo ? 'var(--surface-brand-soft)' : 'transparent',
               '&:hover': { backgroundColor: activo ? 'var(--surface-brand-soft)' : 'rgba(255, 255, 255, 0.12)' },
-              '&:focus-visible': { outlineColor: 'var(--ink-on-brand)' },
+              // ButtonBase pone `outline: 0` y gana al foco global: el anillo se declara completo, en blanco.
+              '&:focus-visible': { outline: '3px solid var(--ink-on-brand)', outlineOffset: '2px' },
             }}
           >
             <Icono nombre={icono} />

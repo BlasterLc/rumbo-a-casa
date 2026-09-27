@@ -118,6 +118,40 @@ for (const [ruta, nombre] of PANTALLAS_ESCRITORIO) {
   await capturar(nombre);
 }
 
+// Foco visible en la cabecera azul (WCAG 2.4.7): al tabular por la marca, los cuatro destinos y ES|EN,
+// cada control debe dibujar un anillo (outline) blanco. Se mide en el navegador: el CSS de MUI puede
+// anular el outline global aunque el código "fije el color".
+await page.goto(base + '/documentos', { waitUntil: 'networkidle' });
+await page.getByRole('navigation', { name: 'Navegación principal' }).waitFor();
+await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
+const CONTROLES_CABECERA = 7; // marca, Hablar, Mi plan, Documentos, Avisos, ES, EN
+for (let i = 0; i < CONTROLES_CABECERA; i++) {
+  await page.keyboard.press('Tab');
+  const foco = await page.evaluate(() => {
+    const el = document.activeElement;
+    const e = getComputedStyle(el);
+    return {
+      etiqueta: (el.getAttribute('aria-label') || el.textContent || el.tagName).trim().slice(0, 40),
+      enCabecera: Boolean(el.closest('header')),
+      estilo: e.outlineStyle,
+      ancho: e.outlineWidth,
+      color: e.outlineColor,
+    };
+  });
+  if (!foco.enCabecera) throw new Error(`El Tab ${i + 1} salió de la cabecera: ${foco.etiqueta}`);
+  if (foco.estilo === 'none' || foco.ancho === '0px') {
+    throw new Error(`Sin anillo de foco en la cabecera para "${foco.etiqueta}": outline ${foco.estilo} ${foco.ancho}`);
+  }
+  if (foco.color !== 'rgb(255, 255, 255)') {
+    throw new Error(`El anillo de foco de "${foco.etiqueta}" debe ser blanco, es ${foco.color}`);
+  }
+}
+await capturar('34h-escritorio-foco-cabecera');
+
+// La cabecera sticky (72 px) no debe tapar el elemento enfocado (WCAG 2.4.11): scroll-padding de 80 px.
+const relleno = await page.evaluate(() => getComputedStyle(document.documentElement).scrollPaddingTop);
+if (relleno !== '80px') throw new Error(`scroll-padding-top debe ser 80px en escritorio, es ${relleno}`);
+
 const fondo = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 if (fondo !== 'rgb(247, 245, 241)') throw new Error(`El fondo del body debe ser surface-base, es ${fondo}`);
 
@@ -131,6 +165,8 @@ if (await page.evaluate(() => document.documentElement.scrollWidth > window.inne
 if ((await page.locator('.MuiBottomNavigation-root').count()) !== 1) {
   throw new Error('En móvil debe seguir la barra inferior');
 }
+const rellenoMovil = await page.evaluate(() => getComputedStyle(document.documentElement).scrollPaddingTop);
+if (rellenoMovil !== 'auto' && rellenoMovil !== '0px') throw new Error(`En móvil no debe haber scroll-padding, es ${rellenoMovil}`);
 
 await browser.close();
 console.log('Flujo completo capturado en web/e2e/capturas/33*.png y 34*.png');
