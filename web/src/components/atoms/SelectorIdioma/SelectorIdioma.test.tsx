@@ -45,7 +45,7 @@ describe('SelectorIdioma', () => {
 
   it.each([
     ['sobreMarca', '#ffffff'],
-    ['claro', '#1b4d8f'],
+    ['claro', '#2563eb'],
   ] as const)('con tono %s el anillo de foco de los botones es %s', (tono, esperado) => {
     const { container } = render(
       <LocaleProvider>

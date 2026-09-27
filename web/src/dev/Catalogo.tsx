@@ -36,7 +36,7 @@ export function Catalogo() {
         <Typography variant="overline">Simbolo</Typography>
         <Stack direction="row" spacing={4} sx={{ mt: 2, alignItems: 'center' }}>
           <Simbolo tamano={48} />
-          <div style={{ background: '#123a6b', padding: 12, borderRadius: 12 }}>
+          <div style={{ background: '#1d4ed8', padding: 12, borderRadius: 12 }}>
             <Simbolo tamano={48} tono="claro" />
           </div>
           <Simbolo tamano={48} tono="mono" />
@@ -191,7 +191,7 @@ export function Catalogo() {
         <Typography variant="overline">Logotipo</Typography>
         <Stack spacing={3} sx={{ mt: 2 }}>
           <Logotipo disposicion="horizontal" alto={40} />
-          <div style={{ background: '#123a6b', padding: 16, borderRadius: 12, display: 'inline-block' }}>
+          <div style={{ background: '#1d4ed8', padding: 16, borderRadius: 12, display: 'inline-block' }}>
             <Logotipo disposicion="horizontal" alto={32} tono="claro" />
           </div>
           <Logotipo disposicion="vertical" alto={48} />
