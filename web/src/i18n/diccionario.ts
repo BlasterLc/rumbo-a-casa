@@ -90,6 +90,10 @@ export interface DiccionarioTextos {
       probarModoDemo: string;
       mensajeDemoActivado: string;
       errorGenerico: string;
+      /** Nombre accesible del registro de la conversación (escritorio). */
+      etiquetaConversacion: string;
+      /** Nombre accesible del panel lateral con el avance (escritorio). */
+      etiquetaAvance: string;
     };
     resultado: {
       titulo: string;

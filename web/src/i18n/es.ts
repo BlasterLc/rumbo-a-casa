@@ -84,6 +84,8 @@ export const es: DiccionarioTextos = {
       mensajeDemoActivado:
         'Activamos el modo demo con una familia ficticia para que puedas ver cómo funciona Rumbo a Casa.',
       errorGenerico: 'Algo no funcionó. Intenta de nuevo en un momento.',
+      etiquetaConversacion: 'Conversación',
+      etiquetaAvance: 'Avance de la entrevista',
     },
     resultado: {
       titulo: 'Tu resultado',

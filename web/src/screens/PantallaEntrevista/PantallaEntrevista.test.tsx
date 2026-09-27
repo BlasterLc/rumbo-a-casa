@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderPantalla } from '../../test/utilidades';
+import { renderPantalla, simularEscritorio, type ControlEscritorio } from '../../test/utilidades';
 import { PantallaEntrevista } from './PantallaEntrevista';
 import * as chatClient from '../../api/chatClient';
 import { PERFIL_DESCONOCIDO } from '../../types/dominio';
@@ -127,5 +127,75 @@ describe('PantallaEntrevista', () => {
     await userEvent.click(botonDemo);
     expect((await screen.findAllByText(/Califica|No aplica|Falta un dato/)).length).toBeGreaterThan(0);
     expect(enviarMensajeSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('PantallaEntrevista en escritorio', () => {
+  let control: ControlEscritorio;
+  beforeEach(() => {
+    window.localStorage.clear();
+    control = simularEscritorio(true);
+  });
+  afterEach(() => {
+    control.restaurar();
+    vi.restoreAllMocks();
+    window.localStorage.clear();
+    // Quita el `scrollHeight` falso que define un test de abajo, aunque ese test falle a mitad.
+    delete (HTMLElement.prototype as unknown as Record<string, unknown>).scrollHeight;
+  });
+
+  it('el título es el h1 y el avance vive en un panel lateral vertical, no sobre el chat', () => {
+    const { container } = renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    expect(screen.getByRole('heading', { level: 1, name: 'Hablemos' })).toBeInTheDocument();
+    const lateral = screen.getByRole('complementary', { name: 'Avance de la entrevista' });
+    expect(lateral).toHaveTextContent(/PASO 1 DE 5/i);
+    expect(container.querySelector('.MuiStepper-vertical')).toBeInTheDocument();
+    expect(container.querySelector('.MuiStepper-horizontal')).not.toBeInTheDocument();
+  });
+
+  it('repite en el panel lateral la frase de confianza', () => {
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    expect(
+      screen.getByText(
+        'Herramienta independiente, no oficial. Nunca te pediremos tu Clave Única. Puedes borrar tus datos cuando quieras.',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('la conversación es un registro con scroll propio', () => {
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    const registro = screen.getByRole('log', { name: 'Conversación' });
+    expect(registro).toHaveStyle({ overflowY: 'auto' });
+  });
+
+  it('al llegar mensajes, el registro baja al último aunque la conversación sea larga', async () => {
+    Object.defineProperty(HTMLElement.prototype, 'scrollHeight', { configurable: true, get: () => 4321 });
+    vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({
+      ok: true,
+      respuesta: 'Anotado, ¿y tu ahorro?',
+      perfil: PERFIL_DESCONOCIDO,
+      resultados: [],
+      plan: [],
+    });
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    await userEvent.type(screen.getByLabelText('Escribe tu respuesta'), 'Somos cuatro');
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+    await screen.findByText('Anotado, ¿y tu ahorro?');
+    expect(screen.getByRole('log', { name: 'Conversación' }).scrollTop).toBe(4321);
+  });
+
+  it('el campo de texto queda fuera del registro, anclado bajo la conversación', () => {
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    const registro = screen.getByRole('log', { name: 'Conversación' });
+    expect(registro).not.toContainElement(screen.getByLabelText('Escribe tu respuesta'));
+  });
+
+  it('si la ventana cruza los 900 px con una respuesta a medias, no se pierde lo escrito', async () => {
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    await userEvent.type(screen.getByLabelText('Escribe tu respuesta'), 'Somos cuatro');
+    act(() => control.cambiar(false));
+    expect(screen.getByLabelText('Escribe tu respuesta')).toHaveValue('Somos cuatro');
+    act(() => control.cambiar(true));
+    expect(screen.getByLabelText('Escribe tu respuesta')).toHaveValue('Somos cuatro');
   });
 });

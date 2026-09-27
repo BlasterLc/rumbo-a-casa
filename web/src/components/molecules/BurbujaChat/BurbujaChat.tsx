@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Paper, Stack, IconButton, Typography, Link } from '@mui/material';
 import { Icono } from '../../atoms/Icono/Icono';
 import { useT } from '../../../i18n/LocaleContext';
+import { useEscritorio } from '../../../lib/useEscritorio';
 import { type as typeTokens } from '../../../theme/tokens';
 
 export interface BurbujaChatProps {
@@ -25,21 +26,48 @@ export interface BurbujaChatProps {
  */
 export function BurbujaChat({ autor = 'agente', children, escuchable, dictado, porQue, onPorQue }: BurbujaChatProps) {
   const t = useT();
+  const escritorio = useEscritorio();
   const esPersona = autor === 'persona';
+
+  const botonEscuchar = escuchable && !esPersona && (
+    <IconButton
+      size="small"
+      aria-label={t.molecules.burbujaChat.escuchar}
+      sx={{
+        alignSelf: escritorio ? 'flex-start' : 'flex-end',
+        color: 'var(--ink-brand)',
+        borderRadius: 'var(--radius-pill)',
+        px: 1,
+        gap: 0.5,
+      }}
+    >
+      <Icono nombre="parlante" tamano={18} />
+      <Typography component="span" sx={{ fontSize: '13px', fontWeight: 600 }}>
+        {t.molecules.burbujaChat.escuchar}
+      </Typography>
+    </IconButton>
+  );
+
+  const enlacePorQue = porQue && !esPersona && (
+    <Link
+      component="button"
+      onClick={onPorQue}
+      sx={{ fontFamily: typeTokens.caption.fontFamily, fontSize: typeTokens.caption.fontSize, color: 'var(--ink-brand)' }}
+    >
+      {t.molecules.burbujaChat.porQuePregunto}
+    </Link>
+  );
+
   return (
-    <Stack alignItems={esPersona ? 'flex-end' : 'flex-start'} spacing={0.5} sx={{ maxWidth: 'var(--size-measure)' }}>
-      {escuchable && !esPersona && (
-        <IconButton
-          size="small"
-          aria-label={t.molecules.burbujaChat.escuchar}
-          sx={{ alignSelf: 'flex-end', color: 'var(--ink-brand)', borderRadius: 'var(--radius-pill)', px: 1, gap: 0.5 }}
-        >
-          <Icono nombre="parlante" tamano={18} />
-          <Typography component="span" sx={{ fontSize: '13px', fontWeight: 600 }}>
-            {t.molecules.burbujaChat.escuchar}
-          </Typography>
-        </IconButton>
-      )}
+    <Stack
+      alignItems={esPersona ? 'flex-end' : 'flex-start'}
+      spacing={0.5}
+      sx={{
+        maxWidth: { xs: 'var(--size-measure)', md: '62ch' },
+        alignSelf: { md: esPersona ? 'flex-end' : 'flex-start' },
+      }}
+    >
+      {!escritorio && botonEscuchar}
       <Paper
         variant={esPersona ? 'elevation' : 'outlined'}
         sx={{
@@ -66,15 +94,14 @@ export function BurbujaChat({ autor = 'agente', children, escuchable, dictado, p
           </Typography>
         )}
       </Paper>
-      {porQue && !esPersona && (
-        <Link
-          component="button"
-          onClick={onPorQue}
-          sx={{ fontFamily: typeTokens.caption.fontFamily, fontSize: typeTokens.caption.fontSize, color: 'var(--ink-brand)' }}
-        >
-          {t.molecules.burbujaChat.porQuePregunto}
-        </Link>
-      )}
+      {escritorio
+        ? (botonEscuchar || enlacePorQue) && (
+            <Stack direction="row" spacing={2} alignItems="center">
+              {botonEscuchar}
+              {enlacePorQue}
+            </Stack>
+          )
+        : enlacePorQue}
     </Stack>
   );
 }

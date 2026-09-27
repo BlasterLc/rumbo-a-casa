@@ -84,6 +84,8 @@ export const en: DiccionarioTextos = {
       mensajeDemoActivado:
         'We turned on demo mode with a made-up family so you can see how Rumbo a Casa works.',
       errorGenerico: 'Something went wrong. Try again in a moment.',
+      etiquetaConversacion: 'Conversation',
+      etiquetaAvance: 'Interview progress',
     },
     resultado: {
       titulo: 'Your result',

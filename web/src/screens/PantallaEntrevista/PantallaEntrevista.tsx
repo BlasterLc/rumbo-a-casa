@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Stack, Box } from '@mui/material';
+import { useEffect, useRef, useState } from 'react';
+import { Stack, Box, Typography } from '@mui/material';
 import { AppShell } from '../../components/templates/AppShell/AppShell';
+import { Columnas } from '../../components/molecules/Columnas/Columnas';
 import { PasoAPaso } from '../../components/molecules/PasoAPaso/PasoAPaso';
 import { BurbujaChat } from '../../components/molecules/BurbujaChat/BurbujaChat';
 import { Pensando } from '../../components/molecules/BurbujaChat/Pensando';
@@ -8,9 +9,11 @@ import { SelloElegibilidad } from '../../components/molecules/SelloElegibilidad/
 import { Alerta } from '../../components/molecules/Alerta/Alerta';
 import { CampoTexto } from '../../components/atoms/CampoTexto/CampoTexto';
 import { Boton } from '../../components/atoms/Boton/Boton';
+import { Icono } from '../../components/atoms/Icono/Icono';
 import { TextoConNegritas } from '../../components/atoms/TextoConNegritas/TextoConNegritas';
 import { useSesion } from '../../state/SesionContext';
 import { useT } from '../../i18n/LocaleContext';
+import { useEscritorio } from '../../lib/useEscritorio';
 import { mapEstado } from '../../lib/estado';
 import { PERFIL_DEMO } from '../../lib/perfilDemo';
 import { GRUPOS_ENTREVISTA, pasoActivo } from './pasos';
@@ -19,12 +22,16 @@ const LIMITE_MENSAJE = 2000;
 
 /**
  * Segunda de las cinco pantallas: la conversación donde se recogen los datos. Bloquea mensajes
- * inválidos antes de llamar al backend y ofrece el modo demo si el asistente falla.
+ * inválidos antes de llamar al backend y ofrece el modo demo si el asistente falla. En móvil
+ * el avance va arriba y el campo de texto queda fijo al pie; en escritorio la conversación
+ * tiene su propio scroll, el campo queda anclado bajo ella y el avance vive en un panel lateral.
  */
 export function PantallaEntrevista() {
   const { transcript, eventos, perfil, resultados, cargando, error, enviarTurno, activarDemo } = useSesion();
   const t = useT();
+  const escritorio = useEscritorio();
   const [borrador, setBorrador] = useState('');
+  const registroRef = useRef<HTMLDivElement>(null);
 
   const mensajeValido = borrador.trim().length > 0 && borrador.length <= LIMITE_MENSAJE;
 
@@ -35,60 +42,128 @@ export function PantallaEntrevista() {
     void enviarTurno(texto);
   };
 
+  // En escritorio el registro tiene scroll propio: al llegar un mensaje se baja al último.
+  useEffect(() => {
+    const registro = registroRef.current;
+    if (escritorio && registro) registro.scrollTop = registro.scrollHeight;
+  }, [escritorio, transcript.length, eventos.length, cargando]);
+
+  const indicador = (orientacion: 'horizontal' | 'vertical') => (
+    <PasoAPaso
+      pasos={GRUPOS_ENTREVISTA.map((g) => t.pantallas.entrevista.pasos[g.clave])}
+      activo={pasoActivo(perfil, resultados)}
+      orientacion={orientacion}
+    />
+  );
+
+  const conversacion = (
+    <>
+      {transcript.map((turno) => (
+        <BurbujaChat key={turno.id} autor={turno.autor} escuchable={turno.autor === 'agente'} dictado={turno.dictado}>
+          {turno.autor === 'agente' ? <TextoConNegritas texto={turno.texto} /> : turno.texto}
+        </BurbujaChat>
+      ))}
+      {eventos.map((evento) => (
+        <SelloElegibilidad key={evento.id} estado={mapEstado(evento.estado)} programa={evento.programa} />
+      ))}
+      {cargando && <Pensando>{t.pantallas.entrevista.pensando}</Pensando>}
+    </>
+  );
+
+  const alerta = error && (
+    <Alerta
+      severity={error.codigo === 'limite_mensajes' ? 'warning' : 'error'}
+      accion={error.codigo === 'asistente_no_disponible' ? t.pantallas.entrevista.probarModoDemo : undefined}
+      onAccion={() => activarDemo(PERFIL_DEMO)}
+    >
+      {error.mensaje ?? t.pantallas.entrevista.errorGenerico}
+    </Alerta>
+  );
+
+  const campo = (
+    <Stack direction="row" spacing={1} alignItems="flex-end">
+      <Box sx={{ flex: 1 }}>
+        <CampoTexto
+          pregunta={t.pantallas.entrevista.preguntaMensaje}
+          value={borrador}
+          onChange={(e) => setBorrador(e.target.value)}
+          dictado
+          error={
+            borrador.length > LIMITE_MENSAJE ? t.pantallas.entrevista.limiteCaracteres(LIMITE_MENSAJE) : undefined
+          }
+        />
+      </Box>
+      <Boton onClick={enviar} loading={cargando} disabled={!mensajeValido}>
+        {t.pantallas.entrevista.enviar}
+      </Boton>
+    </Stack>
+  );
+
+  if (escritorio) {
+    return (
+      <AppShell titulo={t.pantallas.entrevista.titulo} destino="hablar">
+        <Columnas plantilla="minmax(0, 1fr) 340px" espacioColumna="var(--space-7)">
+          <Stack spacing={2} sx={{ height: 'max(480px, calc(100dvh - var(--size-header) - 240px))', minHeight: 0 }}>
+            <Stack
+              ref={registroRef}
+              role="log"
+              aria-label={t.pantallas.entrevista.etiquetaConversacion}
+              spacing={2}
+              sx={{ flex: 1, minHeight: 0, overflowY: 'auto', pr: 1 }}
+            >
+              {conversacion}
+            </Stack>
+            {alerta}
+            <Box
+              sx={{
+                flex: 'none',
+                p: 1.5,
+                backgroundColor: 'var(--surface-raised)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                boxShadow: 'var(--shadow-md)',
+              }}
+            >
+              {campo}
+            </Box>
+          </Stack>
+          <Stack
+            component="aside"
+            aria-label={t.pantallas.entrevista.etiquetaAvance}
+            spacing={3}
+            sx={{ position: 'sticky', top: 'calc(var(--size-header) + var(--space-5))' }}
+          >
+            <Box
+              sx={{
+                p: 'var(--space-5)',
+                backgroundColor: 'var(--surface-raised)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                boxShadow: 'var(--shadow-sm)',
+              }}
+            >
+              {indicador('vertical')}
+            </Box>
+            <Stack direction="row" spacing={1.5} sx={{ px: 1 }}>
+              <Icono nombre="escudo" tamano={20} sx={{ color: 'var(--ink-muted)', flexShrink: 0 }} />
+              <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '14px', lineHeight: '20px', color: 'var(--ink-muted)' }}>
+                {t.pantallas.bienvenida.fraseConfianza}
+              </Typography>
+            </Stack>
+          </Stack>
+        </Columnas>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell titulo={t.pantallas.entrevista.titulo} destino="hablar">
       <Stack spacing={3}>
-        <PasoAPaso
-          pasos={GRUPOS_ENTREVISTA.map((g) => t.pantallas.entrevista.pasos[g.clave])}
-          activo={pasoActivo(perfil, resultados)}
-        />
-
-        <Stack spacing={2}>
-          {transcript.map((turno) => (
-            <BurbujaChat
-              key={turno.id}
-              autor={turno.autor}
-              escuchable={turno.autor === 'agente'}
-              dictado={turno.dictado}
-            >
-              {turno.autor === 'agente' ? <TextoConNegritas texto={turno.texto} /> : turno.texto}
-            </BurbujaChat>
-          ))}
-          {eventos.map((evento) => (
-            <SelloElegibilidad key={evento.id} estado={mapEstado(evento.estado)} programa={evento.programa} />
-          ))}
-          {cargando && <Pensando>{t.pantallas.entrevista.pensando}</Pensando>}
-        </Stack>
-
-        {error && (
-          <Alerta
-            severity={error.codigo === 'limite_mensajes' ? 'warning' : 'error'}
-            accion={error.codigo === 'asistente_no_disponible' ? t.pantallas.entrevista.probarModoDemo : undefined}
-            onAccion={() => activarDemo(PERFIL_DEMO)}
-          >
-            {error.mensaje ?? t.pantallas.entrevista.errorGenerico}
-          </Alerta>
-        )}
-
+        {indicador('horizontal')}
+        <Stack spacing={2}>{conversacion}</Stack>
+        {alerta}
         <Box sx={{ position: 'sticky', bottom: 'var(--size-touch)', backgroundColor: 'var(--surface-raised)', pt: 2 }}>
-          <Stack direction="row" spacing={1} alignItems="flex-end">
-            <Box sx={{ flex: 1 }}>
-              <CampoTexto
-                pregunta={t.pantallas.entrevista.preguntaMensaje}
-                value={borrador}
-                onChange={(e) => setBorrador(e.target.value)}
-                dictado
-                error={
-                  borrador.length > LIMITE_MENSAJE
-                    ? t.pantallas.entrevista.limiteCaracteres(LIMITE_MENSAJE)
-                    : undefined
-                }
-              />
-            </Box>
-            <Boton onClick={enviar} loading={cargando} disabled={!mensajeValido}>
-              {t.pantallas.entrevista.enviar}
-            </Boton>
-          </Stack>
+          {campo}
         </Box>
       </Stack>
     </AppShell>
