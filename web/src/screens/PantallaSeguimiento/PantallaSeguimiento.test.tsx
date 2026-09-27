@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderPantalla } from '../../test/utilidades';
+import { renderPantalla, simularEscritorio, cssActual, type ControlEscritorio } from '../../test/utilidades';
 import { PantallaSeguimiento } from './PantallaSeguimiento';
 import { PERFIL_DESCONOCIDO } from '../../types/dominio';
 import * as SesionContextModulo from '../../state/SesionContext';
@@ -65,5 +65,46 @@ describe('PantallaSeguimiento', () => {
     mockSesion();
     renderPantalla(<PantallaSeguimiento />, { ruta: '/avisos' });
     expect(screen.getByText(/El estado no se consulta solo/)).toBeInTheDocument();
+  });
+});
+
+describe('PantallaSeguimiento en escritorio', () => {
+  let control: ControlEscritorio;
+  beforeEach(() => {
+    control = simularEscritorio(true);
+  });
+  afterEach(() => {
+    control.restaurar();
+    window.localStorage.clear();
+  });
+
+  it('el título es el h1 y todo el contenido sigue presente', () => {
+    mockSesion({ seguimiento: { etapa: 'postule' } });
+    renderPantalla(<PantallaSeguimiento />, { ruta: '/avisos' });
+    expect(screen.getByRole('heading', { level: 1, name: 'Avisos' })).toBeInTheDocument();
+    expect(screen.getByText('Sin fecha publicada')).toBeInTheDocument();
+    expect(screen.getByText('Postulé')).toBeInTheDocument();
+    expect(screen.getByLabelText('¿Cuál es tu número de folio?')).toBeInTheDocument();
+  });
+
+  it('la etapa ocupa la columna derecha en dos filas y el resto la izquierda', () => {
+    mockSesion({ seguimiento: { etapa: 'postule' } });
+    renderPantalla(<PantallaSeguimiento />, { ruta: '/avisos' });
+    const css = cssActual();
+    expect(css).toMatch(/@media \(min-width:900px\)\s*\{[^}]*grid-row:\s*1\s*\/\s*span 2/);
+    expect(css).toMatch(/@media \(min-width:900px\)\s*\{[^}]*grid-column:\s*2/);
+  });
+
+  it('en la etapa "papeles" sigue sin pedir folio', () => {
+    mockSesion({ seguimiento: { etapa: 'papeles' } });
+    renderPantalla(<PantallaSeguimiento />, { ruta: '/avisos' });
+    expect(screen.queryByLabelText('¿Cuál es tu número de folio?')).not.toBeInTheDocument();
+  });
+
+  it('elegir una etapa sigue llamando a marcarEtapa', async () => {
+    const { marcarEtapa } = mockSesion();
+    renderPantalla(<PantallaSeguimiento />, { ruta: '/avisos' });
+    await userEvent.click(screen.getByText('En evaluación'));
+    expect(marcarEtapa).toHaveBeenCalledWith('evaluacion');
   });
 });

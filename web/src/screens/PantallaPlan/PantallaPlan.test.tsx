@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { simularEscritorio, cssActual, type ControlEscritorio } from '../../test/utilidades';
 import { LocaleProvider } from '../../i18n/LocaleContext';
 import { PantallaPlan } from './PantallaPlan';
 import { PERFIL_DESCONOCIDO } from '../../types/dominio';
@@ -95,5 +96,47 @@ describe('PantallaPlan', () => {
     expect(screen.getByRole('link', { name: /postulacionenlinea\.minvu\.cl/ })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Ya postulé' }));
     expect(await screen.findByText('pantalla avisos')).toBeInTheDocument();
+  });
+});
+
+describe('PantallaPlan en escritorio', () => {
+  let control: ControlEscritorio;
+  beforeEach(() => {
+    control = simularEscritorio(true);
+  });
+  afterEach(() => {
+    control.restaurar();
+    window.localStorage.clear();
+  });
+
+  it('el título con el programa es el h1 y ofrece Volver', () => {
+    mockSesion({
+      resultados: [{ programa: 'DS49', estado: 'elegible', motivo: 'Cumples los requisitos.', regla: REGLA }],
+    });
+    renderPantalla('/plan/DS49');
+    expect(screen.getByRole('heading', { level: 1, name: 'Tu plan · DS49' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Volver' })).toBeInTheDocument();
+  });
+
+  it('los cuatro pasos siguen en orden de lectura (1, 2, 3, 4) aunque estén en dos columnas', () => {
+    mockSesion();
+    renderPantalla('/plan/DS49');
+    const pasos = screen.getAllByText(/^\d\. /).map((el) => el.textContent?.[0]);
+    expect(pasos).toEqual(['1', '2', '3', '4']);
+  });
+
+  it('desde 900 px van en dos columnas y la de la derecha queda fija al hacer scroll', () => {
+    mockSesion();
+    renderPantalla('/plan/DS49');
+    const css = cssActual();
+    expect(css).toMatch(/@media \(min-width:900px\)\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
+    expect(css).toMatch(/@media \(min-width:900px\)\s*\{[^}]*position:\s*sticky/);
+  });
+
+  it('con un programa inexistente muestra el aviso con h1 y sin columnas', () => {
+    mockSesion();
+    renderPantalla('/plan/DS99');
+    expect(screen.getByRole('heading', { level: 1, name: 'Tu plan' })).toBeInTheDocument();
+    expect(screen.getByText('No reconocemos ese programa. Vuelve a tu resultado.')).toBeInTheDocument();
   });
 });

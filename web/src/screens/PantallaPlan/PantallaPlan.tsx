@@ -7,6 +7,7 @@ import {
 } from '../../components/organisms/ChecklistDocumentos/ChecklistDocumentos';
 import { LineaDeLlamados } from '../../components/organisms/LineaDeLlamados/LineaDeLlamados';
 import { AvisoLimite } from '../../components/molecules/AvisoLimite/AvisoLimite';
+import { Columnas } from '../../components/molecules/Columnas/Columnas';
 import { Alerta } from '../../components/molecules/Alerta/Alerta';
 import { Boton } from '../../components/atoms/Boton/Boton';
 import { useSesion } from '../../state/SesionContext';
@@ -56,59 +57,68 @@ export function PantallaPlan() {
     listo: Boolean(documentosListos[`${programa}:${d.nombre}`]),
   }));
 
+  const ESPACIO_PASOS = { xs: 5, md: 'var(--space-7)' };
+
   return (
     <AppShell titulo={t.pantallas.plan.tituloPrograma(programa)} destino="plan" atras>
-      <Stack spacing={5}>
-        <Stack spacing={1}>
-          <Typography sx={ESTILO_TITULO_PASO}>{t.pantallas.plan.paso1}</Typography>
-          {resultado ? (
-            <Alerta severity="success">
-              {resultado.motivo} —{' '}
-              {t.comun.fuente(
-                `${resultado.regla.decreto} · ${formatoFechaCorta(resultado.regla.fechaConsulta, idioma)}`,
-              )}
-            </Alerta>
-          ) : (
-            <Typography sx={{ color: 'var(--ink-muted)' }}>{t.pantallas.plan.todaviaNoEvaluamos}</Typography>
-          )}
+      <Columnas espacioFila={{ xs: '20px', md: 'var(--space-7)' }} espacioColumna="var(--space-7)">
+        <Stack spacing={ESPACIO_PASOS}>
+          <Stack spacing={1}>
+            <Typography sx={ESTILO_TITULO_PASO}>{t.pantallas.plan.paso1}</Typography>
+            {resultado ? (
+              <Alerta severity="success">
+                {resultado.motivo} —{' '}
+                {t.comun.fuente(
+                  `${resultado.regla.decreto} · ${formatoFechaCorta(resultado.regla.fechaConsulta, idioma)}`,
+                )}
+              </Alerta>
+            ) : (
+              <Typography sx={{ color: 'var(--ink-muted)' }}>{t.pantallas.plan.todaviaNoEvaluamos}</Typography>
+            )}
+          </Stack>
+
+          <Stack spacing={1}>
+            <Typography sx={ESTILO_TITULO_PASO}>{t.pantallas.plan.paso2}</Typography>
+            {items.length > 0 ? (
+              <ChecklistDocumentos
+                programa={`${programa} — ${nombreComun}`}
+                items={items}
+                onToggle={(indice) => marcarDocumento(`${programa}:${items[indice].nombre}`, !items[indice].listo)}
+              />
+            ) : (
+              <Typography sx={{ color: 'var(--ink-muted)' }}>{t.pantallas.plan.calificaPrimero}</Typography>
+            )}
+          </Stack>
         </Stack>
 
-        <Stack spacing={1}>
-          <Typography sx={ESTILO_TITULO_PASO}>{t.pantallas.plan.paso2}</Typography>
-          {items.length > 0 ? (
-            <ChecklistDocumentos
-              programa={`${programa} — ${nombreComun}`}
-              items={items}
-              onToggle={(indice) => marcarDocumento(`${programa}:${items[indice].nombre}`, !items[indice].listo)}
+        <Stack
+          spacing={ESPACIO_PASOS}
+          sx={{ position: { md: 'sticky' }, top: { md: 'calc(var(--size-header) + var(--space-5))' } }}
+        >
+          <Stack spacing={1}>
+            <Typography sx={ESTILO_TITULO_PASO}>{t.pantallas.plan.paso3}</Typography>
+            <LineaDeLlamados
+              llamados={[
+                {
+                  programa: `${programa} — ${nombreComun}`,
+                  fechas: t.comun.sinFechaPublicada,
+                  serviu: t.comun.porConfirmarServiuRegional,
+                  estado: 'porVenir',
+                  porConfirmar: true,
+                },
+              ]}
             />
-          ) : (
-            <Typography sx={{ color: 'var(--ink-muted)' }}>{t.pantallas.plan.calificaPrimero}</Typography>
-          )}
-        </Stack>
+          </Stack>
 
-        <Stack spacing={1}>
-          <Typography sx={ESTILO_TITULO_PASO}>{t.pantallas.plan.paso3}</Typography>
-          <LineaDeLlamados
-            llamados={[
-              {
-                programa: `${programa} — ${nombreComun}`,
-                fechas: t.comun.sinFechaPublicada,
-                serviu: t.comun.porConfirmarServiuRegional,
-                estado: 'porVenir',
-                porConfirmar: true,
-              },
-            ]}
-          />
+          <Stack spacing={2}>
+            <Typography sx={ESTILO_TITULO_PASO}>{t.pantallas.plan.paso4}</Typography>
+            <AvisoLimite conSalida />
+            <Boton variant="outlined" onClick={() => navigate('/avisos')}>
+              {t.pantallas.plan.yaPostule}
+            </Boton>
+          </Stack>
         </Stack>
-
-        <Stack spacing={2}>
-          <Typography sx={ESTILO_TITULO_PASO}>{t.pantallas.plan.paso4}</Typography>
-          <AvisoLimite conSalida />
-          <Boton variant="outlined" onClick={() => navigate('/avisos')}>
-            {t.pantallas.plan.yaPostule}
-          </Boton>
-        </Stack>
-      </Stack>
+      </Columnas>
     </AppShell>
   );
 }

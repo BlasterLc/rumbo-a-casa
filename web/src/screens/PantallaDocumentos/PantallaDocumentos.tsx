@@ -1,9 +1,10 @@
-import { Stack, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
 import { AppShell } from '../../components/templates/AppShell/AppShell';
 import {
   ChecklistDocumentos,
   type DocumentoChecklist,
 } from '../../components/organisms/ChecklistDocumentos/ChecklistDocumentos';
+import { Columnas } from '../../components/molecules/Columnas/Columnas';
 import { useSesion } from '../../state/SesionContext';
 import { useT } from '../../i18n/LocaleContext';
 
@@ -24,7 +25,7 @@ export function PantallaDocumentos() {
 
   return (
     <AppShell titulo={t.pantallas.documentos.titulo} destino="documentos">
-      <Stack spacing={5}>
+      <Columnas espacioFila={{ xs: '20px', md: 'var(--space-6)' }} espacioColumna="var(--space-7)">
         {plan.map((p) => {
           const items: DocumentoChecklist[] = p.documentos.map((d) => ({
             nombre: d.nombre,
@@ -40,7 +41,7 @@ export function PantallaDocumentos() {
             />
           );
         })}
-      </Stack>
+      </Columnas>
     </AppShell>
   );
 }
