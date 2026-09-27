@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderPantalla, simularEscritorio, type ControlEscritorio } from '../../test/utilidades';
+import { renderPantalla, simularEscritorio, cssActual, type ControlEscritorio } from '../../test/utilidades';
 import { PantallaEntrevista } from './PantallaEntrevista';
 import * as chatClient from '../../api/chatClient';
 import { PERFIL_DESCONOCIDO } from '../../types/dominio';
@@ -182,6 +182,16 @@ describe('PantallaEntrevista en escritorio', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Enviar' }));
     await screen.findByText('Anotado, ¿y tu ahorro?');
     expect(screen.getByRole('log', { name: 'Conversación' }).scrollTop).toBe(4321);
+  });
+
+  it('los mensajes del registro no se encogen al desplazarse: nada baja de su alto natural (48 px de los sellos)', () => {
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    const registro = screen.getByRole('log', { name: 'Conversación' });
+    // Emotion emite la regla de `& > *` como `.css-xxxx-MuiStack-root>*{...}`, con la clase del propio registro.
+    const clase = Array.from(registro.classList).find((c) => c.startsWith('css-'));
+    expect(clase).toBeDefined();
+    const regla = new RegExp(`\\.${clase}>\\*\\{[^}]*(?<![-\\w])flex-shrink:\\s*0`);
+    expect(cssActual()).toMatch(regla);
   });
 
   it('el campo de texto queda fuera del registro, anclado bajo la conversación', () => {
