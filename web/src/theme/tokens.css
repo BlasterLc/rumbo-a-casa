@@ -56,6 +56,12 @@
 
 html, body { margin: 0; }
 
+/* La cabecera de escritorio es sticky: al tabular hacia atrás no debe tapar el elemento enfocado
+   (WCAG 2.4.11). En móvil no hay cabecera de escritorio. */
+@media (min-width: 900px) {
+  html { scroll-padding-top: calc(var(--size-header) + 8px); }
+}
+
 /* surface-base en toda la pantalla: en escritorio el contenido ocupa hasta 1120 px y ya no hay
    una columna de 480 px que enmarcar sobre un fondo distinto. */
 body {
