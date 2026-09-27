@@ -52,6 +52,15 @@ export const es: DiccionarioTextos = {
       DS19: 'Integración social',
       DS52: 'Arriendo',
     },
+    panelProgramas: {
+      titulo: 'Revisamos tus cuatro programas',
+      descripcion: {
+        DS49: 'Comprar o construir una vivienda con tu ahorro y el subsidio, sin crédito hipotecario.',
+        DS1: 'Comprar una vivienda si tu familia es de sectores medios.',
+        DS19: 'Comprar en proyectos donde conviven familias de distintos ingresos.',
+        DS52: 'Pagar parte de tu arriendo con un subsidio mensual.',
+      },
+    },
   },
   pantallas: {
     bienvenida: {

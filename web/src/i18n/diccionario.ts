@@ -63,6 +63,12 @@ export interface DiccionarioTextos {
     };
     /** Nombre común de cada programa, compartido por PantallaResultado, PantallaPlan y PantallaDocumentos. */
     nombrePrograma: Record<'DS49' | 'DS1' | 'DS19' | 'DS52', string>;
+    /** Panel de programas de la Bienvenida en escritorio. */
+    panelProgramas: {
+      titulo: string;
+      /** Una línea por programa, sin cifras ni requisitos. */
+      descripcion: Record<'DS49' | 'DS1' | 'DS19' | 'DS52', string>;
+    };
   };
   pantallas: {
     bienvenida: {

@@ -52,6 +52,15 @@ export const en: DiccionarioTextos = {
       DS19: 'Social integration',
       DS52: 'Rental subsidy',
     },
+    panelProgramas: {
+      titulo: 'We check four programs for you',
+      descripcion: {
+        DS49: 'Buy or build a home with your savings and the subsidy, without a mortgage loan.',
+        DS1: 'Buy a home if your family is in the middle-income sector.',
+        DS19: 'Buy in projects where families with different incomes live together.',
+        DS52: 'Pay part of your rent with a monthly subsidy.',
+      },
+    },
   },
   pantallas: {
     bienvenida: {
