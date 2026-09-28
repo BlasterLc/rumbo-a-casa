@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Stack, Box } from '@mui/material';
 import { AppShell } from '../../components/templates/AppShell/AppShell';
-import { Columnas } from '../../components/molecules/Columnas/Columnas';
 import { PasoAPaso } from '../../components/molecules/PasoAPaso/PasoAPaso';
 import { BurbujaChat } from '../../components/molecules/BurbujaChat/BurbujaChat';
 import { Pensando } from '../../components/molecules/BurbujaChat/Pensando';
@@ -101,7 +100,19 @@ export function PantallaEntrevista() {
   if (escritorio) {
     return (
       <AppShell titulo={t.pantallas.entrevista.titulo} destino="hablar">
-        <Columnas plantilla="minmax(0, 1fr) 340px" espacioColumna="var(--space-7)">
+        {/* Entre 900 px (donde arranca el sidebar de escritorio) y 1200 px no hay ancho para un
+            aside fijo de 340 px sin ahogar el chat: la columna del avance se apila debajo hasta
+            `lg` (1200 px) y recién ahí se separa en dos columnas. */}
+        <Box
+          sx={{
+            display: 'grid',
+            width: '100%',
+            gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: 'minmax(0, 1fr) 340px' },
+            columnGap: { lg: 'var(--space-7)' },
+            rowGap: 'var(--space-5)',
+            alignItems: 'start',
+          }}
+        >
           <Stack spacing={2} sx={{ height: 'max(480px, calc(100dvh - var(--size-header) - 240px))', minHeight: 0 }}>
             <Stack
               ref={registroRef}
@@ -130,7 +141,7 @@ export function PantallaEntrevista() {
             component="aside"
             aria-label={t.pantallas.entrevista.etiquetaAvance}
             spacing={3}
-            sx={{ position: 'sticky', top: 'calc(var(--size-header) + var(--space-5))' }}
+            sx={{ position: { lg: 'sticky' }, top: { lg: 'calc(var(--size-header) + var(--space-5))' } }}
           >
             <Box
               sx={{
@@ -144,7 +155,7 @@ export function PantallaEntrevista() {
               {indicador('vertical')}
             </Box>
           </Stack>
-        </Columnas>
+        </Box>
       </AppShell>
     );
   }
