@@ -39,7 +39,10 @@ export const es: DiccionarioTextos = {
     sidebarEscritorio: {
       etiqueta: 'Navegación principal',
       borrarDatos: 'Borrar mis datos',
-      notaPrivacidad: 'Nunca te pedimos tu Clave Única. Tus datos viven solo en este navegador.',
+      borrarConfirmarPregunta: '¿Seguro? Se borrará tu conversación de este navegador.',
+      borrarConfirmarSi: 'Sí, borrar',
+      borrarConfirmarCancelar: 'Cancelar',
+      notaPrivacidad: 'Nunca te pedimos tu Clave Única. Puedes borrar tus datos de este navegador cuando quieras.',
     },
     checklistDocumentos: {
       deListos: (listos, total) => `${listos} de ${total} listos`,

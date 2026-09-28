@@ -53,6 +53,10 @@ export interface DiccionarioTextos {
     sidebarEscritorio: {
       etiqueta: string;
       borrarDatos: string;
+      /** Pregunta de confirmación que reemplaza a "Borrar mis datos" tras el primer clic. */
+      borrarConfirmarPregunta: string;
+      borrarConfirmarSi: string;
+      borrarConfirmarCancelar: string;
       notaPrivacidad: string;
     };
     checklistDocumentos: {

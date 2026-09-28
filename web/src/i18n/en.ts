@@ -39,7 +39,10 @@ export const en: DiccionarioTextos = {
     sidebarEscritorio: {
       etiqueta: 'Main navigation',
       borrarDatos: 'Delete my data',
-      notaPrivacidad: 'We never ask for your Clave Única. Your data lives only in this browser.',
+      borrarConfirmarPregunta: 'Are you sure? This clears your conversation from this browser.',
+      borrarConfirmarSi: 'Yes, delete',
+      borrarConfirmarCancelar: 'Cancel',
+      notaPrivacidad: 'We never ask for your Clave Única. You can delete your data from this browser whenever you want.',
     },
     checklistDocumentos: {
       deListos: (listos, total) => `${listos} of ${total} ready`,

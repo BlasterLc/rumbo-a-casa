@@ -60,10 +60,29 @@ describe('SidebarEscritorio', () => {
     expect(cssActual()).toMatch(regla(screen.getByRole('button', { name: 'Borrar mis datos' })));
   });
 
-  it('«Borrar mis datos» limpia la sesión y vuelve al inicio', async () => {
+  it('«Borrar mis datos» pide confirmar: el primer clic no borra nada todavía', async () => {
     renderPantalla(<SidebarEscritorio destino="documentos" />, { ruta: '/documentos' });
     const idAntes = JSON.parse(window.localStorage.getItem('rumbo-sesion')!).sessionId;
     await userEvent.click(screen.getByRole('button', { name: 'Borrar mis datos' }));
+    expect(JSON.parse(window.localStorage.getItem('rumbo-sesion')!).sessionId).toBe(idAntes);
+    expect(screen.getByRole('button', { name: 'Sí, borrar' })).toBeInTheDocument();
+    expect(screen.getByText(/¿Seguro\?/)).toBeInTheDocument();
+  });
+
+  it('cancelar la confirmación deja los datos intactos y vuelve a mostrar "Borrar mis datos"', async () => {
+    renderPantalla(<SidebarEscritorio destino="documentos" />, { ruta: '/documentos' });
+    const idAntes = JSON.parse(window.localStorage.getItem('rumbo-sesion')!).sessionId;
+    await userEvent.click(screen.getByRole('button', { name: 'Borrar mis datos' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(JSON.parse(window.localStorage.getItem('rumbo-sesion')!).sessionId).toBe(idAntes);
+    expect(screen.getByRole('button', { name: 'Borrar mis datos' })).toBeInTheDocument();
+  });
+
+  it('confirmar con «Sí, borrar» recién ahí limpia la sesión y vuelve al inicio', async () => {
+    renderPantalla(<SidebarEscritorio destino="documentos" />, { ruta: '/documentos' });
+    const idAntes = JSON.parse(window.localStorage.getItem('rumbo-sesion')!).sessionId;
+    await userEvent.click(screen.getByRole('button', { name: 'Borrar mis datos' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Sí, borrar' }));
     // `renderPantalla` no arma <Routes>: solo se comprueba que no truena y que la sesión quedó
     // limpia (un `sessionId` nuevo, igual que ya lo comprueba `SesionContext.test.tsx`). La
     // navegación real de "volver al inicio" la cubre el e2e (Tarea 6).

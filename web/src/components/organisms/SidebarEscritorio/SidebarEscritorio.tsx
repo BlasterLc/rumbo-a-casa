@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Box, ButtonBase, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Icono, type NombreIcono } from '../../atoms/Icono/Icono';
@@ -34,6 +35,7 @@ export function SidebarEscritorio({ destino, avisos = 0, onNavegar }: SidebarEsc
   const t = useT();
   const { borrarDatos } = useSesion();
   const navigate = useNavigate();
+  const [confirmandoBorrado, setConfirmandoBorrado] = useState(false);
 
   return (
     <Box
@@ -65,6 +67,7 @@ export function SidebarEscritorio({ destino, avisos = 0, onNavegar }: SidebarEsc
               position: 'relative',
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'flex-start',
               gap: 1.5,
               minHeight: 52,
               px: 'var(--space-3)',
@@ -120,21 +123,52 @@ export function SidebarEscritorio({ destino, avisos = 0, onNavegar }: SidebarEsc
 
       <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1.5, pt: 'var(--space-4)' }}>
         <Box sx={{ height: '1px', backgroundColor: 'var(--border)' }} />
-        <Boton
-          variant="text"
-          onClick={() => {
-            borrarDatos();
-            navigate('/');
-          }}
-          sx={{
-            justifyContent: 'flex-start',
-            px: 'var(--space-3)',
-            minHeight: 'var(--size-touch)',
-            '&:focus-visible': { outline: '3px solid var(--focus-ring)', outlineOffset: '2px' },
-          }}
-        >
-          {t.organisms.sidebarEscritorio.borrarDatos}
-        </Boton>
+        {confirmandoBorrado ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, px: 'var(--space-3)' }}>
+            <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '13px', lineHeight: '18px', color: 'var(--ink-muted)' }}>
+              {t.organisms.sidebarEscritorio.borrarConfirmarPregunta}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Boton
+                variant="contained"
+                color="error"
+                onClick={() => {
+                  borrarDatos();
+                  navigate('/');
+                }}
+                sx={{
+                  minHeight: 'var(--size-touch)',
+                  '&:focus-visible': { outline: '3px solid var(--focus-ring)', outlineOffset: '2px' },
+                }}
+              >
+                {t.organisms.sidebarEscritorio.borrarConfirmarSi}
+              </Boton>
+              <Boton
+                variant="text"
+                onClick={() => setConfirmandoBorrado(false)}
+                sx={{
+                  minHeight: 'var(--size-touch)',
+                  '&:focus-visible': { outline: '3px solid var(--focus-ring)', outlineOffset: '2px' },
+                }}
+              >
+                {t.organisms.sidebarEscritorio.borrarConfirmarCancelar}
+              </Boton>
+            </Box>
+          </Box>
+        ) : (
+          <Boton
+            variant="text"
+            onClick={() => setConfirmandoBorrado(true)}
+            sx={{
+              justifyContent: 'flex-start',
+              px: 'var(--space-3)',
+              minHeight: 'var(--size-touch)',
+              '&:focus-visible': { outline: '3px solid var(--focus-ring)', outlineOffset: '2px' },
+            }}
+          >
+            {t.organisms.sidebarEscritorio.borrarDatos}
+          </Boton>
+        )}
         <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '13px', lineHeight: '18px', color: 'var(--ink-muted)', px: 'var(--space-3)' }}>
           {t.organisms.sidebarEscritorio.notaPrivacidad}
         </Typography>
