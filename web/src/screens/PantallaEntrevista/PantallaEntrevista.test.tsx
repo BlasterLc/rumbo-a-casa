@@ -153,13 +153,9 @@ describe('PantallaEntrevista en escritorio', () => {
     expect(container.querySelector('.MuiStepper-horizontal')).not.toBeInTheDocument();
   });
 
-  it('repite en el panel lateral la frase de confianza', () => {
+  it('en escritorio no repite la nota de confianza: ya la muestra el sidebar', () => {
     renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
-    expect(
-      screen.getByText(
-        'Herramienta independiente, no oficial. Nunca te pediremos tu Clave Única. Puedes borrar tus datos cuando quieras.',
-      ),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/Herramienta independiente, no oficial/)).not.toBeInTheDocument();
   });
 
   it('la conversación es un registro con scroll propio', () => {

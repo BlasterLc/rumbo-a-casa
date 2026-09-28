@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Stack, Box, Typography } from '@mui/material';
+import { Stack, Box } from '@mui/material';
 import { AppShell } from '../../components/templates/AppShell/AppShell';
 import { Columnas } from '../../components/molecules/Columnas/Columnas';
 import { PasoAPaso } from '../../components/molecules/PasoAPaso/PasoAPaso';
@@ -9,7 +9,6 @@ import { SelloElegibilidad } from '../../components/molecules/SelloElegibilidad/
 import { Alerta } from '../../components/molecules/Alerta/Alerta';
 import { CampoTexto } from '../../components/atoms/CampoTexto/CampoTexto';
 import { Boton } from '../../components/atoms/Boton/Boton';
-import { Icono } from '../../components/atoms/Icono/Icono';
 import { TextoConNegritas } from '../../components/atoms/TextoConNegritas/TextoConNegritas';
 import { useSesion } from '../../state/SesionContext';
 import { useT } from '../../i18n/LocaleContext';
@@ -144,12 +143,6 @@ export function PantallaEntrevista() {
             >
               {indicador('vertical')}
             </Box>
-            <Stack direction="row" spacing={1.5} sx={{ px: 1 }}>
-              <Icono nombre="escudo" tamano={20} sx={{ color: 'var(--ink-muted)', flexShrink: 0 }} />
-              <Typography sx={{ fontFamily: 'var(--font-sans)', fontSize: '14px', lineHeight: '20px', color: 'var(--ink-muted)' }}>
-                {t.pantallas.bienvenida.fraseConfianza}
-              </Typography>
-            </Stack>
           </Stack>
         </Columnas>
       </AppShell>
