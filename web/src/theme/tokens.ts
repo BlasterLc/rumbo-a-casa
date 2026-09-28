@@ -61,6 +61,7 @@ export const sizePx = {
   'size-chip-compacto': 26,
   'size-page': 1120,
   'size-header': 72,
+  'size-sidebar': 264,
 } as const;
 
 export const sizeMeasure = '36ch';

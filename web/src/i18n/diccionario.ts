@@ -49,6 +49,14 @@ export interface DiccionarioTextos {
     cabeceraEscritorio: {
       /** Sufijo del nombre accesible del botón de la marca: "Rumbo a Casa · {inicio}". */
       inicio: string;
+      /** Etiqueta junto a la marca: aclara que la herramienta no es del Estado. */
+      etiquetaNoOficial: string;
+    };
+    /** Sidebar de navegación de escritorio: los mismos cuatro destinos de BarraInferior, en vertical. */
+    sidebarEscritorio: {
+      etiqueta: string;
+      borrarDatos: string;
+      notaPrivacidad: string;
     };
     checklistDocumentos: {
       deListos: (listos: number, total: number) => string;

@@ -36,7 +36,12 @@ export const es: DiccionarioTextos = {
     barraInferior: { hablar: 'Hablar', miPlan: 'Mi plan', documentos: 'Documentos', avisos: 'Avisos' },
     cabeceraApp: { volver: 'Volver', accion: 'Acción' },
     navegacionSuperior: { etiqueta: 'Navegación principal' },
-    cabeceraEscritorio: { inicio: 'Inicio' },
+    cabeceraEscritorio: { inicio: 'Inicio', etiquetaNoOficial: 'Herramienta no oficial' },
+    sidebarEscritorio: {
+      etiqueta: 'Navegación principal',
+      borrarDatos: 'Borrar mis datos',
+      notaPrivacidad: 'Nunca te pedimos tu Clave Única. Tus datos viven solo en este navegador.',
+    },
     checklistDocumentos: {
       deListos: (listos, total) => `${listos} de ${total} listos`,
       vence: (fecha) => `Vence: ${fecha}`,

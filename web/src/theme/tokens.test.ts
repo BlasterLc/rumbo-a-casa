@@ -11,4 +11,8 @@ describe('tokens de escritorio', () => {
     expect(sizePx['size-page']).toBe(1120);
     expect(sizePx['size-header']).toBe(72);
   });
+
+  it('el sidebar de escritorio mide 264 px', () => {
+    expect(sizePx['size-sidebar']).toBe(264);
+  });
 });

@@ -46,7 +46,7 @@
   /* Tamaño */
   --size-touch: 48px; --size-control: 56px; --size-icon: 24px; --size-mic: 72px; --size-chip-compacto: 26px;
   --size-measure: 36ch;
-  --size-page: 1120px; --size-header: 72px;
+  --size-page: 1120px; --size-header: 72px; --size-sidebar: 264px;
 
   /* Tipografía */
   --font-display: "Bricolage Grotesque", "Figtree", system-ui, sans-serif;
