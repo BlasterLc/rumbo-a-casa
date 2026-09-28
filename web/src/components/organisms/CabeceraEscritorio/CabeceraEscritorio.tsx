@@ -22,6 +22,11 @@ export function CabeceraEscritorio({ onInicio }: CabeceraEscritorioProps) {
           width: '100%',
           px: 'var(--space-6)',
           minHeight: 'var(--size-header)',
+          // El `Toolbar` de MUI trae su propia regla `@media (min-width:600px){min-height:64px}`,
+          // que le gana al `minHeight` de arriba desde ese ancho. Sin este override la cabecera
+          // termina midiendo 64 px en vez de 72, y `SidebarEscritorio` (que asume `--size-header`)
+          // deja un hueco visible debajo de la cabecera.
+          '@media (min-width:600px)': { minHeight: 'var(--size-header)' },
           gap: 'var(--space-4)',
         }}
       >
