@@ -90,6 +90,9 @@ export interface DiccionarioTextos {
       fraseConfianza: string;
       /** Banda de "cómo funciona" en la Bienvenida de escritorio: tres pasos fijos. */
       pasos: {
+        /** Encabezado visualmente oculto de la banda, para que el lector de pantalla no la
+         * anide bajo el `h2` de `PanelProgramas`. */
+        titulo: string;
         paso1Titulo: string;
         paso1Detalle: string;
         paso2Titulo: string;

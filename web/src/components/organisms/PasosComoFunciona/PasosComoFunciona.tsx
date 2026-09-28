@@ -11,6 +11,27 @@ export function PasosComoFunciona() {
   ];
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 'var(--space-6)' }}>
+      {/* Encabezado propio, visualmente oculto: sin él, los lectores de pantalla anidan estos
+          tres pasos bajo el `h2` de `PanelProgramas`, que no tiene nada que ver. */}
+      <Typography
+        component="h2"
+        sx={{
+          // Valores en `px` explícitos: el sistema `sx` de MUI convierte `width`/`height`/`margin`
+          // numéricos ≤ 1 en porcentajes/espaciado del tema (p. ej. `width: 1` → `100%`), lo que
+          // rompía este patrón y producía scroll horizontal en la Bienvenida.
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          padding: 0,
+          margin: '-1px',
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: 0,
+        }}
+      >
+        {t.pantallas.bienvenida.pasos.titulo}
+      </Typography>
       {pasos.map((p, i) => (
         <Stack
           key={p.titulo}

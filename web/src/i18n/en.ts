@@ -80,6 +80,7 @@ export const en: DiccionarioTextos = {
       fraseConfianza:
         'Independent tool, not official. We will never ask for your Clave Única. You can delete your data whenever you want.',
       pasos: {
+        titulo: 'How it works',
         paso1Titulo: 'Tell us about your family',
         paso1Detalle: 'A short conversation. You can type or talk.',
         paso2Titulo: 'See your result',
