@@ -93,6 +93,8 @@ export const es: DiccionarioTextos = {
     entrevista: {
       titulo: 'Hablemos',
       pasos: { familia: 'Familia', vivienda: 'Vivienda', ahorro: 'Ahorro', ingreso: 'Ingreso', region: 'Región' },
+      mensajeBienvenida:
+        '**¡Bienvenido a Rumbo a Casa!** Te acompañamos en este proceso.\n\nTe voy a preguntar por tu familia, tu vivienda, tus ahorros, tu ingreso y tu región para saber a qué subsidios de vivienda calificas. Al final vas a ver tu resultado y los pasos para postular.\n\nPuedes escribir como si conversaras, sin formularios. Cuéntame cuando quieras y empezamos.',
       preguntaMensaje: 'Escribe tu respuesta',
       enviar: 'Enviar',
       pensando: 'Revisando tu respuesta',

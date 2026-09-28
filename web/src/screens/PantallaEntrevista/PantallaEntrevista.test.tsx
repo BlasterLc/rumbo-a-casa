@@ -27,6 +27,23 @@ describe('PantallaEntrevista', () => {
     expect(enviarMensajeSpy).not.toHaveBeenCalled();
   });
 
+  it('muestra el mensaje de bienvenida mientras la conversación está vacía, y desaparece al enviar el primer mensaje', async () => {
+    vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({
+      ok: true,
+      respuesta: 'Hola, ¿en qué región vives?',
+      perfil: PERFIL_DESCONOCIDO,
+      resultados: [],
+      plan: [],
+    });
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    expect(screen.getByText('¡Bienvenido a Rumbo a Casa!')).toBeInTheDocument();
+    expect(screen.getByText(/Cuéntame cuando quieras y empezamos/)).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText('Escribe tu respuesta'), 'Hola');
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+    await screen.findByText('Hola, ¿en qué región vives?');
+    expect(screen.queryByText('¡Bienvenido a Rumbo a Casa!')).not.toBeInTheDocument();
+  });
+
   it('envía el mensaje y muestra primero el turno de la persona, luego el del agente', async () => {
     vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({
       ok: true,

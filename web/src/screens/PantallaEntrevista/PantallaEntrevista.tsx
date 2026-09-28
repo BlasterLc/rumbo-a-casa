@@ -56,6 +56,11 @@ export function PantallaEntrevista() {
 
   const conversacion = (
     <>
+      {transcript.length === 0 && (
+        <BurbujaChat autor="agente" escuchable textoHablado={t.pantallas.entrevista.mensajeBienvenida}>
+          <TextoConNegritas texto={t.pantallas.entrevista.mensajeBienvenida} />
+        </BurbujaChat>
+      )}
       {transcript.map((turno) => (
         <BurbujaChat
           key={turno.id}

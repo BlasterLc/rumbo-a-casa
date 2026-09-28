@@ -105,6 +105,9 @@ export interface DiccionarioTextos {
     entrevista: {
       titulo: string;
       pasos: { familia: string; vivienda: string; ahorro: string; ingreso: string; region: string };
+      /** Primer turno del agente, visible solo mientras la conversación está vacía: da la
+       * bienvenida y explica de qué trata la conversación y qué se obtiene al final. */
+      mensajeBienvenida: string;
       preguntaMensaje: string;
       enviar: string;
       pensando: string;

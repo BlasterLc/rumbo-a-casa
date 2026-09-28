@@ -93,6 +93,8 @@ export const en: DiccionarioTextos = {
     entrevista: {
       titulo: "Let's talk",
       pasos: { familia: 'Family', vivienda: 'Housing', ahorro: 'Savings', ingreso: 'Income', region: 'Region' },
+      mensajeBienvenida:
+        '**Welcome to Rumbo a Casa!** We’ll walk you through this process.\n\nI’m going to ask about your family, your housing, your savings, your income and your region, to see which housing subsidies you qualify for. At the end you’ll see your result and the steps to apply.\n\nYou can write as if you were chatting, no forms needed. Tell me whenever you’re ready and we’ll start.',
       preguntaMensaje: 'Write your answer',
       enviar: 'Send',
       pensando: 'Reviewing your answer',
