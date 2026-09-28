@@ -36,8 +36,13 @@ export function CabeceraApp({
     <AppBar position="sticky" elevation={0} sx={{ backgroundColor: 'var(--surface-brand)', top: 0 }}>
       {/* El Toolbar de MUI trae por defecto la mitad de este padding y un gap de 4px entre el
           título y el selector — demasiado angosto, deja el selector de idioma pegado al borde
-          y al título en móvil. Se fuerza al margen y separación estándar de la app. */}
-      <Toolbar sx={{ gap: 'var(--space-3)', px: 'var(--space-4)', minHeight: 'var(--size-touch)' }}>
+          y al título en móvil. Se fuerza al margen y separación estándar de la app. Además, sin
+          `py`, el alto del Toolbar quedaba exactamente igual al min-height del botón del
+          selector (ambos usan --size-touch): el botón ocupaba el 100% del alto de la barra, sin
+          aire arriba ni abajo. */}
+      <Toolbar
+        sx={{ gap: 'var(--space-3)', px: 'var(--space-4)', py: 'var(--space-2)', minHeight: 'var(--size-touch)' }}
+      >
         {atras && (
           <IconButton
             aria-label={t.organisms.cabeceraApp.volver}
