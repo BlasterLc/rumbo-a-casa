@@ -35,7 +35,6 @@ export const en: DiccionarioTextos = {
   organisms: {
     barraInferior: { hablar: 'Talk', miPlan: 'My plan', documentos: 'Documents', avisos: 'Alerts' },
     cabeceraApp: { volver: 'Back', accion: 'Action' },
-    navegacionSuperior: { etiqueta: 'Main navigation' },
     cabeceraEscritorio: { inicio: 'Home', etiquetaNoOficial: 'Not an official tool' },
     sidebarEscritorio: {
       etiqueta: 'Main navigation',

@@ -43,9 +43,6 @@ export interface DiccionarioTextos {
       volver: string;
       accion: string;
     };
-    navegacionSuperior: {
-      etiqueta: string;
-    };
     cabeceraEscritorio: {
       /** Sufijo del nombre accesible del botón de la marca: "Rumbo a Casa · {inicio}". */
       inicio: string;

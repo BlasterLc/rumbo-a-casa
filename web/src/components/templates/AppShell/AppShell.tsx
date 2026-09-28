@@ -3,6 +3,7 @@ import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { CabeceraApp } from '../../organisms/CabeceraApp/CabeceraApp';
 import { CabeceraEscritorio } from '../../organisms/CabeceraEscritorio/CabeceraEscritorio';
+import { SidebarEscritorio } from '../../organisms/SidebarEscritorio/SidebarEscritorio';
 import { BarraInferior, type DestinoBarraInferior } from '../../organisms/BarraInferior/BarraInferior';
 import { Boton } from '../../atoms/Boton/Boton';
 import { useEscritorio } from '../../../lib/useEscritorio';
@@ -43,35 +44,37 @@ export function AppShell({ titulo, destino, avisos = 0, atras = false, tituloVis
   if (escritorio) {
     return (
       <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--surface-base)' }}>
-        <CabeceraEscritorio
-          destino={destino}
-          avisos={avisos}
-          onNavegar={(d) => navigate(RUTA_DESTINO[d])}
-          onInicio={() => navigate('/')}
-        />
-        <Box
-          component="main"
-          sx={{ flex: 1, width: '100%', maxWidth: sizePx['size-page'], mx: 'auto', px: 'var(--space-6)', pb: 'var(--space-8)' }}
-        >
-          {atras && (
-            <Boton
-              variant="text"
-              icono="atras"
-              onClick={() => navigate(-1)}
-              sx={{ mt: 'var(--space-4)', px: 'var(--space-3)', ml: 'calc(-1 * var(--space-3))', minHeight: 'var(--size-touch)' }}
-            >
-              {t.organisms.cabeceraApp.volver}
-            </Boton>
-          )}
-          {tituloVisible && (
-            <Typography
-              component="h1"
-              sx={{ ...typeTokens['display-l'], color: 'var(--ink-strong)', pt: atras ? 0.5 : 'var(--space-6)' }}
-            >
-              {titulo}
-            </Typography>
-          )}
-          <Box sx={{ pt: 'var(--space-5)' }}>{children}</Box>
+        <CabeceraEscritorio onInicio={() => navigate('/')} />
+        <Box sx={{ flex: 1, display: 'flex', minHeight: 0 }}>
+          <SidebarEscritorio
+            destino={destino}
+            avisos={avisos}
+            onNavegar={(d) => navigate(RUTA_DESTINO[d])}
+          />
+          <Box
+            component="main"
+            sx={{ flex: 1, minWidth: 0, width: '100%', maxWidth: sizePx['size-page'], mx: 'auto', px: 'var(--space-6)', pb: 'var(--space-8)' }}
+          >
+            {atras && (
+              <Boton
+                variant="text"
+                icono="atras"
+                onClick={() => navigate(-1)}
+                sx={{ mt: 'var(--space-4)', px: 'var(--space-3)', ml: 'calc(-1 * var(--space-3))', minHeight: 'var(--size-touch)' }}
+              >
+                {t.organisms.cabeceraApp.volver}
+              </Boton>
+            )}
+            {tituloVisible && (
+              <Typography
+                component="h1"
+                sx={{ ...typeTokens['display-l'], color: 'var(--ink-strong)', pt: atras ? 0.5 : 'var(--space-6)' }}
+              >
+                {titulo}
+              </Typography>
+            )}
+            <Box sx={{ pt: 'var(--space-5)' }}>{children}</Box>
+          </Box>
         </Box>
       </Box>
     );

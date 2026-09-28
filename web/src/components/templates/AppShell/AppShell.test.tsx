@@ -3,32 +3,35 @@ import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { LocaleProvider } from '../../../i18n/LocaleContext';
+import { SesionProvider } from '../../../state/SesionContext';
 import { AppShell } from './AppShell';
 import { simularEscritorio, type ControlEscritorio } from '../../../test/utilidades';
 
 function conEnrutamiento(inicial: string) {
   return render(
     <LocaleProvider>
-      <MemoryRouter initialEntries={[inicial]}>
-        <Routes>
-          <Route
-            path="/hablar"
-            element={
-              <AppShell titulo="Hablemos" destino="hablar">
-                contenido hablar
-              </AppShell>
-            }
-          />
-          <Route
-            path="/documentos"
-            element={
-              <AppShell titulo="Tus documentos" destino="documentos">
-                contenido documentos
-              </AppShell>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
+      <SesionProvider>
+        <MemoryRouter initialEntries={[inicial]}>
+          <Routes>
+            <Route
+              path="/hablar"
+              element={
+                <AppShell titulo="Hablemos" destino="hablar">
+                  contenido hablar
+                </AppShell>
+              }
+            />
+            <Route
+              path="/documentos"
+              element={
+                <AppShell titulo="Tus documentos" destino="documentos">
+                  contenido documentos
+                </AppShell>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </SesionProvider>
     </LocaleProvider>,
   );
 }
@@ -55,43 +58,45 @@ describe('AppShell', () => {
 function conRutasEscritorio(entradas: string[], indice: number) {
   return render(
     <LocaleProvider>
-      <MemoryRouter initialEntries={entradas} initialIndex={indice}>
-        <Routes>
-          <Route path="/" element={<div>pantalla inicio</div>} />
-          <Route
-            path="/hablar"
-            element={
-              <AppShell titulo="Hablemos" destino="hablar">
-                contenido hablar
-              </AppShell>
-            }
-          />
-          <Route
-            path="/resultado"
-            element={
-              <AppShell titulo="Tu resultado" destino="plan" atras tituloVisible={false}>
-                contenido resultado
-              </AppShell>
-            }
-          />
-          <Route
-            path="/plan/DS99"
-            element={
-              <AppShell titulo="Tu plan" destino="plan" atras>
-                No reconocemos ese programa.
-              </AppShell>
-            }
-          />
-          <Route
-            path="/documentos"
-            element={
-              <AppShell titulo="Tus documentos" destino="documentos">
-                contenido documentos
-              </AppShell>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
+      <SesionProvider>
+        <MemoryRouter initialEntries={entradas} initialIndex={indice}>
+          <Routes>
+            <Route path="/" element={<div>pantalla inicio</div>} />
+            <Route
+              path="/hablar"
+              element={
+                <AppShell titulo="Hablemos" destino="hablar">
+                  contenido hablar
+                </AppShell>
+              }
+            />
+            <Route
+              path="/resultado"
+              element={
+                <AppShell titulo="Tu resultado" destino="plan" atras tituloVisible={false}>
+                  contenido resultado
+                </AppShell>
+              }
+            />
+            <Route
+              path="/plan/DS99"
+              element={
+                <AppShell titulo="Tu plan" destino="plan" atras>
+                  No reconocemos ese programa.
+                </AppShell>
+              }
+            />
+            <Route
+              path="/documentos"
+              element={
+                <AppShell titulo="Tus documentos" destino="documentos">
+                  contenido documentos
+                </AppShell>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </SesionProvider>
     </LocaleProvider>,
   );
 }
@@ -161,5 +166,16 @@ describe('AppShell en escritorio', () => {
     act(() => control.cambiar(false));
     expect(container.querySelector('.MuiBottomNavigation-root')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+  });
+
+  it('la navegación vive en un panel lateral, no dentro de la cabecera', () => {
+    conRutasEscritorio(['/hablar'], 0);
+    const nav = screen.getByRole('navigation', { name: 'Navegación principal' });
+    expect(nav.closest('header')).toBeNull();
+  });
+
+  it('«Borrar mis datos» está siempre disponible, no solo en la Bienvenida', () => {
+    conRutasEscritorio(['/documentos'], 0);
+    expect(screen.getByRole('button', { name: 'Borrar mis datos' })).toBeInTheDocument();
   });
 });
