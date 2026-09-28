@@ -33,5 +33,8 @@ docs/stack-tecnico.md
 # copias de los docs de arriba): solo para la máquina local.
 docs/rumbo-contexto-local/
 
+# Backlog interno de pendientes: notas de trabajo, no parte del repo público.
+docs/backlog.md
+
 web/e2e/capturas/
 .worktrees/
