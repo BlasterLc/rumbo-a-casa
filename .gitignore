@@ -29,5 +29,9 @@ dsDocs/
 docs/superpowers/
 docs/stack-tecnico.md
 
+# Copia local de contexto para retomar el proyecto entre sesiones (incluye
+# copias de los docs de arriba): solo para la máquina local.
+docs/rumbo-contexto-local/
+
 web/e2e/capturas/
 .worktrees/
