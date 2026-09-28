@@ -102,4 +102,9 @@ describe('PantallaBienvenida en escritorio', () => {
     renderPantalla();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
+
+  it('en escritorio muestra la banda de cómo funciona, debajo del hero', () => {
+    renderPantalla();
+    expect(screen.getByText('Mira tu resultado')).toBeInTheDocument();
+  });
 });

@@ -84,6 +84,15 @@ export interface DiccionarioTextos {
       seguirDondeQuedaste: string;
       empezarDeNuevo: string;
       fraseConfianza: string;
+      /** Banda de "cómo funciona" en la Bienvenida de escritorio: tres pasos fijos. */
+      pasos: {
+        paso1Titulo: string;
+        paso1Detalle: string;
+        paso2Titulo: string;
+        paso2Detalle: string;
+        paso3Titulo: string;
+        paso3Detalle: string;
+      };
     };
     entrevista: {
       titulo: string;

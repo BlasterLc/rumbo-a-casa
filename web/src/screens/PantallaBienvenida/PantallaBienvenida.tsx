@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Logotipo } from '../../components/organisms/Logotipo/Logotipo';
 import { Franja } from '../../components/organisms/Franja/Franja';
 import { PanelProgramas } from '../../components/organisms/PanelProgramas/PanelProgramas';
+import { PasosComoFunciona } from '../../components/organisms/PasosComoFunciona/PasosComoFunciona';
 import { Columnas } from '../../components/molecules/Columnas/Columnas';
 import { Boton } from '../../components/atoms/Boton/Boton';
 import { SelectorIdioma } from '../../components/atoms/SelectorIdioma/SelectorIdioma';
@@ -64,14 +65,7 @@ function BienvenidaEscritorio() {
           <Logotipo disposicion="horizontal" alto={36} />
           <SelectorIdioma tono="claro" />
         </Stack>
-        <Box
-          sx={{
-            minHeight: `calc(100dvh - ${ALTO_FILA_SUPERIOR}px)`,
-            display: 'flex',
-            alignItems: 'center',
-            pb: 'var(--space-7)',
-          }}
-        >
+        <Box sx={{ pt: 'var(--space-8)', pb: 'var(--space-7)' }}>
           <Columnas plantilla="minmax(0, 1.05fr) minmax(0, 0.95fr)" espacioColumna="var(--space-8)" alinear="center">
             <Stack spacing={3}>
               <Stack spacing={2}>
@@ -101,6 +95,9 @@ function BienvenidaEscritorio() {
             </Stack>
             <PanelProgramas />
           </Columnas>
+        </Box>
+        <Box sx={{ pb: 'var(--space-8)' }}>
+          <PasosComoFunciona />
         </Box>
       </Box>
     </Box>

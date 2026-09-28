@@ -76,6 +76,14 @@ export const es: DiccionarioTextos = {
       empezarDeNuevo: 'Empezar de nuevo',
       fraseConfianza:
         'Herramienta independiente, no oficial. Nunca te pediremos tu Clave Única. Puedes borrar tus datos cuando quieras.',
+      pasos: {
+        paso1Titulo: 'Cuéntanos de tu familia',
+        paso1Detalle: 'Una conversación corta. Puedes escribir o hablar.',
+        paso2Titulo: 'Mira tu resultado',
+        paso2Detalle: 'Cada programa con su sello, su razón y su fuente.',
+        paso3Titulo: 'Arma tu plan y postula',
+        paso3Detalle: 'Tus documentos, la fecha del llamado y el paso al MINVU.',
+      },
     },
     entrevista: {
       titulo: 'Hablemos',

@@ -76,6 +76,14 @@ export const en: DiccionarioTextos = {
       empezarDeNuevo: 'Start over',
       fraseConfianza:
         'Independent tool, not official. We will never ask for your Clave Única. You can delete your data whenever you want.',
+      pasos: {
+        paso1Titulo: 'Tell us about your family',
+        paso1Detalle: 'A short conversation. You can type or talk.',
+        paso2Titulo: 'See your result',
+        paso2Detalle: 'Each program with its seal, its reason and its source.',
+        paso3Titulo: 'Build your plan and apply',
+        paso3Detalle: 'Your documents, the call date and the step to MINVU.',
+      },
     },
     entrevista: {
       titulo: "Let's talk",
