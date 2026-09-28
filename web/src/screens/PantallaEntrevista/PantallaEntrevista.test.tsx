@@ -59,6 +59,27 @@ describe('PantallaEntrevista', () => {
     expect(screen.getByText('**hola**')).toBeInTheDocument();
   });
 
+  it('presionar Enter en el campo de mensaje lo envía, igual que el botón', async () => {
+    vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({
+      ok: true,
+      respuesta: 'Hola, ¿en qué región vives?',
+      perfil: PERFIL_DESCONOCIDO,
+      resultados: [],
+      plan: [],
+    });
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    await userEvent.type(screen.getByLabelText('Escribe tu respuesta'), 'Hola{Enter}');
+    expect(screen.getByText('Hola')).toBeInTheDocument();
+    expect(await screen.findByText('Hola, ¿en qué región vives?')).toBeInTheDocument();
+  });
+
+  it('Enter con el campo vacío no envía nada, igual que el botón deshabilitado', () => {
+    const enviarMensajeSpy = vi.spyOn(chatClient, 'enviarMensaje');
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    fireEvent.keyDown(screen.getByLabelText('Escribe tu respuesta'), { key: 'Enter', code: 'Enter' });
+    expect(enviarMensajeSpy).not.toHaveBeenCalled();
+  });
+
   it('el indicador de pasos avanza cuando el motor ya no pide datos de un grupo', async () => {
     vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({
       ok: true,

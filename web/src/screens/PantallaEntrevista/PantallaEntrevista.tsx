@@ -85,7 +85,16 @@ export function PantallaEntrevista() {
   );
 
   const campo = (
-    <Stack direction="row" spacing={1} alignItems="flex-end">
+    <Stack
+      component="form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        enviar();
+      }}
+      direction="row"
+      spacing={1}
+      alignItems="flex-end"
+    >
       <Box sx={{ flex: 1 }}>
         <CampoTexto
           pregunta={t.pantallas.entrevista.preguntaMensaje}
@@ -97,7 +106,7 @@ export function PantallaEntrevista() {
           }
         />
       </Box>
-      <Boton onClick={enviar} loading={cargando} disabled={!mensajeValido}>
+      <Boton type="submit" loading={cargando} disabled={!mensajeValido}>
         {t.pantallas.entrevista.enviar}
       </Boton>
     </Stack>
