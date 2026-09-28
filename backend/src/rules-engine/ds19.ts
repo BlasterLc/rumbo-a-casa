@@ -14,7 +14,7 @@ const REGLA_DS19 = {
   fechaConsulta: '2026-09-22',
 };
 
-const CAMPOS_REQUERIDOS = ['tienePropiedad', 'subsidioPrevio', 'tramoRSH'] as const;
+const CAMPOS_REQUERIDOS = ['tienePropiedad', 'subsidioPrevio', 'tramoRSH', 'postulanteEdad'] as const;
 
 const SUBSIDIOS_RUTA_A = ['DS49', 'DS1_T1', 'damnificado_2014'];
 
@@ -27,6 +27,10 @@ export function evaluarDS19(perfil: Perfil, idioma: Idioma = IDIOMA_POR_DEFECTO)
 
   if (perfil.tienePropiedad === true) {
     return resultadoDecision('DS19', false, m.yaPropietario, REGLA_DS19);
+  }
+
+  if ((perfil.postulanteEdad as number) < 18) {
+    return resultadoDecision('DS19', false, m.menorDeEdad, REGLA_DS19);
   }
 
   if (SUBSIDIOS_RUTA_A.includes(perfil.subsidioPrevio as string)) {

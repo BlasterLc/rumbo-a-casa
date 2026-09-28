@@ -66,4 +66,13 @@ describe('construirSystemPrompt', () => {
   it.each(['es', 'en'] as const)('[%s] prohíbe agregar datos que no vengan de las herramientas', (idioma) => {
     expect(construirSystemPrompt(idioma)).toContain('No agregues requisitos, montos ni beneficios');
   });
+
+  it.each(['es', 'en'] as const)(
+    '[%s] prohíbe decir que un programa califica sin el resultado de evaluar_elegibilidad de ese mismo turno',
+    (idioma) => {
+      expect(construirSystemPrompt(idioma)).toContain(
+        'Nunca digas "calificas", "no calificas" ni ningún equivalente',
+      );
+    },
+  );
 });
