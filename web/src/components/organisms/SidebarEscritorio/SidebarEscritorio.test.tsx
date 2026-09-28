@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderPantalla } from '../../../test/utilidades';
+import { renderPantalla, cssActual } from '../../../test/utilidades';
 import { SidebarEscritorio } from './SidebarEscritorio';
 
 describe('SidebarEscritorio', () => {
@@ -48,6 +48,16 @@ describe('SidebarEscritorio', () => {
     expect(screen.getByRole('button', { name: /Talk/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Delete my data' })).toBeInTheDocument();
     expect(screen.getByText(/We never ask for your Clave Única/)).toBeInTheDocument();
+  });
+
+  it('los botones de destino y «Borrar mis datos» tienen un anillo de foco visible', () => {
+    renderPantalla(<SidebarEscritorio destino="hablar" />);
+    const regla = (elemento: HTMLElement) => {
+      const clase = Array.from(elemento.classList).find((c) => c.startsWith('css-'))!;
+      return new RegExp(`\\.${clase}:focus-visible\\{[^}]*outline:3px solid var\\(--focus-ring\\)`);
+    };
+    expect(cssActual()).toMatch(regla(screen.getByRole('button', { name: /Hablar/ })));
+    expect(cssActual()).toMatch(regla(screen.getByRole('button', { name: 'Borrar mis datos' })));
   });
 
   it('«Borrar mis datos» limpia la sesión y vuelve al inicio', async () => {

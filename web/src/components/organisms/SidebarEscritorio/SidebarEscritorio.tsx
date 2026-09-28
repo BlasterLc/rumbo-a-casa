@@ -75,6 +75,9 @@ export function SidebarEscritorio({ destino, avisos = 0, onNavegar }: SidebarEsc
               color: activo ? 'var(--ink-brand)' : 'var(--ink)',
               backgroundColor: activo ? 'var(--surface-brand-soft)' : 'transparent',
               '&:hover': { backgroundColor: activo ? 'var(--surface-brand-soft)' : 'var(--surface-sunken)' },
+              // `ButtonBase` fija `outline: 0` en su propio estilo, que gana al `:focus-visible`
+              // global de `MuiCssBaseline`: hay que declarar el anillo completo aquí.
+              '&:focus-visible': { outline: '3px solid var(--focus-ring)', outlineOffset: '2px' },
               '&::before': activo
                 ? {
                     content: '""',
@@ -123,7 +126,12 @@ export function SidebarEscritorio({ destino, avisos = 0, onNavegar }: SidebarEsc
             borrarDatos();
             navigate('/');
           }}
-          sx={{ justifyContent: 'flex-start', px: 'var(--space-3)', minHeight: 'var(--size-touch)' }}
+          sx={{
+            justifyContent: 'flex-start',
+            px: 'var(--space-3)',
+            minHeight: 'var(--size-touch)',
+            '&:focus-visible': { outline: '3px solid var(--focus-ring)', outlineOffset: '2px' },
+          }}
         >
           {t.organisms.sidebarEscritorio.borrarDatos}
         </Boton>
