@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
 import { Paper, Stack, IconButton, Typography, Link } from '@mui/material';
 import { Icono } from '../../atoms/Icono/Icono';
-import { useT } from '../../../i18n/LocaleContext';
+import { useT, useIdioma } from '../../../i18n/LocaleContext';
 import { useEscritorio } from '../../../lib/useEscritorio';
+import { useLectorDeVoz } from '../../../lib/useLectorDeVoz';
 import { type as typeTokens } from '../../../theme/tokens';
 
 export interface BurbujaChatProps {
@@ -10,6 +11,10 @@ export interface BurbujaChatProps {
   children?: ReactNode;
   /** Muestra el botón «Escuchar». Solo tiene efecto en turnos del agente. */
   escuchable?: boolean;
+  /** Texto plano que lee el botón «Escuchar» (sin `**negrita**`). Si no se pasa, se usa
+   * `children` cuando es una cadena — hace falta pasarlo explícito cuando `children` es un
+   * elemento de React (p. ej. `TextoConNegritas`), del que no se puede extraer texto plano. */
+  textoHablado?: string;
   /** Marca el turno como dictado y editable. */
   dictado?: boolean;
   /** Añade el enlace «¿Por qué pregunto esto?». */
@@ -24,15 +29,27 @@ export interface BurbujaChatProps {
  * color. La burbuja no supera `size-measure` de ancho — un párrafo que cruza toda la pantalla
  * se vuelve ilegible.
  */
-export function BurbujaChat({ autor = 'agente', children, escuchable, dictado, porQue, onPorQue }: BurbujaChatProps) {
+export function BurbujaChat({
+  autor = 'agente',
+  children,
+  escuchable,
+  textoHablado,
+  dictado,
+  porQue,
+  onPorQue,
+}: BurbujaChatProps) {
   const t = useT();
+  const { idioma } = useIdioma();
   const escritorio = useEscritorio();
+  const { hablando, hablar, detener, soportado } = useLectorDeVoz();
   const esPersona = autor === 'persona';
+  const textoParaHablar = textoHablado ?? (typeof children === 'string' ? children : '');
 
-  const botonEscuchar = escuchable && !esPersona && (
+  const botonEscuchar = escuchable && !esPersona && soportado && (
     <IconButton
       size="small"
-      aria-label={t.molecules.burbujaChat.escuchar}
+      aria-label={hablando ? t.molecules.burbujaChat.detener : t.molecules.burbujaChat.escuchar}
+      onClick={() => (hablando ? detener() : hablar(textoParaHablar, idioma))}
       sx={{
         alignSelf: escritorio ? 'flex-start' : 'flex-end',
         color: 'var(--ink-brand)',
@@ -43,7 +60,7 @@ export function BurbujaChat({ autor = 'agente', children, escuchable, dictado, p
     >
       <Icono nombre="parlante" tamano={18} />
       <Typography component="span" sx={{ fontSize: '13px', fontWeight: 600 }}>
-        {t.molecules.burbujaChat.escuchar}
+        {hablando ? t.molecules.burbujaChat.detener : t.molecules.burbujaChat.escuchar}
       </Typography>
     </IconButton>
   );

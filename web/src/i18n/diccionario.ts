@@ -25,6 +25,7 @@ export interface DiccionarioTextos {
     };
     burbujaChat: {
       escuchar: string;
+      detener: string;
       dictadoMarca: string;
       porQuePregunto: string;
     };

@@ -25,6 +25,7 @@ export const en: DiccionarioTextos = {
     },
     burbujaChat: {
       escuchar: 'Listen',
+      detener: 'Stop',
       dictadoMarca: 'You said this out loud · tap to fix it',
       porQuePregunto: 'Why am I asking this?',
     },

@@ -57,7 +57,13 @@ export function PantallaEntrevista() {
   const conversacion = (
     <>
       {transcript.map((turno) => (
-        <BurbujaChat key={turno.id} autor={turno.autor} escuchable={turno.autor === 'agente'} dictado={turno.dictado}>
+        <BurbujaChat
+          key={turno.id}
+          autor={turno.autor}
+          escuchable={turno.autor === 'agente'}
+          textoHablado={turno.texto}
+          dictado={turno.dictado}
+        >
           {turno.autor === 'agente' ? <TextoConNegritas texto={turno.texto} /> : turno.texto}
         </BurbujaChat>
       ))}

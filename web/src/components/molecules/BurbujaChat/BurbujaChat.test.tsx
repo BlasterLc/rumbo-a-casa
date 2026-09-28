@@ -1,10 +1,35 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderConIdioma, simularEscritorio, cssActual, type ControlEscritorio } from '../../../test/utilidades';
 import { BurbujaChat } from './BurbujaChat';
 
+/** jsdom no implementa la Web Speech API: se arma un doble mínimo para probar el botón «Escuchar». */
+function instalarSpeechSynthesisFalso() {
+  class UtteranceFalso {
+    text: string;
+    lang = '';
+    onend: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    constructor(text: string) {
+      this.text = text;
+    }
+  }
+  const cancel = vi.fn();
+  const speak = vi.fn();
+  vi.stubGlobal('SpeechSynthesisUtterance', UtteranceFalso);
+  vi.stubGlobal('speechSynthesis', { cancel, speak });
+  return { cancel, speak };
+}
+
 describe('BurbujaChat', () => {
+  beforeEach(() => {
+    instalarSpeechSynthesisFalso();
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('el turno del agente muestra el botón Escuchar con la palabra visible', () => {
     renderConIdioma(
       <BurbujaChat autor="agente" escuchable>
@@ -44,11 +69,65 @@ describe('BurbujaChat', () => {
   });
 });
 
+describe('BurbujaChat: botón Escuchar', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('sin Web Speech API en el navegador no se muestra el botón', () => {
+    renderConIdioma(
+      <BurbujaChat autor="agente" escuchable>
+        Cuéntame de tu familia.
+      </BurbujaChat>,
+    );
+    expect(screen.queryByRole('button', { name: 'Escuchar' })).not.toBeInTheDocument();
+  });
+
+  it('clic en «Escuchar» manda el texto plano (sin **negrita**) a la voz del idioma activo', async () => {
+    const { speak } = instalarSpeechSynthesisFalso();
+    renderConIdioma(
+      <BurbujaChat autor="agente" escuchable textoHablado="**Hola**, ¿cuántos son?">
+        contenido no usado para hablar
+      </BurbujaChat>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Escuchar' }));
+    expect(speak).toHaveBeenCalledOnce();
+    const utterance = speak.mock.calls[0][0];
+    expect(utterance.text).toBe('Hola, ¿cuántos son?');
+    expect(utterance.lang).toBe('es-CL');
+  });
+
+  it('mientras habla, el botón cambia a «Detener»; un segundo clic detiene la lectura', async () => {
+    const { cancel } = instalarSpeechSynthesisFalso();
+    renderConIdioma(
+      <BurbujaChat autor="agente" escuchable textoHablado="Hola">
+        contenido no usado para hablar
+      </BurbujaChat>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Escuchar' }));
+    expect(screen.getByRole('button', { name: 'Detener' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Detener' }));
+    expect(cancel).toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Escuchar' })).toBeInTheDocument();
+  });
+
+  it('sin textoHablado, usa los `children` cuando son texto plano', async () => {
+    const { speak } = instalarSpeechSynthesisFalso();
+    renderConIdioma(<BurbujaChat autor="agente" escuchable>Cuéntame de tu familia.</BurbujaChat>);
+    await userEvent.click(screen.getByRole('button', { name: 'Escuchar' }));
+    expect(speak.mock.calls[0][0].text).toBe('Cuéntame de tu familia.');
+  });
+});
+
 describe('BurbujaChat en escritorio', () => {
   let control: ControlEscritorio | undefined;
+  beforeEach(() => {
+    instalarSpeechSynthesisFalso();
+  });
   afterEach(() => {
     control?.restaurar();
     control = undefined;
+    vi.unstubAllGlobals();
   });
 
   it('en móvil "Escuchar" va encima de la burbuja, como hasta ahora', () => {
