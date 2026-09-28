@@ -4,7 +4,7 @@ export const color = {
   'surface-base': '#f7f5f1',
   'surface-raised': '#ffffff',
   'surface-sunken': '#efece6',
-  'surface-brand': '#1d4ed8',
+  'surface-brand': '#123a6b',
   'surface-brand-soft': '#e4edf8',
   'surface-accent-soft': '#fbede2',
   'surface-success-soft': '#dff0e6',
@@ -20,8 +20,8 @@ export const color = {
   'ink-success': '#14563b',
   'ink-warning': '#7a4700',
   'ink-danger': '#93201f',
-  brand: '#2563eb',
-  'brand-strong': '#1d4ed8',
+  brand: '#1b4d8f',
+  'brand-strong': '#123a6b',
   accent: '#b5542e',
   'accent-strong': '#8f3f1f',
   success: '#1c6b4b',
@@ -29,7 +29,7 @@ export const color = {
   danger: '#b02525',
   border: '#dbd6cd',
   'border-strong': '#7c8593',
-  'focus-ring': '#2563eb',
+  'focus-ring': '#1b4d8f',
   scrim: 'rgba(16, 22, 32, 0.55)',
 } as const;
 

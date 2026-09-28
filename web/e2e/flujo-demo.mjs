@@ -152,7 +152,7 @@ async function revisarFoco(pasos, { contenedor, colorEsperado }) {
 // Cabecera: marca, ES, EN (3 controles), anillo blanco.
 await revisarFoco(3, { contenedor: 'header', colorEsperado: 'rgb(255, 255, 255)' });
 // Sidebar: Hablar, Mi plan, Documentos, Avisos, Borrar mis datos (5 controles), anillo azul de marca.
-await revisarFoco(5, { contenedor: 'nav', colorEsperado: 'rgb(37, 99, 235)' });
+await revisarFoco(5, { contenedor: 'nav', colorEsperado: 'rgb(27, 77, 143)' });
 await capturar('34h-escritorio-foco-cabecera');
 
 // La cabecera sticky (72 px) no debe tapar el elemento enfocado (WCAG 2.4.11): scroll-padding de 80 px.
