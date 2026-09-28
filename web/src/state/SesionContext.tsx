@@ -120,7 +120,10 @@ export function SesionProvider({ children }: { children: ReactNode }) {
       return;
     }
     setEstado((prev) => {
+      // "falta_dato" no es una decisión, es el punto de partida: no se sella. Solo se sella
+      // cuando el motor de reglas llega a un veredicto nuevo (elegible o no_elegible).
       const eventosNuevos: EventoSello[] = resultado.resultados
+        .filter((r) => r.estado !== 'falta_dato')
         .filter((r) => prev.resultados.find((p) => p.programa === r.programa)?.estado !== r.estado)
         .map((r) => ({ id: crearId(), programa: r.programa, estado: r.estado }));
       return {
@@ -143,7 +146,9 @@ export function SesionProvider({ children }: { children: ReactNode }) {
       perfil: perfilDemo,
       resultados,
       plan,
-      eventos: resultados.map((r) => ({ id: crearId(), programa: r.programa, estado: r.estado })),
+      eventos: resultados
+        .filter((r) => r.estado !== 'falta_dato')
+        .map((r) => ({ id: crearId(), programa: r.programa, estado: r.estado })),
       transcript: [
         ...prev.transcript,
         { id: crearId(), autor: 'agente', texto: t.pantallas.entrevista.mensajeDemoActivado },
