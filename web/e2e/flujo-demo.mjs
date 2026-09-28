@@ -90,7 +90,7 @@ await page.getByRole('button', { name: 'English' }).click();
 await page.waitForSelector('text=Alerts');
 await capturar('33g-avisos-en-ingles');
 
-// Escritorio (≥ 900 px): navegación en la cabecera, contenido a 1120 px, dos columnas, sin barra
+// Escritorio (≥ 900 px): navegación en el sidebar, contenido a 1120 px, dos columnas, sin barra
 // inferior ni scroll horizontal. El idioma se restablece a español (el paso anterior lo dejó en inglés).
 await page.evaluate(() => window.localStorage.setItem('rumbo-idioma', 'es'));
 await page.setViewportSize({ width: 1280, height: 800 });
@@ -153,7 +153,7 @@ async function revisarFoco(pasos, { contenedor, colorEsperado }) {
 await revisarFoco(3, { contenedor: 'header', colorEsperado: 'rgb(255, 255, 255)' });
 // Sidebar: Hablar, Mi plan, Documentos, Avisos, Borrar mis datos (5 controles), anillo azul de marca.
 await revisarFoco(5, { contenedor: 'nav', colorEsperado: 'rgb(27, 77, 143)' });
-await capturar('34h-escritorio-foco-cabecera');
+await capturar('34h-escritorio-foco-sidebar');
 
 // La cabecera sticky (72 px) no debe tapar el elemento enfocado (WCAG 2.4.11): scroll-padding de 80 px.
 const relleno = await page.evaluate(() => getComputedStyle(document.documentElement).scrollPaddingTop);

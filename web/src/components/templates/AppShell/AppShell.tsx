@@ -33,8 +33,9 @@ export interface AppShellProps {
 /**
  * Armazón de pantalla. En móvil (< 900 px): cabecera fija arriba, contenido con margen lateral,
  * barra de navegación fija abajo, en una columna centrada de 480 px. En escritorio (≥ 900 px):
- * `CabeceraEscritorio` con la navegación integrada, sin barra inferior, y el contenido hasta
- * 1120 px con el título como `h1` y, si `atras`, un botón "Volver" encima.
+ * `CabeceraEscritorio` (sin navegación) arriba y, debajo, `SidebarEscritorio` con los cuatro
+ * destinos a la izquierda del contenido, que llega hasta 1120 px con el título como `h1` y, si
+ * `atras`, un botón "Volver" encima.
  */
 export function AppShell({ titulo, destino, avisos = 0, atras = false, tituloVisible = true, children }: AppShellProps) {
   const navigate = useNavigate();

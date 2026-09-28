@@ -111,7 +111,7 @@ describe('AppShell en escritorio', () => {
     window.localStorage.clear();
   });
 
-  it('tiene una sola navegación: la de la cabecera, sin barra inferior ni botones repetidos', () => {
+  it('tiene una sola navegación: la del sidebar, sin barra inferior ni botones repetidos', () => {
     const { container } = conRutasEscritorio(['/hablar'], 0);
     expect(screen.getAllByRole('navigation')).toHaveLength(1);
     expect(screen.getAllByRole('button', { name: /Documentos/ })).toHaveLength(1);
