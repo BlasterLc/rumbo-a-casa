@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderConIdioma } from '../../../test/utilidades';
+import { renderConIdioma, cssActual } from '../../../test/utilidades';
 import { CabeceraApp } from './CabeceraApp';
 
 describe('CabeceraApp', () => {
@@ -32,5 +32,15 @@ describe('CabeceraApp', () => {
     renderConIdioma(<CabeceraApp titulo="Tu plan" />);
     expect(screen.getByRole('button', { name: 'Español' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'English' })).toBeInTheDocument();
+  });
+
+  it('deja margen (--space-4) a los bordes, no el padding angosto por defecto del Toolbar', () => {
+    renderConIdioma(<CabeceraApp titulo="Tu plan" />);
+    expect(cssActual()).toMatch(/padding-(left|right|inline):\s*var\(--space-4\)/);
+  });
+
+  it('separa el título del selector con --space-3, no los 4px por defecto', () => {
+    renderConIdioma(<CabeceraApp titulo="Tu plan" />);
+    expect(cssActual()).toMatch(/gap:\s*var\(--space-3\)/);
   });
 });
