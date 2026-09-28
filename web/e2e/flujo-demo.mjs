@@ -118,34 +118,41 @@ for (const [ruta, nombre] of PANTALLAS_ESCRITORIO) {
   await capturar(nombre);
 }
 
-// Foco visible en la cabecera azul (WCAG 2.4.7): al tabular por la marca, los cuatro destinos y ES|EN,
-// cada control debe dibujar un anillo (outline) blanco. Se mide en el navegador: el CSS de MUI puede
-// anular el outline global aunque el código "fije el color".
+// Foco visible (WCAG 2.4.7): cabecera azul (marca, ES, EN) y sidebar blanco (4 destinos + Borrar
+// mis datos) dibujan un anillo al tabular. En la cabecera el anillo es blanco; en el sidebar, el
+// azul de marca (el global de :focus-visible).
 await page.goto(base + '/documentos', { waitUntil: 'networkidle' });
 await page.getByRole('navigation', { name: 'Navegación principal' }).waitFor();
 await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur());
-const CONTROLES_CABECERA = 7; // marca, Hablar, Mi plan, Documentos, Avisos, ES, EN
-for (let i = 0; i < CONTROLES_CABECERA; i++) {
-  await page.keyboard.press('Tab');
-  const foco = await page.evaluate(() => {
-    const el = document.activeElement;
-    const e = getComputedStyle(el);
-    return {
-      etiqueta: (el.getAttribute('aria-label') || el.textContent || el.tagName).trim().slice(0, 40),
-      enCabecera: Boolean(el.closest('header')),
-      estilo: e.outlineStyle,
-      ancho: e.outlineWidth,
-      color: e.outlineColor,
-    };
-  });
-  if (!foco.enCabecera) throw new Error(`El Tab ${i + 1} salió de la cabecera: ${foco.etiqueta}`);
-  if (foco.estilo === 'none' || foco.ancho === '0px') {
-    throw new Error(`Sin anillo de foco en la cabecera para "${foco.etiqueta}": outline ${foco.estilo} ${foco.ancho}`);
-  }
-  if (foco.color !== 'rgb(255, 255, 255)') {
-    throw new Error(`El anillo de foco de "${foco.etiqueta}" debe ser blanco, es ${foco.color}`);
+
+async function revisarFoco(pasos, { contenedor, colorEsperado }) {
+  for (let i = 0; i < pasos; i++) {
+    await page.keyboard.press('Tab');
+    const foco = await page.evaluate((sel) => {
+      const el = document.activeElement;
+      const e = getComputedStyle(el);
+      return {
+        etiqueta: (el.getAttribute('aria-label') || el.textContent || el.tagName).trim().slice(0, 40),
+        dentro: Boolean(el.closest(sel)),
+        estilo: e.outlineStyle,
+        ancho: e.outlineWidth,
+        color: e.outlineColor,
+      };
+    }, contenedor);
+    if (!foco.dentro) throw new Error(`El Tab ${i + 1} salió de "${contenedor}": ${foco.etiqueta}`);
+    if (foco.estilo === 'none' || foco.ancho === '0px') {
+      throw new Error(`Sin anillo de foco para "${foco.etiqueta}": outline ${foco.estilo} ${foco.ancho}`);
+    }
+    if (foco.color !== colorEsperado) {
+      throw new Error(`El anillo de "${foco.etiqueta}" debe ser ${colorEsperado}, es ${foco.color}`);
+    }
   }
 }
+
+// Cabecera: marca, ES, EN (3 controles), anillo blanco.
+await revisarFoco(3, { contenedor: 'header', colorEsperado: 'rgb(255, 255, 255)' });
+// Sidebar: Hablar, Mi plan, Documentos, Avisos, Borrar mis datos (5 controles), anillo azul de marca.
+await revisarFoco(5, { contenedor: 'nav', colorEsperado: 'rgb(37, 99, 235)' });
 await capturar('34h-escritorio-foco-cabecera');
 
 // La cabecera sticky (72 px) no debe tapar el elemento enfocado (WCAG 2.4.11): scroll-padding de 80 px.
