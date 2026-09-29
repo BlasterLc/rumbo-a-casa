@@ -25,7 +25,8 @@ const LIMITE_MENSAJE = 2000;
  * tiene su propio scroll, el campo queda anclado bajo ella y el avance vive en un panel lateral.
  */
 export function PantallaEntrevista() {
-  const { transcript, eventos, perfil, resultados, cargando, error, enviarTurno, activarDemo } = useSesion();
+  const { transcript, eventos, perfil, resultados, cargando, error, esDemo, enviarTurno, activarDemo, borrarDatos } =
+    useSesion();
   const t = useT();
   const escritorio = useEscritorio();
   const [borrador, setBorrador] = useState('');
@@ -89,7 +90,22 @@ export function PantallaEntrevista() {
     </Alerta>
   );
 
-  const campo = (
+  // En modo demo no hay a quién escribirle: en vez del campo de mensaje se dice dónde se está y se
+  // ofrece salir a una conversación real (borrarDatos deja una sesión nueva).
+  const avisoDemo = (
+    <Alerta
+      severity="info"
+      titulo={t.pantallas.entrevista.modoDemoTitulo}
+      accion={t.pantallas.entrevista.salirModoDemo}
+      onAccion={borrarDatos}
+    >
+      {t.pantallas.entrevista.modoDemoAviso}
+    </Alerta>
+  );
+
+  const campo = esDemo ? (
+    avisoDemo
+  ) : (
     <Stack
       component="form"
       onSubmit={(e) => {

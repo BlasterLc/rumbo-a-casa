@@ -113,6 +113,9 @@ export interface DiccionarioTextos {
       limiteCaracteres: (n: number) => string;
       probarModoDemo: string;
       mensajeDemoActivado: string;
+      modoDemoTitulo: string;
+      modoDemoAviso: string;
+      salirModoDemo: string;
       errorGenerico: string;
       /** Nombre accesible del registro de la conversación (escritorio). */
       etiquetaConversacion: string;

@@ -101,6 +101,9 @@ export const en: DiccionarioTextos = {
       probarModoDemo: 'Try demo mode',
       mensajeDemoActivado:
         'We turned on demo mode with a made-up family so you can see how Rumbo a Casa works.',
+      modoDemoTitulo: "You're in demo mode",
+      modoDemoAviso: "This is a made-up family: the results come from the real rules engine, but they aren't your family's.",
+      salirModoDemo: 'Start my conversation',
       errorGenerico: 'Something went wrong. Try again in a moment.',
       etiquetaConversacion: 'Conversation',
       etiquetaAvance: 'Interview progress',
