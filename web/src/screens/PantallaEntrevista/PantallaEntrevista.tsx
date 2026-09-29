@@ -105,7 +105,6 @@ export function PantallaEntrevista() {
           pregunta={t.pantallas.entrevista.preguntaMensaje}
           value={borrador}
           onChange={(e) => setBorrador(e.target.value)}
-          dictado
           error={
             borrador.length > LIMITE_MENSAJE ? t.pantallas.entrevista.limiteCaracteres(LIMITE_MENSAJE) : undefined
           }
