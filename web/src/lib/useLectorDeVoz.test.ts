@@ -7,6 +7,9 @@ function instalarSpeechSynthesisFalso() {
   class UtteranceFalso {
     text: string;
     lang = '';
+    voice: unknown = null;
+    rate = 1;
+    pitch = 1;
     onend: (() => void) | null = null;
     onerror: (() => void) | null = null;
     constructor(text: string) {
@@ -16,8 +19,9 @@ function instalarSpeechSynthesisFalso() {
   const cancel = vi.fn();
   const speak = vi.fn();
   vi.stubGlobal('SpeechSynthesisUtterance', UtteranceFalso);
-  vi.stubGlobal('speechSynthesis', { cancel, speak });
-  return { cancel, speak, UtteranceFalso };
+  const getVoices = vi.fn(() => [] as { name: string; lang: string }[]);
+  vi.stubGlobal('speechSynthesis', { cancel, speak, getVoices });
+  return { cancel, speak, getVoices, UtteranceFalso };
 }
 
 describe('useLectorDeVoz', () => {
@@ -57,6 +61,18 @@ describe('useLectorDeVoz', () => {
       act(() => result.current.hablar('Hello', 'en'));
       const utterance = dobles.speak.mock.calls[0][0];
       expect(utterance.lang).toBe('en-US');
+    });
+
+    it('usa la mejor voz disponible del idioma y un ritmo más pausado', () => {
+      dobles.getVoices.mockReturnValue([
+        { name: 'Voz básica', lang: 'en-US' },
+        { name: 'Microsoft Aria Online (Natural)', lang: 'en-US' },
+      ]);
+      const { result } = renderHook(() => useLectorDeVoz());
+      act(() => result.current.hablar('Hello', 'en'));
+      const utterance = dobles.speak.mock.calls[0][0];
+      expect(utterance.voice.name).toBe('Microsoft Aria Online (Natural)');
+      expect(utterance.rate).toBe(0.95);
     });
 
     it('al terminar la lectura (onend) deja de estar "hablando"', () => {

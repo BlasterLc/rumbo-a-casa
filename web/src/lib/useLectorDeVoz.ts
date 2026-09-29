@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Idioma } from '../i18n/LocaleContext';
+import { elegirVoz } from './elegirVoz';
 
 const IDIOMA_VOZ: Record<Idioma, string> = { es: 'es-CL', en: 'en-US' };
 
@@ -26,6 +27,15 @@ export function useLectorDeVoz() {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(texto.replaceAll('**', ''));
       utterance.lang = IDIOMA_VOZ[idioma];
+      // Voz más natural disponible (neural/Google) en vez de la robótica por defecto; un poco más
+      // pausada y cálida. Si getVoices() aún viene vacío, el navegador usa su voz por `lang`.
+      const voz = elegirVoz(window.speechSynthesis.getVoices?.() ?? [], idioma);
+      if (voz) {
+        utterance.voice = voz;
+        utterance.lang = voz.lang;
+      }
+      utterance.rate = 0.95;
+      utterance.pitch = 1.05;
       utterance.onend = () => setHablando(false);
       utterance.onerror = () => setHablando(false);
       utteranceRef.current = utterance;
