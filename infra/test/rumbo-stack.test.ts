@@ -4,12 +4,13 @@ import { App } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { RumboStack } from '../lib/rumbo-stack';
 
-const sintetizar = () => {
+const sintetizar = (correoAlertas?: string) => {
   const app = new App();
   const stack = new RumboStack(app, 'RumboTest', {
     env: { account: '123456789012', region: 'us-east-1' },
     webDistPath: join(__dirname, 'fixtures/web-dist'),
     backendEntry: join(__dirname, '../../backend/src/handler.ts'),
+    correoAlertas,
   });
   return Template.fromStack(stack);
 };
@@ -129,6 +130,71 @@ describe('RumboStack', () => {
           }),
         ]),
       },
+    });
+  });
+
+  it('añade cabeceras de seguridad (HSTS, CSP, nosniff, frame-ancestors) a la web y a /api/*', () => {
+    const t = sintetizar();
+    t.hasResourceProperties('AWS::CloudFront::ResponseHeadersPolicy', {
+      ResponseHeadersPolicyConfig: Match.objectLike({
+        SecurityHeadersConfig: Match.objectLike({
+          StrictTransportSecurity: Match.objectLike({ Override: true }),
+          ContentTypeOptions: { Override: true },
+          ContentSecurityPolicy: Match.objectLike({
+            ContentSecurityPolicy: Match.stringLikeRegexp("default-src 'self'.*frame-ancestors 'none'"),
+          }),
+        }),
+      }),
+    });
+    t.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: Match.objectLike({
+        DefaultCacheBehavior: Match.objectLike({ ResponseHeadersPolicyId: Match.anyValue() }),
+        CacheBehaviors: Match.arrayWith([
+          Match.objectLike({ PathPattern: '/api/*', ResponseHeadersPolicyId: Match.anyValue() }),
+        ]),
+      }),
+    });
+  });
+
+  it('la CSP solo permite lo que la web usa: su origen, las fuentes de Google y audio data:', () => {
+    const t = sintetizar();
+    const politicas = t.findResources('AWS::CloudFront::ResponseHeadersPolicy');
+    const csp = Object.values(politicas)[0].Properties.ResponseHeadersPolicyConfig.SecurityHeadersConfig
+      .ContentSecurityPolicy.ContentSecurityPolicy as string;
+    expect(csp).toContain("script-src 'self'");
+    expect(csp).not.toContain("script-src 'self' 'unsafe");
+    expect(csp).toContain('https://fonts.googleapis.com');
+    expect(csp).toContain('https://fonts.gstatic.com');
+    expect(csp).toContain("media-src 'self' data:");
+    expect(csp).toContain("connect-src 'self'");
+    expect(csp).toContain("object-src 'none'");
+  });
+
+  it('alarma cuando la Lambda de la API devuelve errores y cuando recibe un volumen anómalo de llamadas', () => {
+    const t = sintetizar();
+    t.resourceCountIs('AWS::CloudWatch::Alarm', 2);
+    t.hasResourceProperties('AWS::CloudWatch::Alarm', {
+      MetricName: 'Errors',
+      Namespace: 'AWS/Lambda',
+      Statistic: 'Sum',
+      ComparisonOperator: 'GreaterThanOrEqualToThreshold',
+      TreatMissingData: 'notBreaching',
+      AlarmActions: Match.anyValue(),
+    });
+    t.hasResourceProperties('AWS::CloudWatch::Alarm', {
+      MetricName: 'Invocations',
+      Namespace: 'AWS/Lambda',
+      Statistic: 'Sum',
+      AlarmActions: Match.anyValue(),
+    });
+  });
+
+  it('suscribe el correo de alertas al tema SNS solo si se da uno', () => {
+    sintetizar().resourceCountIs('AWS::SNS::Subscription', 0);
+    const t = sintetizar('alguien@example.com');
+    t.hasResourceProperties('AWS::SNS::Subscription', {
+      Protocol: 'email',
+      Endpoint: 'alguien@example.com',
     });
   });
 });
