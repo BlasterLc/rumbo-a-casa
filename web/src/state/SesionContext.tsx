@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { enviarMensaje, type ChatError } from '../api/chatClient';
 import { useIdioma, useT } from '../i18n/LocaleContext';
+import { FOLIO_DEMO } from '../lib/perfilDemo';
 import {
   PERFIL_DESCONOCIDO,
   evaluarTodosLosProgramas,
@@ -146,6 +147,12 @@ export function SesionProvider({ children }: { children: ReactNode }) {
       perfil: perfilDemo,
       resultados,
       plan,
+      // Demo de punta a punta: un documento por programa ya listo y una postulación de ejemplo
+      // enviada con folio ficticio, para ver el Plan, los Documentos y el Seguimiento con datos.
+      documentosListos: Object.fromEntries(
+        plan.filter((p) => p.documentos.length > 0).map((p) => [`${p.programa}:${p.documentos[0].nombre}`, true]),
+      ),
+      seguimiento: { etapa: 'postule', folio: FOLIO_DEMO },
       eventos: resultados
         .filter((r) => r.estado !== 'falta_dato')
         .map((r) => ({ id: crearId(), programa: r.programa, estado: r.estado })),

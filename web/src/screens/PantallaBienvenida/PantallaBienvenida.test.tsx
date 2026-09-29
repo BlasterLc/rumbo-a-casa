@@ -16,6 +16,7 @@ function renderPantalla() {
           <Routes>
             <Route path="/" element={<PantallaBienvenida />} />
             <Route path="/hablar" element={<div>pantalla hablar</div>} />
+            <Route path="/resultado" element={<div>pantalla resultado</div>} />
           </Routes>
         </MemoryRouter>
       </SesionProvider>
@@ -28,20 +29,59 @@ describe('PantallaBienvenida', () => {
 
   it('muestra la promesa con el tiempo que toma', () => {
     renderPantalla();
-    expect(screen.getByText('Averigua a qué subsidio de vivienda puedes postular')).toBeInTheDocument();
-    expect(screen.getByText('Cuéntanos de tu familia en unos 5 minutos.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Averigua a qué subsidio de vivienda puedes postular' })).toBeInTheDocument();
+    expect(screen.getByText(/^Cuéntanos de tu familia en unos 5 minutos\./)).toBeInTheDocument();
   });
 
-  it('nombra los cuatro programas como chips informativos', () => {
+  it('nombra los cuatro programas como chips y también en el panel azul', () => {
     renderPantalla();
-    expect(screen.getByText('DS49')).toBeInTheDocument();
-    expect(screen.getByText('DS52')).toBeInTheDocument();
+    expect(screen.getAllByText('DS49')).toHaveLength(2);
+    expect(screen.getAllByText('DS52')).toHaveLength(2);
   });
 
-  it('sin sesión previa, ofrece Empezar y ambos botones llevan a la entrevista', async () => {
+  it('muestra el panel azul con "Tú postulas. Nosotros te preparamos."', () => {
     renderPantalla();
-    await userEvent.click(screen.getByRole('button', { name: 'Empezar' }));
+    expect(screen.getByRole('heading', { level: 2, name: 'Tú postulas. Nosotros te preparamos.' })).toBeInTheDocument();
+  });
+
+  it('sin sesión previa, ofrece Empezar y lleva a la entrevista; no hay "Prefiero hablar" porque no hay entrada de voz', async () => {
+    renderPantalla();
+    expect(screen.queryByRole('button', { name: /prefiero hablar/i })).not.toBeInTheDocument();
+    await userEvent.click(screen.getAllByRole('button', { name: 'Empezar' })[0]);
     expect(await screen.findByText('pantalla hablar')).toBeInTheDocument();
+  });
+
+  it('repite la invitación a empezar en la franja final', async () => {
+    renderPantalla();
+    expect(screen.getByRole('heading', { level: 2, name: '¿Vemos a qué puedes postular?' })).toBeInTheDocument();
+    const empezar = screen.getAllByRole('button', { name: 'Empezar' });
+    expect(empezar).toHaveLength(2);
+    await userEvent.click(empezar[1]);
+    expect(await screen.findByText('pantalla hablar')).toBeInTheDocument();
+  });
+
+  it('incluye "Cómo trabajamos contigo" y las preguntas frecuentes', () => {
+    renderPantalla();
+    expect(screen.getByRole('heading', { level: 2, name: 'Cada quien hace su parte, sin sorpresas' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Lo que la gente nos pregunta' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '¿Tiene algún costo?' })).toBeInTheDocument();
+  });
+
+  it('sin sesión previa, "Probar modo demo" activa la familia ficticia y lleva al resultado', async () => {
+    renderPantalla();
+    await userEvent.click(screen.getAllByRole('button', { name: 'Probar modo demo' })[0]);
+    expect(await screen.findByText('pantalla resultado')).toBeInTheDocument();
+    expect(JSON.parse(window.localStorage.getItem('rumbo-sesion') ?? '{}').esDemo).toBe(true);
+  });
+
+  it('con sesión previa no ofrece el demo (no pisa la conversación) y ofrece seguir', async () => {
+    window.localStorage.setItem(
+      'rumbo-sesion',
+      JSON.stringify({ sessionId: 'x', transcript: [{ id: '1', autor: 'agente', texto: 'hola' }] }),
+    );
+    renderPantalla();
+    expect(screen.queryByRole('button', { name: 'Probar modo demo' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Seguir donde quedaste' })).toHaveLength(2);
   });
 
   it('siempre muestra la frase de confianza completa', () => {
@@ -75,18 +115,12 @@ describe('PantallaBienvenida en escritorio', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'Averigua a qué subsidio de vivienda puedes postular' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('Cuéntanos de tu familia en unos 5 minutos.')).toBeInTheDocument();
-  });
-
-  it('muestra el panel de programas y no repite los chips de la versión móvil', () => {
-    renderPantalla();
-    expect(screen.getByText('Revisamos tus cuatro programas')).toBeInTheDocument();
-    expect(screen.getAllByText('DS49')).toHaveLength(1);
+    expect(screen.getByText(/^Cuéntanos de tu familia en unos 5 minutos\./)).toBeInTheDocument();
   });
 
   it('Empezar sigue llevando a la entrevista', async () => {
     renderPantalla();
-    await userEvent.click(screen.getByRole('button', { name: 'Empezar' }));
+    await userEvent.click(screen.getAllByRole('button', { name: 'Empezar' })[0]);
     expect(await screen.findByText('pantalla hablar')).toBeInTheDocument();
   });
 
@@ -94,8 +128,9 @@ describe('PantallaBienvenida en escritorio', () => {
     renderPantalla();
     await userEvent.click(screen.getByRole('button', { name: 'English' }));
     expect(await screen.findByRole('heading', { level: 1, name: en.pantallas.bienvenida.titulo })).toBeInTheDocument();
-    expect(screen.getByText('We check four programs for you')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: en.pantallas.bienvenida.empezar })).toBeInTheDocument();
+    expect(screen.getByText('You apply. We get you ready.')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: en.pantallas.bienvenida.empezar })).toHaveLength(2);
+    expect(screen.getByRole('heading', { level: 2, name: en.pantallas.bienvenida.faq.titulo })).toBeInTheDocument();
   });
 
   it('sigue sin pedir ningún dato: no hay campos de texto', () => {
@@ -103,7 +138,7 @@ describe('PantallaBienvenida en escritorio', () => {
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
-  it('en escritorio muestra la banda de cómo funciona, debajo del hero', () => {
+  it('muestra la banda de cómo funciona, debajo del hero', () => {
     renderPantalla();
     expect(screen.getByText('Mira tu resultado')).toBeInTheDocument();
   });

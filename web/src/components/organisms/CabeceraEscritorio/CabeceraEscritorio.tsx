@@ -39,7 +39,7 @@ export function CabeceraEscritorio({ onInicio }: CabeceraEscritorioProps) {
             '&:focus-visible': { outline: '3px solid var(--ink-on-brand)', outlineOffset: '2px' },
           }}
         >
-          <Logotipo disposicion="horizontal" alto={32} tono="claro" />
+          <Logotipo disposicion="horizontal" alto={44} tono="claro" />
         </ButtonBase>
         <Typography
           sx={{

@@ -3,6 +3,7 @@
   <g transform="translate(5.33 2.02) scale(0.833)">
     <rect x="8" y="36" width="14" height="20" rx="6" fill="#1b4d8f"></rect>
     <rect x="25" y="26" width="14" height="30" rx="6" fill="#1b4d8f"></rect>
-    <path d="M42 23a7 7 0 0 1 14 0v27a6 6 0 0 1-6 6h-2a6 6 0 0 1-6-6z" fill="#b5542e"></path>
+    <path d="M 42 50 Q 42 56 48 56 L 50 56 Q 56 56 56 50 L 56 34 Q 56 32 54.77 30.42 L 50.84 25.37 Q 49 23 47.16 25.37 L 43.23 30.42 Q 42 32 42 34 Z" fill="#b5542e"></path>
+    <path d="M 45.5 42.8 Q 45.5 41.5 46.8 41.5 L 51.2 41.5 Q 52.5 41.5 52.5 42.8 L 52.5 47.2 Q 52.5 48.5 51.2 48.5 L 46.8 48.5 Q 45.5 48.5 45.5 47.2 Z" fill="#ffffff"></path>
   </g>
 </svg>

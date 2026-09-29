@@ -4,6 +4,7 @@ import type {
 } from 'aws-lambda';
 import { z } from 'zod';
 import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
+import { PollyClient } from '@aws-sdk/client-polly';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { IDIOMAS, IDIOMA_POR_DEFECTO, evaluarTodosLosProgramas } from './rules-engine/index';
@@ -11,6 +12,7 @@ import { conversar, type InvocarConverse, type SalidaConversar } from './chat/co
 import { MENSAJES_CHAT } from './chat/mensajes';
 import { generarPlanPapeles } from './chat/papeles';
 import { construirDemo } from './chat/demo';
+import { SolicitudVoz, crearSintetizadorPolly, type Sintetizar } from './chat/voz';
 import { RepositorioDynamo, type RepositorioSesiones } from './chat/sesion-repositorio';
 
 export const MAX_MENSAJES_POR_SESION = 40;
@@ -102,7 +104,28 @@ async function atenderChat(event: APIGatewayProxyEventV2, deps: DependenciasChat
   });
 }
 
-export function crearHandler(obtenerDependencias: () => DependenciasChat) {
+async function atenderVoz(event: APIGatewayProxyEventV2, sintetizar: Sintetizar): Promise<Resultado> {
+  const solicitud = SolicitudVoz.safeParse(leerCuerpo(event));
+  if (!solicitud.success) return json(400, { error: 'solicitud_invalida' });
+  try {
+    const audio = await sintetizar(solicitud.data.texto, solicitud.data.idioma);
+    return json(200, { audio: Buffer.from(audio).toString('base64'), formato: 'mp3' });
+  } catch (error) {
+    console.error('Polly falló', error);
+    return json(503, { error: 'voz_no_disponible' });
+  }
+}
+
+let sintetizadorReal: Sintetizar | undefined;
+function obtenerSintetizadorReal(): Sintetizar {
+  sintetizadorReal ??= crearSintetizadorPolly(new PollyClient({ requestHandler: { requestTimeout: 15_000 }, maxAttempts: 2 }));
+  return sintetizadorReal;
+}
+
+export function crearHandler(
+  obtenerDependencias: () => DependenciasChat,
+  obtenerSintetizador: () => Sintetizar = obtenerSintetizadorReal,
+) {
   return async (event: APIGatewayProxyEventV2): Promise<Resultado> => {
     if (event.rawPath === '/api/hello') {
       return json(200, {
@@ -126,6 +149,12 @@ export function crearHandler(obtenerDependencias: () => DependenciasChat) {
         console.error('Error en /api/chat', error);
         return json(500, { error: 'error_interno' });
       }
+    }
+    if (event.rawPath === '/api/voz') {
+      if (event.requestContext?.http?.method !== 'POST') {
+        return json(405, { error: 'metodo_no_permitido' });
+      }
+      return atenderVoz(event, obtenerSintetizador());
     }
     return json(404, { error: 'not_found' });
   };

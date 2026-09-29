@@ -18,6 +18,7 @@
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1139.0",
     "@aws-sdk/client-dynamodb": "^3.1139.0",
+    "@aws-sdk/client-polly": "^3.1142.0",
     "@aws-sdk/lib-dynamodb": "^3.1139.0",
     "zod": "^4.6.5"
   }

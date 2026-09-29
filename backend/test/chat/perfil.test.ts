@@ -16,6 +16,32 @@ describe('PERFIL_VACIO', () => {
   });
 });
 
+describe('aplicarCambios: tramo del RSH', () => {
+  it.each([
+    [30, 40],
+    [0, 40],
+    [40, 40],
+    [45, 50],
+    [55, 60],
+    [70, 70],
+    [99, 100],
+    [100, 100],
+  ])('un %s%% se guarda como el tramo %s (el tramo más bajo es 40; entre tramos se sube al siguiente)', (dicho, tramo) => {
+    const r = aplicarCambios(PERFIL_VACIO, { tramoRSH: dicho });
+    expect(r.perfil.tramoRSH).toBe(tramo);
+    expect(r.aceptados).toContain('tramoRSH');
+    expect(r.rechazados).toEqual([]);
+  });
+
+  it('un valor sobre 100 sigue rechazándose', () => {
+    expect(aplicarCambios(PERFIL_VACIO, { tramoRSH: 150 }).rechazados[0].campo).toBe('tramoRSH');
+  });
+
+  it('un valor que no es número sigue rechazándose por el esquema', () => {
+    expect(aplicarCambios(PERFIL_VACIO, { tramoRSH: 'alto' }).rechazados[0].campo).toBe('tramoRSH');
+  });
+});
+
 describe('aplicarCambios', () => {
   it('aplica campos válidos y los lista en aceptados', () => {
     const r = aplicarCambios(PERFIL_VACIO, { tramoRSH: 40, region: 'Biobío', tienePropiedad: false });

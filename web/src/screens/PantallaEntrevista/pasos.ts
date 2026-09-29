@@ -24,8 +24,9 @@ export const GRUPOS_ENTREVISTA: ReadonlyArray<{ clave: ClavePasoEntrevista; camp
  * no de exigir los 13 campos del perfil: hay campos opcionales según el caso (la excepción de
  * postulación individual solo importa sin otros integrantes) o alternativos entre sí (ingreso en
  * CLP o en UF), y con ellos sin conocer el motor igual puede dar los cuatro veredictos.
- * Devuelve el primer grupo con un campo que aún se necesita; si el motor ya no pide nada,
- * el último. Sin resultados todavía (sesión nueva) es el primero.
+ * Devuelve el primer grupo con un campo que aún se necesita. Si el motor ya no pide nada y dio
+ * los cuatro veredictos, devuelve `GRUPOS_ENTREVISTA.length`: todos los pasos completos (el último
+ * no queda "pendiente"). Sin resultados todavía (sesión nueva) es el primero.
  */
 export function pasoActivo(perfil: Perfil, resultados: ResultadoPrograma[]): number {
   if (resultados.length === 0) return 0;
@@ -33,5 +34,7 @@ export function pasoActivo(perfil: Perfil, resultados: ResultadoPrograma[]): num
     resultados.flatMap((r) => (r.camposFaltantes ?? []).filter((c) => perfil[c as keyof Perfil] === 'desconocido')),
   );
   const indice = GRUPOS_ENTREVISTA.findIndex((g) => g.campos.some((c) => pendientes.has(c)));
-  return indice === -1 ? GRUPOS_ENTREVISTA.length - 1 : indice;
+  if (indice !== -1) return indice;
+  // Sin campos pendientes: si aún hay algún "falta dato" sin detalle, se queda en el último paso.
+  return resultados.some((r) => r.estado === 'falta_dato') ? GRUPOS_ENTREVISTA.length - 1 : GRUPOS_ENTREVISTA.length;
 }

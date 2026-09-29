@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { GRUPOS_ENTREVISTA, pasoActivo } from './pasos';
+import { PERFIL_DEMO } from '../../lib/perfilDemo';
 import { PERFIL_DESCONOCIDO, evaluarTodosLosProgramas, type Perfil } from '../../types/dominio';
 
 describe('pasoActivo', () => {
@@ -34,7 +35,7 @@ describe('pasoActivo', () => {
     expect(pasoActivo(perfil, evaluarTodosLosProgramas(perfil, 'es'))).toBe(2);
   });
 
-  it('con el perfil de una corrida real (3 campos sin conocer pero los 4 veredictos dados), llega al último paso', () => {
+  it('con el perfil de una corrida real (3 campos sin conocer pero los 4 veredictos dados), todos los pasos quedan completos', () => {
     // zonaEspecial, ingresoFamiliarMensualCLP y excepcionPostulacionIndividualDS49 siguen en
     // 'desconocido', y aun así el motor decide los cuatro programas: no hay nada más que preguntar.
     const perfil: Perfil = {
@@ -56,6 +57,18 @@ describe('pasoActivo', () => {
     };
     const resultados = evaluarTodosLosProgramas(perfil, 'es');
     expect(resultados.every((r) => r.estado !== 'falta_dato')).toBe(true);
-    expect(pasoActivo(perfil, resultados)).toBe(4);
+    expect(pasoActivo(perfil, resultados)).toBe(GRUPOS_ENTREVISTA.length);
+  });
+
+  it('el perfil completo del modo demo deja los 5 pasos completos', () => {
+    const resultados = evaluarTodosLosProgramas(PERFIL_DEMO, 'es');
+    expect(pasoActivo(PERFIL_DEMO, resultados)).toBe(GRUPOS_ENTREVISTA.length);
+  });
+
+  it('sin campos pendientes pero con un "falta dato" sin detalle, no da todo por completo', () => {
+    const resultados = evaluarTodosLosProgramas(PERFIL_DEMO, 'es').map((r, i) =>
+      i === 0 ? { ...r, estado: 'falta_dato' as const, camposFaltantes: undefined } : r,
+    );
+    expect(pasoActivo(PERFIL_DEMO, resultados)).toBe(GRUPOS_ENTREVISTA.length - 1);
   });
 });

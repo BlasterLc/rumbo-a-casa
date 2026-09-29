@@ -37,6 +37,16 @@ export interface ResultadoCambios {
 const aUF = (clp: number) => Math.round((clp / VALOR_UF.clp) * 100) / 100;
 const aCLP = (uf: number) => Math.round(uf * VALOR_UF.clp);
 
+/**
+ * El RSH agrupa a los hogares en tramos de 40, 50, ..., 100 %. El más bajo es el 40: quien dice
+ * "30 %" está dentro del primer 40 %; un valor entre tramos (45 %) pertenece al siguiente (50 %).
+ * Sin esto el modelo rechaza el dato y la conversación se atasca pidiéndolo una y otra vez.
+ */
+function normalizarTramoRSH(valor: unknown): unknown {
+  if (typeof valor !== 'number' || !Number.isFinite(valor) || valor > 100) return valor;
+  return Math.max(40, Math.ceil(valor / 10) * 10);
+}
+
 const esCampoPerfil = (campo: string): campo is keyof Perfil => campo in PerfilSchema.shape;
 
 export function aplicarCambios(perfil: Perfil, cambios: Record<string, unknown>): ResultadoCambios {
@@ -60,7 +70,7 @@ export function aplicarCambios(perfil: Perfil, cambios: Record<string, unknown>)
       continue;
     }
     const esquema: z.ZodType = PerfilSchema.shape[campo];
-    const resultado = esquema.safeParse(valor);
+    const resultado = esquema.safeParse(campo === 'tramoRSH' ? normalizarTramoRSH(valor) : valor);
     if (resultado.success) {
       nuevo[campo] = resultado.data;
       aceptados.push(campo);

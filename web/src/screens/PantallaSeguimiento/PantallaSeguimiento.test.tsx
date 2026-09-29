@@ -95,6 +95,22 @@ describe('PantallaSeguimiento en escritorio', () => {
     expect(css).toMatch(/@media \(min-width:900px\)\s*\{[^}]*grid-column:\s*2/);
   });
 
+  it('con el folio ya guardado, lo confirma y deshabilita "Guardar folio" hasta que cambie', async () => {
+    mockSesion({ seguimiento: { etapa: 'postule', folio: 'ABC-123' } });
+    renderPantalla(<PantallaSeguimiento />, { ruta: '/avisos' });
+    expect(screen.getByRole('status')).toHaveTextContent('Folio guardado: ABC-123');
+    expect(screen.getByRole('button', { name: 'Guardar folio' })).toBeDisabled();
+    await userEvent.type(screen.getByLabelText('¿Cuál es tu número de folio?'), '9');
+    expect(screen.getByRole('button', { name: 'Guardar folio' })).toBeEnabled();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('sin folio guardado no muestra confirmación', () => {
+    mockSesion({ seguimiento: { etapa: 'postule' } });
+    renderPantalla(<PantallaSeguimiento />, { ruta: '/avisos' });
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
   it('en la etapa "papeles" sigue sin pedir folio', () => {
     mockSesion({ seguimiento: { etapa: 'papeles' } });
     renderPantalla(<PantallaSeguimiento />, { ruta: '/avisos' });

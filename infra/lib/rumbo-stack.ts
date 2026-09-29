@@ -59,6 +59,17 @@ export class RumboStack extends cdk.Stack {
         ],
       }),
     );
+    apiFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        // Los modelos de Anthropic en Bedrock se distribuyen vía AWS Marketplace:
+        // la primera invocación completa una suscripción y necesita que el rol
+        // que invoca tenga estos permisos (no soportan resource-level, requieren "*").
+        actions: ['aws-marketplace:ViewSubscriptions', 'aws-marketplace:Subscribe'],
+        resources: ['*'],
+      }),
+    );
+    // Voz de "Escuchar" (POST /api/voz). SynthesizeSpeech no admite permisos por recurso salvo léxicos.
+    apiFn.addToRolePolicy(new iam.PolicyStatement({ actions: ['polly:SynthesizeSpeech'], resources: ['*'] }));
     const apiUrl = apiFn.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
     });

@@ -5,6 +5,7 @@ import { LocaleProvider } from '../i18n/LocaleContext';
 import { SesionProvider, useSesion } from './SesionContext';
 import * as chatClient from '../api/chatClient';
 import { PERFIL_DESCONOCIDO } from '../types/dominio';
+import { PERFIL_DEMO, FOLIO_DEMO } from '../lib/perfilDemo';
 import type { ResultadoPrograma } from '../types/dominio';
 
 function resultado(programa: ResultadoPrograma['programa'], estado: ResultadoPrograma['estado']): ResultadoPrograma {
@@ -27,6 +28,11 @@ function Sonda() {
       <div data-testid="error">{s.error?.codigo ?? ''}</div>
       <button onClick={() => s.enviarTurno('Hola')}>enviar</button>
       <button onClick={() => s.borrarDatos()}>borrar</button>
+      <button onClick={() => s.activarDemo(PERFIL_DEMO)}>demo</button>
+      <div data-testid="folio">{s.seguimiento.folio ?? ''}</div>
+      <div data-testid="etapa">{s.seguimiento.etapa}</div>
+      <div data-testid="docs-listos">{Object.values(s.documentosListos).filter(Boolean).length}</div>
+      <div data-testid="programas-plan">{s.plan.length}</div>
     </div>
   );
 }
@@ -144,6 +150,16 @@ describe('SesionProvider', () => {
     // Solo DS19 (a elegible) y DS52 (a no_elegible) son decisiones nuevas; los dos que
     // siguen en falta_dato no deberían sumar un segundo sello.
     expect(screen.getByTestId('eventos-length')).toHaveTextContent('2');
+  });
+
+  it('el modo demo deja un folio ficticio, la etapa "postulé" y un documento listo por programa', async () => {
+    conProveedores();
+    await userEvent.click(screen.getByRole('button', { name: 'demo' }));
+    expect(screen.getByTestId('folio')).toHaveTextContent(FOLIO_DEMO);
+    expect(screen.getByTestId('etapa')).toHaveTextContent('postule');
+    const programas = Number(screen.getByTestId('programas-plan').textContent);
+    expect(programas).toBeGreaterThan(0);
+    expect(screen.getByTestId('docs-listos')).toHaveTextContent(String(programas));
   });
 
   it('si localStorage lanza (modo privado), la sesión sigue funcionando en memoria', () => {

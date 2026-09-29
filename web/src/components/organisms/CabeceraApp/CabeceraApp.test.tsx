@@ -44,4 +44,12 @@ describe('CabeceraApp', () => {
     renderConIdioma(<CabeceraApp titulo="Tu plan" onInicio={() => {}} />);
     expect(cssActual()).toMatch(/gap:\s*var\(--space-3\)/);
   });
+
+  it('deja aire arriba y abajo del selector, en vez de que ocupe el 100% del alto de la barra', () => {
+    // El botón del selector usa min-height: var(--size-touch) (tamaño táctil, no se toca). Sin
+    // padding vertical propio, el Toolbar terminaba con el mismo alto exacto que ese botón — cero
+    // margen arriba y abajo, pegado a ambos bordes de la barra (confirmado midiendo el sitio real).
+    renderConIdioma(<CabeceraApp titulo="Tu plan" onInicio={() => {}} />);
+    expect(cssActual()).toMatch(/padding-(top|block-start|block):\s*var\(--space-2\)/);
+  });
 });

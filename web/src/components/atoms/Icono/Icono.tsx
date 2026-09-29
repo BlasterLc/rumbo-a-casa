@@ -17,10 +17,13 @@ import VerifiedUserRounded from '@mui/icons-material/VerifiedUserRounded';
 import ExpandMoreRounded from '@mui/icons-material/ExpandMoreRounded';
 import RemoveRounded from '@mui/icons-material/RemoveRounded';
 import AccountBalanceRounded from '@mui/icons-material/AccountBalanceRounded';
+import LockOutlined from '@mui/icons-material/LockOutlined';
+import PersonOutlineRounded from '@mui/icons-material/PersonOutlineRounded';
 
 export type NombreIcono =
   | 'check' | 'reloj' | 'alerta' | 'info' | 'cerrar' | 'atras' | 'mic' | 'parlante'
-  | 'chat' | 'casa' | 'papel' | 'campana' | 'externo' | 'escudo' | 'abajo' | 'menos' | 'banco';
+  | 'chat' | 'casa' | 'papel' | 'campana' | 'externo' | 'escudo' | 'abajo' | 'menos' | 'banco'
+  | 'candado' | 'persona';
 
 const MAPA: Record<NombreIcono, ComponentType<SvgIconProps>> = {
   check: CheckRounded,
@@ -40,6 +43,8 @@ const MAPA: Record<NombreIcono, ComponentType<SvgIconProps>> = {
   abajo: ExpandMoreRounded,
   menos: RemoveRounded,
   banco: AccountBalanceRounded,
+  candado: LockOutlined,
+  persona: PersonOutlineRounded,
 };
 
 export const NOMBRES_ICONO = Object.keys(MAPA) as NombreIcono[];
