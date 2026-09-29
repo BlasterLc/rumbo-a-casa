@@ -49,6 +49,8 @@ export const en: DiccionarioTextos = {
       deListos: (listos, total) => `${listos} of ${total} ready`,
       vence: (fecha) => `Due: ${fecha}`,
       notaNoGuarda: "We don't store your documents. The checkbox is just a reminder for you.",
+      yaLoTengo: 'I already have it saved',
+      ayuda: 'Check each paper once you have it saved at home or on your phone.',
     },
     tarjetaPorQue: {
       tuDato: (dato) => `Your answer: ${dato}`,
@@ -130,6 +132,9 @@ export const en: DiccionarioTextos = {
     documentos: {
       titulo: 'Your documents',
       sinProgramas: "You don't qualify for any program yet. Go back to the interview to keep telling us.",
+      explicacionTitulo: "You don't need to upload anything",
+      explicacion:
+        "This is just a list of the papers you will need. We don't upload or store them here: it helps you know what to gather. When you have one saved, check it off the list.",
     },
     seguimiento: {
       titulo: 'Alerts',

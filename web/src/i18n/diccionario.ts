@@ -64,6 +64,8 @@ export interface DiccionarioTextos {
       deListos: (listos: number, total: number) => string;
       vence: (fecha: string) => string;
       notaNoGuarda: string;
+      yaLoTengo: string;
+      ayuda: string;
     };
     tarjetaPorQue: {
       tuDato: (dato: string) => string;
@@ -144,6 +146,8 @@ export interface DiccionarioTextos {
     documentos: {
       titulo: string;
       sinProgramas: string;
+      explicacionTitulo: string;
+      explicacion: string;
     };
     seguimiento: {
       titulo: string;

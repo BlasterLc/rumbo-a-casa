@@ -49,6 +49,8 @@ export const es: DiccionarioTextos = {
       deListos: (listos, total) => `${listos} de ${total} listos`,
       vence: (fecha) => `Vence: ${fecha}`,
       notaNoGuarda: 'La app no guarda tus documentos. La casilla es solo un recordatorio tuyo.',
+      yaLoTengo: 'Ya lo tengo guardado',
+      ayuda: 'Marca cada papel cuando ya lo tengas guardado en tu casa o en tu teléfono.',
     },
     tarjetaPorQue: {
       tuDato: (dato) => `Tu dato: ${dato}`,
@@ -130,6 +132,9 @@ export const es: DiccionarioTextos = {
     documentos: {
       titulo: 'Tus documentos',
       sinProgramas: 'Todavía no calificas para ningún programa. Vuelve a la entrevista para seguir contándonos.',
+      explicacionTitulo: 'No tienes que subir nada',
+      explicacion:
+        'Esta es solo una lista de los papeles que vas a necesitar. Aquí no los subimos ni los guardamos: sirve para que sepas qué juntar. Cuando tengas uno guardado, márcalo en la lista.',
     },
     seguimiento: {
       titulo: 'Avisos',
