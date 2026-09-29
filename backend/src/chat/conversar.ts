@@ -15,6 +15,7 @@ export type InvocarConverse = (
 ) => Promise<ConverseCommandOutput>;
 
 export const MAX_VUELTAS_HERRAMIENTAS = 6;
+const REINTENTOS_RESPUESTA_VACIA = 1;
 
 // Se mantiene exportada por compatibilidad: es la respuesta de respaldo en español.
 export const RESPUESTA_RESPALDO = MENSAJES_CHAT.es.respaldo;
@@ -51,6 +52,8 @@ export async function conversar(
   const respaldo = MENSAJES_CHAT[idioma].respaldo;
   const inicio: Message[] = [...entrada.historial, { role: 'user', content: [{ text: entrada.mensaje }] }];
   const enCurso: Message[] = [...inicio];
+  let reintentosVacios = 0;
+  const textosPrevios: string[] = [];
 
   for (let vuelta = 0; vuelta < MAX_VUELTAS_HERRAMIENTAS; vuelta++) {
     const salida = await invocar({
@@ -64,7 +67,15 @@ export async function conversar(
     const pedidos = contenido.filter((bloque) => bloque.toolUse);
 
     if (salida.stopReason !== 'tool_use' || pedidos.length === 0) {
-      const respuesta = textoDe(contenido) || respaldo;
+      // A veces el modelo escribe su respuesta, llama a una herramienta y luego cierra el turno sin
+      // texto (`end_turn` con contenido vacío): lo que ya escribió antes de la herramienta es su
+      // respuesta, así que se usa. Reintentar con los mismos mensajes no sirve, sale vacío igual.
+      const texto = textoDe(contenido) || textosPrevios.join('\n\n');
+      if (!texto && reintentosVacios < REINTENTOS_RESPUESTA_VACIA) {
+        reintentosVacios++;
+        continue;
+      }
+      const respuesta = texto || respaldo;
       return {
         perfil,
         historial: [...enCurso, { role: 'assistant', content: [{ text: respuesta }] }],
@@ -72,6 +83,8 @@ export async function conversar(
       };
     }
 
+    const textoPrevio = textoDe(contenido);
+    if (textoPrevio) textosPrevios.push(textoPrevio);
     enCurso.push({ role: 'assistant', content: contenido });
     const resultados = pedidos.map(({ toolUse }): ContentBlock => {
       const r = ejecutarHerramienta(toolUse?.name ?? '', toolUse?.input, perfil, idioma);

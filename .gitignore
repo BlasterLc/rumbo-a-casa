@@ -28,3 +28,13 @@ dsDocs/
 # docs/programas-subsidio.md (que cita el motor de reglas) y docs/evidence/.
 docs/superpowers/
 docs/stack-tecnico.md
+
+# Copia local de contexto para retomar el proyecto entre sesiones (incluye
+# copias de los docs de arriba): solo para la máquina local.
+docs/rumbo-contexto-local/
+
+# Backlog interno de pendientes: notas de trabajo, no parte del repo público.
+docs/backlog.md
+
+web/e2e/capturas/
+.worktrees/

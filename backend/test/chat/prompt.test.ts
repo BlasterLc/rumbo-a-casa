@@ -28,6 +28,19 @@ describe('construirSystemPrompt', () => {
     expect(es).not.toContain('How you speak (English)');
   });
 
+  it('en español el tuteo singular vale aunque la persona hable en plural, con ejemplos', () => {
+    const es = construirSystemPrompt('es');
+    expect(es).toContain('Aunque hable en plural');
+    expect(es).toContain('¿En qué región vives?');
+    expect(es).toContain('¿Tú o alguien de tu grupo familiar es dueño de una vivienda?');
+  });
+
+  it.each(['es', 'en'] as const)('[%s] solo permite la negrita como formato, que es lo único que la interfaz dibuja', (idioma) => {
+    const prompt = construirSystemPrompt(idioma);
+    expect(prompt).toContain(idioma === 'es' ? '**negrita**' : '**bold**');
+    expect(prompt).toContain(idioma === 'es' ? 'No uses ninguna otra marca de Markdown' : 'Do not use any other Markdown');
+  });
+
   it('en inglés trae las reglas de tono en inglés', () => {
     const en = construirSystemPrompt('en');
     expect(en).toContain('How you speak (English)');
@@ -53,4 +66,13 @@ describe('construirSystemPrompt', () => {
   it.each(['es', 'en'] as const)('[%s] prohíbe agregar datos que no vengan de las herramientas', (idioma) => {
     expect(construirSystemPrompt(idioma)).toContain('No agregues requisitos, montos ni beneficios');
   });
+
+  it.each(['es', 'en'] as const)(
+    '[%s] prohíbe decir que un programa califica sin el resultado de evaluar_elegibilidad de ese mismo turno',
+    (idioma) => {
+      expect(construirSystemPrompt(idioma)).toContain(
+        'Nunca digas "calificas", "no calificas" ni ningún equivalente',
+      );
+    },
+  );
 });

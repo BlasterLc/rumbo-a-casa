@@ -69,4 +69,15 @@ describe('evaluarDS19', () => {
     expect(r.estado).toBe('elegible');
     expect(r.detalle?.ruta).toBe('B');
   });
+
+  it('no_elegible si es menor de edad, aunque cumpla RSH y propiedad', () => {
+    const r = evaluarDS19({ ...base, subsidioPrevio: 'ninguno', tramoRSH: 85, postulanteEdad: 17 });
+    expect(r.estado).toBe('no_elegible');
+  });
+
+  it('falta_dato si no se conoce la edad de quien postula', () => {
+    const r = evaluarDS19({ ...base, postulanteEdad: 'desconocido' });
+    expect(r.estado).toBe('falta_dato');
+    expect(r.camposFaltantes).toContain('postulanteEdad');
+  });
 });
