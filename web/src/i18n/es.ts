@@ -61,24 +61,88 @@ export const es: DiccionarioTextos = {
       DS52: 'Arriendo',
     },
     panelProgramas: {
-      titulo: 'Revisamos tus cuatro programas',
-      descripcion: {
-        DS49: 'Comprar o construir una vivienda con tu ahorro y el subsidio, sin crédito hipotecario.',
-        DS1: 'Comprar una vivienda si tu familia es de sectores medios.',
-        DS19: 'Comprar en proyectos donde conviven familias de distintos ingresos.',
-        DS52: 'Pagar parte de tu arriendo con un subsidio mensual.',
+      titulo: 'Tú postulas. Nosotros te preparamos.',
+      cuerpo:
+        'Esto no es un sitio del Estado. Es una herramienta que ordena tus datos y arma tu plan. El botón final lo aprietas tú, con tu Clave Única, en el sitio del MINVU.',
+      etiquetaProgramas: 'Programas que revisamos',
+      lineas: {
+        DS49: 'la casa propia sin crédito hipotecario',
+        DS1: 'sectores medios, con crédito',
+        DS19: 'integración social',
+        DS52: 'subsidio de arriendo',
       },
     },
   },
   pantallas: {
     bienvenida: {
       titulo: 'Averigua a qué subsidio de vivienda puedes postular',
-      bajada: 'Cuéntanos de tu familia en unos 5 minutos.',
+      bajada:
+        'Cuéntanos de tu familia en unos 5 minutos. Te decimos a qué puedes postular, con la regla y su fuente, y te armamos el plan paso a paso.',
       empezar: 'Empezar',
       seguirDondeQuedaste: 'Seguir donde quedaste',
       empezarDeNuevo: 'Empezar de nuevo',
       fraseConfianza:
         'Herramienta independiente, no oficial. Nunca te pediremos tu Clave Única. Puedes borrar tus datos cuando quieras.',
+      roles: {
+        eyebrow: 'Cómo trabajamos contigo',
+        titulo: 'Cada quien hace su parte, sin sorpresas',
+        bajada:
+          'Somos claros con lo que hacemos por ti y lo que queda en tus manos. Así sabes, en todo momento, quién tiene el control de tu trámite.',
+        hace: {
+          etiqueta: 'Lo que hace',
+          nombre: 'Rumbo a Casa',
+          items: [
+            'Ordena tus datos y arma tu carpeta de documentos.',
+            'Evalúa tu elegibilidad con las reglas vigentes del MINVU.',
+            'Te explica por qué calificas, citando la regla y su fecha.',
+            'Te recuerda el próximo llamado y lo que te falta.',
+          ],
+        },
+        tu: {
+          etiqueta: 'Lo que haces',
+          nombre: 'Tú',
+          items: [
+            'Nos cuentas de tu familia, a tu ritmo.',
+            'Reúnes los documentos que te indicamos.',
+            'Aprietas el botón final en el MINVU, con tu Clave Única.',
+          ],
+          aviso: 'Nunca pedimos tu Clave Única. Puedes borrar tus datos cuando quieras.',
+        },
+      },
+      faq: {
+        eyebrow: 'Preguntas frecuentes',
+        titulo: 'Lo que la gente nos pregunta',
+        preguntas: [
+          {
+            pregunta: '¿Rumbo a Casa es del Estado?',
+            respuesta:
+              'No. Es una herramienta independiente y no oficial. Usamos las reglas vigentes del MINVU, pero la postulación la haces tú en su sitio.',
+          },
+          {
+            pregunta: '¿Me piden mi Clave Única?',
+            respuesta: 'Nunca. Solo la usas tú, al final, en el sitio del MINVU.',
+          },
+          {
+            pregunta: '¿Qué pasa con mis datos?',
+            respuesta:
+              'Los usamos para armar tu resultado y tu plan. No pedimos correo ni registro, y puedes borrar lo guardado en tu dispositivo con «Empezar de nuevo».',
+          },
+          {
+            pregunta: '¿El resultado es definitivo?',
+            respuesta:
+              'No. Es una orientación con las reglas vigentes. La decisión final la toma el MINVU cuando postulas.',
+          },
+          { pregunta: '¿Tiene algún costo?', respuesta: 'No. Usar Rumbo a Casa es gratis.' },
+          {
+            pregunta: '¿Necesito registrarme?',
+            respuesta: 'No. Sin registro, sin correo y sin Clave Única.',
+          },
+        ],
+      },
+      cierre: {
+        titulo: '¿Vemos a qué puedes postular?',
+        detalle: 'Toma unos 5 minutos. Sin registro, sin Clave Única, gratis.',
+      },
       pasos: {
         titulo: 'Cómo funciona',
         paso1Titulo: 'Cuéntanos de tu familia',

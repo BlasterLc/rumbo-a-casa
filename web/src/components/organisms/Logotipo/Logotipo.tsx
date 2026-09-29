@@ -52,7 +52,7 @@ export function Logotipo({ disposicion = 'horizontal', alto = 40, tono = 'color'
       alignItems="center"
       spacing={`${alto * 0.22}px`}
     >
-      <Simbolo tamano={alto} tono={TONO_SIMBOLO[tono]} />
+      <Simbolo tamano={alto} tono={TONO_SIMBOLO[tono]} alinearConTexto={disposicion === 'horizontal'} />
       {nombre}
     </Stack>
   );

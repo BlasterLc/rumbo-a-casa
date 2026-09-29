@@ -52,7 +52,7 @@ export function CabeceraApp({
             <Icono nombre="atras" />
           </IconButton>
         )}
-        <Simbolo tamano={28} tono="claro" />
+        <Simbolo tamano={40} tono="claro" alinearConTexto />
         <Typography
           noWrap
           sx={{

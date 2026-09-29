@@ -10,7 +10,7 @@ export function PasosComoFunciona() {
     { titulo: t.pantallas.bienvenida.pasos.paso3Titulo, detalle: t.pantallas.bienvenida.pasos.paso3Detalle, acento: 'accent' as const },
   ];
   return (
-    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 'var(--space-6)' }}>
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'repeat(3, minmax(0, 1fr))' }, gap: { xs: 'var(--space-4)', md: 'var(--space-6)' } }}>
       {/* Encabezado propio, visualmente oculto: sin él, los lectores de pantalla anidan estos
           tres pasos bajo el `h2` de `PanelProgramas`, que no tiene nada que ver. */}
       <Typography

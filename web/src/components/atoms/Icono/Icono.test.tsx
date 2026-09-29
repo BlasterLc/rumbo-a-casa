@@ -4,7 +4,7 @@ import { Icono, NOMBRES_ICONO } from './Icono';
 
 describe('Icono', () => {
   it('tiene los 17 nombres del design system', () => {
-    expect(NOMBRES_ICONO).toHaveLength(17);
+    expect(NOMBRES_ICONO).toHaveLength(19);
     expect(NOMBRES_ICONO).toContain('check');
     expect(NOMBRES_ICONO).toContain('banco');
   });

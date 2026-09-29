@@ -76,8 +76,10 @@ export interface DiccionarioTextos {
     /** Panel de programas de la Bienvenida en escritorio. */
     panelProgramas: {
       titulo: string;
+      cuerpo: string;
+      etiquetaProgramas: string;
       /** Una línea por programa, sin cifras ni requisitos. */
-      descripcion: Record<'DS49' | 'DS1' | 'DS19' | 'DS52', string>;
+      lineas: Record<'DS49' | 'DS1' | 'DS19' | 'DS52', string>;
     };
   };
   pantallas: {
@@ -88,7 +90,22 @@ export interface DiccionarioTextos {
       seguirDondeQuedaste: string;
       empezarDeNuevo: string;
       fraseConfianza: string;
-      /** Banda de "cómo funciona" en la Bienvenida de escritorio: tres pasos fijos. */
+      /** Sección "Cómo trabajamos contigo": qué hace la herramienta y qué queda en manos de la persona. */
+      roles: {
+        eyebrow: string;
+        titulo: string;
+        bajada: string;
+        hace: { etiqueta: string; nombre: string; items: string[] };
+        tu: { etiqueta: string; nombre: string; items: string[]; aviso: string };
+      };
+      faq: {
+        eyebrow: string;
+        titulo: string;
+        preguntas: { pregunta: string; respuesta: string }[];
+      };
+      /** Franja de cierre al pie de la Bienvenida. */
+      cierre: { titulo: string; detalle: string };
+      /** Banda de "cómo funciona" en la Bienvenida: tres pasos fijos. */
       pasos: {
         /** Encabezado visualmente oculto de la banda, para que el lector de pantalla no la
          * anide bajo el `h2` de `PanelProgramas`. */

@@ -61,24 +61,88 @@ export const en: DiccionarioTextos = {
       DS52: 'Rental subsidy',
     },
     panelProgramas: {
-      titulo: 'We check four programs for you',
-      descripcion: {
-        DS49: 'Buy or build a home with your savings and the subsidy, without a mortgage loan.',
-        DS1: 'Buy a home if your family is in the middle-income sector.',
-        DS19: 'Buy in projects where families with different incomes live together.',
-        DS52: 'Pay part of your rent with a monthly subsidy.',
+      titulo: 'You apply. We get you ready.',
+      cuerpo:
+        'This is not a government site. It is a tool that organizes your information and builds your plan. You press the final button yourself, with your Clave Única, on the MINVU site.',
+      etiquetaProgramas: 'Programs we check',
+      lineas: {
+        DS49: 'your own home, no mortgage loan',
+        DS1: 'middle-income families, with a loan',
+        DS19: 'social integration',
+        DS52: 'rent subsidy',
       },
     },
   },
   pantallas: {
     bienvenida: {
       titulo: 'Find out which housing subsidy you can apply for',
-      bajada: 'Tell us about your family in about 5 minutes.',
+      bajada:
+        'Tell us about your family in about 5 minutes. We tell you which programs you can apply for, with the rule and its source, and we build your plan step by step.',
       empezar: 'Start',
       seguirDondeQuedaste: 'Continue where you left off',
       empezarDeNuevo: 'Start over',
       fraseConfianza:
         'Independent tool, not official. We will never ask for your Clave Única. You can delete your data whenever you want.',
+      roles: {
+        eyebrow: 'How we work with you',
+        titulo: 'Everyone does their part, no surprises',
+        bajada:
+          'We are clear about what we do for you and what stays in your hands. That way you always know who is in control of your application.',
+        hace: {
+          etiqueta: 'What it does',
+          nombre: 'Rumbo a Casa',
+          items: [
+            'Organizes your information and builds your document folder.',
+            'Checks your eligibility with the current MINVU rules.',
+            'Explains why you qualify, citing the rule and its date.',
+            'Reminds you of the next call and what you are missing.',
+          ],
+        },
+        tu: {
+          etiqueta: 'What you do',
+          nombre: 'You',
+          items: [
+            'Tell us about your family, at your own pace.',
+            'Gather the documents we tell you about.',
+            'Press the final button on the MINVU site, with your Clave Única.',
+          ],
+          aviso: 'We never ask for your Clave Única. You can delete your data whenever you want.',
+        },
+      },
+      faq: {
+        eyebrow: 'Frequently asked questions',
+        titulo: 'What people ask us',
+        preguntas: [
+          {
+            pregunta: 'Is Rumbo a Casa run by the government?',
+            respuesta:
+              'No. It is an independent, unofficial tool. We use the current MINVU rules, but you submit your application on their site.',
+          },
+          {
+            pregunta: 'Do you ask for my Clave Única?',
+            respuesta: 'Never. Only you use it, at the end, on the MINVU site.',
+          },
+          {
+            pregunta: 'What happens to my data?',
+            respuesta:
+              'We use it to build your result and your plan. We do not ask for an email or sign-up, and you can delete what is saved on your device with "Start over".',
+          },
+          {
+            pregunta: 'Is the result final?',
+            respuesta:
+              'No. It is guidance based on the current rules. MINVU makes the final decision when you apply.',
+          },
+          { pregunta: 'Does it cost anything?', respuesta: 'No. Using Rumbo a Casa is free.' },
+          {
+            pregunta: 'Do I need to sign up?',
+            respuesta: 'No. No sign-up, no email and no Clave Única.',
+          },
+        ],
+      },
+      cierre: {
+        titulo: 'Shall we see what you can apply for?',
+        detalle: 'It takes about 5 minutes. No sign-up, no Clave Única, free.',
+      },
       pasos: {
         titulo: 'How it works',
         paso1Titulo: 'Tell us about your family',

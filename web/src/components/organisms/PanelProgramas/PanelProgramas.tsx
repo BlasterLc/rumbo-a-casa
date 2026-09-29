@@ -1,61 +1,67 @@
-import { Box, Chip, Typography } from '@mui/material';
-import { Franja } from '../Franja/Franja';
+import { Box, Typography } from '@mui/material';
+import { Icono } from '../../atoms/Icono/Icono';
 import { useT } from '../../../i18n/LocaleContext';
 import { type as typeTokens } from '../../../theme/tokens';
 
 const PROGRAMAS = ['DS49', 'DS1', 'DS19', 'DS52'] as const;
 
 /**
- * Los cuatro programas que revisa la app, en un panel azul con la Franja al pie. Ocupa el lugar
- * de los chips informativos de la Bienvenida móvil cuando hay espacio para explicarlos.
+ * Panel azul de la Bienvenida: deja claro que la herramienta no es del Estado y que el botón
+ * final lo aprieta la persona, y lista los cuatro programas que se revisan.
  */
 export function PanelProgramas() {
   const t = useT();
+  const p = t.organisms.panelProgramas;
   return (
     <Box
       sx={{
         backgroundColor: 'var(--surface-brand)',
         borderRadius: 'var(--radius-lg)',
-        overflow: 'hidden',
         boxShadow: 'var(--shadow-lg)',
+        p: { xs: 'var(--space-5)', md: 'var(--space-6)' },
+        color: 'var(--ink-on-brand)',
       }}
     >
-      <Box sx={{ p: 'var(--space-6) var(--space-6) var(--space-2)' }}>
-        <Typography component="h2" sx={{ ...typeTokens['display-m'], color: 'var(--ink-on-brand)' }}>
-          {t.organisms.panelProgramas.titulo}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+        <Box
+          aria-hidden
+          sx={{
+            width: 44,
+            height: 44,
+            flexShrink: 0,
+            borderRadius: 'var(--radius-md)',
+            backgroundColor: 'rgba(255, 255, 255, 0.14)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Icono nombre="casa" />
+        </Box>
+        <Typography component="h2" sx={{ ...typeTokens.title, color: 'var(--ink-on-brand)' }}>
+          {p.titulo}
         </Typography>
-        <Box component="ul" sx={{ listStyle: 'none', m: 0, mt: 'var(--space-4)', p: 0 }}>
-          {PROGRAMAS.map((p) => (
-            <Box
-              component="li"
-              key={p}
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: '72px minmax(0, 1fr)',
-                columnGap: 'var(--space-4)',
-                alignItems: 'start',
-                py: 'var(--space-4)',
-                borderTop: '1px solid rgba(255, 255, 255, 0.16)',
-              }}
-            >
-              <Chip label={p} sx={{ backgroundColor: 'var(--surface-brand-soft)', color: 'var(--ink-brand)', fontWeight: 700 }} />
-              <Box>
-                <Typography
-                  sx={{ fontFamily: typeTokens.title.fontFamily, fontWeight: typeTokens.title.fontWeight, fontSize: '18px', lineHeight: '26px', color: 'var(--ink-on-brand)' }}
-                >
-                  {t.organisms.nombrePrograma[p]}
-                </Typography>
-                <Typography
-                  sx={{ fontFamily: typeTokens.body.fontFamily, fontSize: '15px', lineHeight: '22px', color: 'var(--surface-brand-soft)' }}
-                >
-                  {t.organisms.panelProgramas.descripcion[p]}
-                </Typography>
+      </Box>
+      <Typography
+        sx={{ ...typeTokens.body, fontSize: '15px', lineHeight: '23px', mt: 'var(--space-4)', color: 'var(--surface-brand-soft)' }}
+      >
+        {p.cuerpo}
+      </Typography>
+      <Box sx={{ borderTop: '1px solid rgba(255, 255, 255, 0.16)', mt: 'var(--space-4)', pt: 'var(--space-4)' }}>
+        <Typography sx={{ ...typeTokens.label, textTransform: 'uppercase', color: 'var(--surface-brand-soft)', opacity: 0.85 }}>
+          {p.etiquetaProgramas}
+        </Typography>
+        <Box component="ul" sx={{ listStyle: 'none', m: 0, mt: 'var(--space-2)', p: 0 }}>
+          {PROGRAMAS.map((sigla) => (
+            <Typography component="li" key={sigla} sx={{ ...typeTokens.body, fontSize: '15px', lineHeight: '26px' }}>
+              <Box component="strong" sx={{ fontWeight: 700 }}>
+                {sigla}
               </Box>
-            </Box>
+              {` — ${p.lineas[sigla]}`}
+            </Typography>
           ))}
         </Box>
       </Box>
-      <Franja tono="brand" alto={96} borde="abajo" />
     </Box>
   );
 }
