@@ -75,7 +75,6 @@ export const en: DiccionarioTextos = {
       titulo: 'Find out which housing subsidy you can apply for',
       bajada: 'Tell us about your family in about 5 minutes.',
       empezar: 'Start',
-      prefieroHablar: "I'd rather talk",
       seguirDondeQuedaste: 'Continue where you left off',
       empezarDeNuevo: 'Start over',
       fraseConfianza:
@@ -102,6 +101,9 @@ export const en: DiccionarioTextos = {
       probarModoDemo: 'Try demo mode',
       mensajeDemoActivado:
         'We turned on demo mode with a made-up family so you can see how Rumbo a Casa works.',
+      modoDemoTitulo: "You're in demo mode",
+      modoDemoAviso: "This is a made-up family: the results come from the real rules engine, but they aren't your family's.",
+      salirModoDemo: 'Start my conversation',
       errorGenerico: 'Something went wrong. Try again in a moment.',
       etiquetaConversacion: 'Conversation',
       etiquetaAvance: 'Interview progress',
@@ -146,6 +148,7 @@ export const en: DiccionarioTextos = {
       preguntaFolio: "What's your file number?",
       ayudaFolio: 'The MINVU site gives it to you when you finish applying.',
       guardarFolio: 'Save file number',
+      folioGuardado: (folio) => `File number saved: ${folio}`,
       notaEstado: "The status isn't checked automatically: you mark the stage and we remind you what's left.",
     },
   },

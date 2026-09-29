@@ -16,6 +16,7 @@ function renderPantalla() {
           <Routes>
             <Route path="/" element={<PantallaBienvenida />} />
             <Route path="/hablar" element={<div>pantalla hablar</div>} />
+            <Route path="/resultado" element={<div>pantalla resultado</div>} />
           </Routes>
         </MemoryRouter>
       </SesionProvider>
@@ -38,10 +39,27 @@ describe('PantallaBienvenida', () => {
     expect(screen.getByText('DS52')).toBeInTheDocument();
   });
 
-  it('sin sesión previa, ofrece Empezar y ambos botones llevan a la entrevista', async () => {
+  it('sin sesión previa, ofrece Empezar y lleva a la entrevista; ya no hay un segundo botón "Prefiero hablar"', async () => {
     renderPantalla();
+    expect(screen.queryByRole('button', { name: /prefiero hablar/i })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Empezar' }));
     expect(await screen.findByText('pantalla hablar')).toBeInTheDocument();
+  });
+
+  it('sin sesión previa, "Probar modo demo" activa la familia ficticia y lleva al resultado', async () => {
+    renderPantalla();
+    await userEvent.click(screen.getByRole('button', { name: 'Probar modo demo' }));
+    expect(await screen.findByText('pantalla resultado')).toBeInTheDocument();
+    expect(JSON.parse(window.localStorage.getItem('rumbo-sesion') ?? '{}').esDemo).toBe(true);
+  });
+
+  it('con sesión previa no ofrece el demo (no pisa la conversación)', async () => {
+    window.localStorage.setItem(
+      'rumbo-sesion',
+      JSON.stringify({ sessionId: 'x', transcript: [{ id: '1', autor: 'agente', texto: 'hola' }] }),
+    );
+    renderPantalla();
+    expect(screen.queryByRole('button', { name: 'Probar modo demo' })).not.toBeInTheDocument();
   });
 
   it('siempre muestra la frase de confianza completa', () => {

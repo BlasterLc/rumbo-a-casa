@@ -85,7 +85,6 @@ export interface DiccionarioTextos {
       titulo: string;
       bajada: string;
       empezar: string;
-      prefieroHablar: string;
       seguirDondeQuedaste: string;
       empezarDeNuevo: string;
       fraseConfianza: string;
@@ -114,6 +113,9 @@ export interface DiccionarioTextos {
       limiteCaracteres: (n: number) => string;
       probarModoDemo: string;
       mensajeDemoActivado: string;
+      modoDemoTitulo: string;
+      modoDemoAviso: string;
+      salirModoDemo: string;
       errorGenerico: string;
       /** Nombre accesible del registro de la conversación (escritorio). */
       etiquetaConversacion: string;
@@ -160,6 +162,7 @@ export interface DiccionarioTextos {
       preguntaFolio: string;
       ayudaFolio: string;
       guardarFolio: string;
+      folioGuardado: (folio: string) => string;
       notaEstado: string;
     };
   };

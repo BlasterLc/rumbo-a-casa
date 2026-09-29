@@ -166,6 +166,37 @@ describe('PantallaEntrevista', () => {
     expect((await screen.findAllByText(/Califica|No aplica|Falta un dato/)).length).toBeGreaterThan(0);
     expect(enviarMensajeSpy).toHaveBeenCalledTimes(1);
   });
+
+  it('en modo demo dice que es una familia ficticia y no ofrece el campo de mensaje', async () => {
+    vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({
+      ok: false,
+      status: 503,
+      codigo: 'asistente_no_disponible',
+    });
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    await userEvent.type(screen.getByLabelText('Escribe tu respuesta'), 'Hola');
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Probar modo demo' }));
+    expect(await screen.findByText('Estás en modo demo')).toBeInTheDocument();
+    expect(screen.getByText(/familia ficticia: los resultados salen del motor real/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Escribe tu respuesta')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Enviar' })).not.toBeInTheDocument();
+  });
+
+  it('"Empezar mi conversación" sale del demo y devuelve el campo de mensaje con una sesión nueva', async () => {
+    vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({
+      ok: false,
+      status: 503,
+      codigo: 'asistente_no_disponible',
+    });
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    await userEvent.type(screen.getByLabelText('Escribe tu respuesta'), 'Hola');
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Probar modo demo' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Empezar mi conversación' }));
+    expect(await screen.findByLabelText('Escribe tu respuesta')).toBeInTheDocument();
+    expect(screen.queryByText('Estás en modo demo')).not.toBeInTheDocument();
+  });
 });
 
 describe('PantallaEntrevista en escritorio', () => {

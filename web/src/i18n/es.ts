@@ -75,7 +75,6 @@ export const es: DiccionarioTextos = {
       titulo: 'Averigua a qué subsidio de vivienda puedes postular',
       bajada: 'Cuéntanos de tu familia en unos 5 minutos.',
       empezar: 'Empezar',
-      prefieroHablar: 'Prefiero hablar',
       seguirDondeQuedaste: 'Seguir donde quedaste',
       empezarDeNuevo: 'Empezar de nuevo',
       fraseConfianza:
@@ -102,6 +101,9 @@ export const es: DiccionarioTextos = {
       probarModoDemo: 'Probar modo demo',
       mensajeDemoActivado:
         'Activamos el modo demo con una familia ficticia para que puedas ver cómo funciona Rumbo a Casa.',
+      modoDemoTitulo: 'Estás en modo demo',
+      modoDemoAviso: 'Es una familia ficticia: los resultados salen del motor real, pero no son los de tu familia.',
+      salirModoDemo: 'Empezar mi conversación',
       errorGenerico: 'Algo no funcionó. Intenta de nuevo en un momento.',
       etiquetaConversacion: 'Conversación',
       etiquetaAvance: 'Avance de la entrevista',
@@ -146,6 +148,7 @@ export const es: DiccionarioTextos = {
       preguntaFolio: '¿Cuál es tu número de folio?',
       ayudaFolio: 'Lo entrega el sitio del MINVU al terminar tu postulación.',
       guardarFolio: 'Guardar folio',
+      folioGuardado: (folio) => `Folio guardado: ${folio}`,
       notaEstado: 'El estado no se consulta solo: tú marcas la etapa y nosotros te recordamos lo que falta.',
     },
   },

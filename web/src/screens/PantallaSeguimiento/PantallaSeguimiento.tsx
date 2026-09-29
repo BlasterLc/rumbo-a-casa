@@ -102,9 +102,19 @@ export function PantallaSeguimiento() {
                 value={folioBorrador}
                 onChange={(e) => setFolioBorrador(e.target.value)}
               />
-              <Boton variant="outlined" onClick={() => guardarFolio(folioBorrador)} disabled={!folioBorrador.trim()}>
+              <Boton
+                variant="outlined"
+                onClick={() => guardarFolio(folioBorrador.trim())}
+                disabled={!folioBorrador.trim() || folioBorrador.trim() === (seguimiento.folio ?? '')}
+              >
                 {t.pantallas.seguimiento.guardarFolio}
               </Boton>
+              {/* Sin esta confirmación, guardar no muestra nada y parece que el botón no hace nada. */}
+              {seguimiento.folio && seguimiento.folio === folioBorrador.trim() && (
+                <Typography role="status" sx={{ fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--ink-success)' }}>
+                  {t.pantallas.seguimiento.folioGuardado(seguimiento.folio)}
+                </Typography>
+              )}
             </Stack>
           )}
         </Columnas>

@@ -10,6 +10,7 @@ import { SelectorIdioma } from '../../components/atoms/SelectorIdioma/SelectorId
 import { useSesion } from '../../state/SesionContext';
 import { useT } from '../../i18n/LocaleContext';
 import { useEscritorio } from '../../lib/useEscritorio';
+import { PERFIL_DEMO } from '../../lib/perfilDemo';
 import { type as typeTokens, sizePx } from '../../theme/tokens';
 
 const PROGRAMAS = ['DS49', 'DS1', 'DS19', 'DS52'];
@@ -19,7 +20,7 @@ const ALTO_FILA_SUPERIOR = 88;
 /** Los botones de la Bienvenida: empezar o seguir donde quedó la persona. */
 function BotonesBienvenida() {
   const navigate = useNavigate();
-  const { transcript, borrarDatos } = useSesion();
+  const { transcript, borrarDatos, activarDemo } = useSesion();
   const t = useT();
   const tieneSesionPrevia = transcript.length > 0;
   return tieneSesionPrevia ? (
@@ -32,8 +33,15 @@ function BotonesBienvenida() {
   ) : (
     <>
       <Boton onClick={() => navigate('/hablar')}>{t.pantallas.bienvenida.empezar}</Boton>
-      <Boton variant="outlined" color="secondary" icono="mic" onClick={() => navigate('/hablar')}>
-        {t.pantallas.bienvenida.prefieroHablar}
+      {/* Para ver la app sin escribir datos propios: familia ficticia, veredictos reales del motor. */}
+      <Boton
+        variant="text"
+        onClick={() => {
+          activarDemo(PERFIL_DEMO);
+          navigate('/resultado');
+        }}
+      >
+        {t.pantallas.entrevista.probarModoDemo}
       </Boton>
     </>
   );
