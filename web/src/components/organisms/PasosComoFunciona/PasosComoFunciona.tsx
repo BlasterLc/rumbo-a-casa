@@ -5,9 +5,9 @@ import { useT } from '../../../i18n/LocaleContext';
 export function PasosComoFunciona() {
   const t = useT();
   const pasos = [
-    { titulo: t.pantallas.bienvenida.pasos.paso1Titulo, detalle: t.pantallas.bienvenida.pasos.paso1Detalle, acento: 'brand' as const },
-    { titulo: t.pantallas.bienvenida.pasos.paso2Titulo, detalle: t.pantallas.bienvenida.pasos.paso2Detalle, acento: 'brand' as const },
-    { titulo: t.pantallas.bienvenida.pasos.paso3Titulo, detalle: t.pantallas.bienvenida.pasos.paso3Detalle, acento: 'accent' as const },
+    { titulo: t.pantallas.bienvenida.pasos.paso1Titulo, detalle: t.pantallas.bienvenida.pasos.paso1Detalle },
+    { titulo: t.pantallas.bienvenida.pasos.paso2Titulo, detalle: t.pantallas.bienvenida.pasos.paso2Detalle },
+    { titulo: t.pantallas.bienvenida.pasos.paso3Titulo, detalle: t.pantallas.bienvenida.pasos.paso3Detalle },
   ];
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 'var(--space-6)' }}>
@@ -58,8 +58,8 @@ export function PasosComoFunciona() {
               fontFamily: 'var(--font-mono)',
               fontWeight: 500,
               fontSize: '18px',
-              backgroundColor: p.acento === 'brand' ? 'var(--surface-brand-soft)' : 'var(--surface-accent-soft)',
-              color: p.acento === 'brand' ? 'var(--ink-brand)' : 'var(--ink-accent)',
+              backgroundColor: 'var(--surface-brand-soft)',
+              color: 'var(--ink-brand)',
             }}
           >
             {i + 1}
