@@ -228,7 +228,7 @@ export function Catalogo() {
       <section>
         <Typography variant="overline">CabeceraApp</Typography>
         <div style={{ margin: '16px -20px 0', maxWidth: 360 }}>
-          <CabeceraApp titulo="Tu plan para DS49" atras conFranja />
+          <CabeceraApp titulo="Tu plan para DS49" onInicio={() => {}} conFranja />
         </div>
       </section>
 

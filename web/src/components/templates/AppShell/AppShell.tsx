@@ -92,7 +92,7 @@ export function AppShell({ titulo, destino, avisos = 0, atras = false, tituloVis
         backgroundColor: 'var(--surface-base)',
       }}
     >
-      <CabeceraApp titulo={titulo} atras={atras} onAtras={() => navigate(-1)} />
+      <CabeceraApp titulo={titulo} onInicio={() => navigate('/')} />
       <Box component="main" sx={{ flex: 1, px: 'var(--space-4)', pt: 'var(--space-5)', pb: 'var(--space-7)' }}>
         {children}
       </Box>

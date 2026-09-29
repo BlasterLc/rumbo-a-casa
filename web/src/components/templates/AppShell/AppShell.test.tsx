@@ -13,11 +13,20 @@ function conEnrutamiento(inicial: string) {
       <SesionProvider>
         <MemoryRouter initialEntries={[inicial]}>
           <Routes>
+            <Route path="/" element={<div>pantalla inicio</div>} />
             <Route
               path="/hablar"
               element={
                 <AppShell titulo="Hablemos" destino="hablar">
                   contenido hablar
+                </AppShell>
+              }
+            />
+            <Route
+              path="/plan"
+              element={
+                <AppShell titulo="Tu plan" destino="plan" atras>
+                  contenido plan
                 </AppShell>
               }
             />
@@ -52,6 +61,17 @@ describe('AppShell', () => {
   it('en móvil se centra con un ancho máximo de 480 px', () => {
     conEnrutamiento('/hablar');
     expect(screen.getByText('Hablemos').closest('header')?.parentElement).toHaveStyle({ maxWidth: '480px' });
+  });
+
+  it.each(['/hablar', '/documentos', '/plan'])('en móvil el logo del navbar lleva al inicio desde %s', async (ruta) => {
+    conEnrutamiento(ruta);
+    await userEvent.click(screen.getByRole('button', { name: 'Rumbo a Casa · Inicio' }));
+    expect(await screen.findByText('pantalla inicio')).toBeInTheDocument();
+  });
+
+  it('en móvil el navbar no lleva flecha de volver, ni con atras', () => {
+    conEnrutamiento('/plan');
+    expect(screen.queryByRole('button', { name: 'Volver' })).not.toBeInTheDocument();
   });
 });
 

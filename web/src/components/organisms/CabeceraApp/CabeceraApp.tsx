@@ -1,6 +1,6 @@
-import { AppBar, Toolbar, IconButton, Typography, Stack } from '@mui/material';
+import { AppBar, ButtonBase, Toolbar, IconButton, Typography, Stack } from '@mui/material';
 import { Icono, type NombreIcono } from '../../atoms/Icono/Icono';
-import { Simbolo } from '../../atoms/Simbolo/Simbolo';
+import { Logotipo } from '../Logotipo/Logotipo';
 import { Franja } from '../Franja/Franja';
 import { SelectorIdioma } from '../../atoms/SelectorIdioma/SelectorIdioma';
 import { useT } from '../../../i18n/LocaleContext';
@@ -8,8 +8,8 @@ import { type as typeTokens } from '../../../theme/tokens';
 
 export interface CabeceraAppProps {
   titulo: string;
-  atras?: boolean;
-  onAtras?: () => void;
+  /** El logo de la izquierda es un botón que vuelve al landing, igual que en escritorio. */
+  onInicio: () => void;
   accion?: boolean;
   accionIcono?: NombreIcono;
   onAccion?: () => void;
@@ -18,14 +18,13 @@ export interface CabeceraAppProps {
 
 /**
  * La cabecera fija de la app. Es el único lugar de la interfaz donde el azul profundo ocupa una
- * superficie grande. Solo lleva el símbolo en tintas oscuras, nunca el logotipo completo — el
- * nombre ya está en el título. No se oculta al desplazar. Lleva siempre, a la derecha, el
+ * superficie grande. A la izquierda lleva el logotipo completo, que es el botón para volver al
+ * landing (como en `CabeceraEscritorio`); no hay flecha de volver. No se oculta al desplazar. Lleva siempre, a la derecha, el
  * selector de idioma — es el único lugar donde vive, y no depende de ninguna prop.
  */
 export function CabeceraApp({
   titulo,
-  atras,
-  onAtras,
+  onInicio,
   accion,
   accionIcono,
   onAccion,
@@ -38,16 +37,17 @@ export function CabeceraApp({
           título y el selector — demasiado angosto, deja el selector de idioma pegado al borde
           y al título en móvil. Se fuerza al margen y separación estándar de la app. */}
       <Toolbar sx={{ gap: 'var(--space-3)', px: 'var(--space-4)', minHeight: 'var(--size-touch)' }}>
-        {atras && (
-          <IconButton
-            aria-label={t.organisms.cabeceraApp.volver}
-            onClick={onAtras}
-            sx={{ color: 'var(--ink-on-brand)' }}
-          >
-            <Icono nombre="atras" />
-          </IconButton>
-        )}
-        <Simbolo tamano={28} tono="claro" />
+        <ButtonBase
+          aria-label={`Rumbo a Casa · ${t.organisms.cabeceraEscritorio.inicio}`}
+          onClick={onInicio}
+          sx={{
+            minHeight: 'var(--size-touch)',
+            borderRadius: 'var(--radius-sm)',
+            '&:focus-visible': { outline: '3px solid var(--ink-on-brand)', outlineOffset: '2px' },
+          }}
+        >
+          <Logotipo disposicion="horizontal" alto={28} tono="claro" />
+        </ButtonBase>
         <Typography
           noWrap
           sx={{

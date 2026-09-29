@@ -5,42 +5,43 @@ import { renderConIdioma, cssActual } from '../../../test/utilidades';
 import { CabeceraApp } from './CabeceraApp';
 
 describe('CabeceraApp', () => {
-  it('muestra el título y el símbolo, nunca el logotipo completo', () => {
-    renderConIdioma(<CabeceraApp titulo="Tu entrevista" />);
+  it('muestra el título de la pantalla', () => {
+    renderConIdioma(<CabeceraApp titulo="Tu entrevista" onInicio={() => {}} />);
     expect(screen.getByText('Tu entrevista')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Rumbo a Casa' })).toBeInTheDocument();
   });
 
-  it('el botón de volver llama a onAtras', async () => {
-    const onAtras = vi.fn();
-    renderConIdioma(<CabeceraApp titulo="Tu plan" atras onAtras={onAtras} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Volver' }));
-    expect(onAtras).toHaveBeenCalledOnce();
+  it('el logo completo (símbolo y nombre) es un botón que llama a onInicio', async () => {
+    const onInicio = vi.fn();
+    renderConIdioma(<CabeceraApp titulo="Tus documentos" onInicio={onInicio} />);
+    const boton = screen.getByRole('button', { name: /Rumbo a Casa/ });
+    expect(boton).toHaveTextContent('Rumbo a Casa');
+    await userEvent.click(boton);
+    expect(onInicio).toHaveBeenCalledOnce();
   });
 
-  it('sin atras, no muestra el botón de volver', () => {
-    renderConIdioma(<CabeceraApp titulo="Rumbo a Casa" />);
+  it('no hay flecha de volver en la cabecera', () => {
+    renderConIdioma(<CabeceraApp titulo="Tu plan" onInicio={() => {}} />);
     expect(screen.queryByRole('button', { name: 'Volver' })).not.toBeInTheDocument();
   });
 
   it('con conFranja, agrega la firma de marca bajo la cabecera', () => {
-    renderConIdioma(<CabeceraApp titulo="Tu plan" conFranja />);
+    renderConIdioma(<CabeceraApp titulo="Tu plan" onInicio={() => {}} conFranja />);
     expect(screen.getByTestId('franja')).toHaveAttribute('height', '24');
   });
 
   it('siempre muestra el selector de idioma, sin depender de ninguna prop', () => {
-    renderConIdioma(<CabeceraApp titulo="Tu plan" />);
+    renderConIdioma(<CabeceraApp titulo="Tu plan" onInicio={() => {}} />);
     expect(screen.getByRole('button', { name: 'Español' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'English' })).toBeInTheDocument();
   });
 
   it('deja margen (--space-4) a los bordes, no el padding angosto por defecto del Toolbar', () => {
-    renderConIdioma(<CabeceraApp titulo="Tu plan" />);
+    renderConIdioma(<CabeceraApp titulo="Tu plan" onInicio={() => {}} />);
     expect(cssActual()).toMatch(/padding-(left|right|inline):\s*var\(--space-4\)/);
   });
 
   it('separa el título del selector con --space-3, no los 4px por defecto', () => {
-    renderConIdioma(<CabeceraApp titulo="Tu plan" />);
+    renderConIdioma(<CabeceraApp titulo="Tu plan" onInicio={() => {}} />);
     expect(cssActual()).toMatch(/gap:\s*var\(--space-3\)/);
   });
 });
