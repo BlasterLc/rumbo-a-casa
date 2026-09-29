@@ -8,6 +8,10 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
+import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
+import * as cwActions from 'aws-cdk-lib/aws-cloudwatch-actions';
 
 const MODEL_ID = 'us.anthropic.claude-haiku-4-5-20251001-v1:0';
 const MODELO_BASE = 'anthropic.claude-haiku-4-5-20251001-v1:0';
@@ -17,7 +21,28 @@ export interface RumboStackProps extends cdk.StackProps {
   webDistPath: string;
   /** Archivo TypeScript que exporta `handler`. */
   backendEntry: string;
+  /** Correo que recibe las alarmas. Si falta, las alarmas existen pero no avisan a nadie. */
+  correoAlertas?: string;
 }
+
+/**
+ * Solo lo que la web usa: su propio origen, las fuentes de Google (hoja de estilos y archivos),
+ * estilos en línea (MUI/emotion los inyecta) y el audio de Polly como data:. Si la web suma otro
+ * origen (imágenes, analítica, fuentes), hay que agregarlo aquí o el navegador lo bloquea.
+ */
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data:",
+  "media-src 'self' data:",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ');
 
 export class RumboStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: RumboStackProps) {
@@ -88,11 +113,29 @@ export class RumboStack extends cdk.Stack {
 }`),
     });
 
+    const cabecerasDeSeguridad = new cloudfront.ResponseHeadersPolicy(this, 'CabecerasDeSeguridad', {
+      securityHeadersBehavior: {
+        strictTransportSecurity: {
+          accessControlMaxAge: cdk.Duration.days(365),
+          includeSubdomains: true,
+          override: true,
+        },
+        contentTypeOptions: { override: true },
+        frameOptions: { frameOption: cloudfront.HeadersFrameOption.DENY, override: true },
+        referrerPolicy: {
+          referrerPolicy: cloudfront.HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
+          override: true,
+        },
+        contentSecurityPolicy: { contentSecurityPolicy: CSP, override: true },
+      },
+    });
+
     const distribution = new cloudfront.Distribution(this, 'Cdn', {
       defaultRootObject: 'index.html',
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(webBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        responseHeadersPolicy: cabecerasDeSeguridad,
         functionAssociations: [
           {
             function: rutasDeLaSpa,
@@ -108,9 +151,37 @@ export class RumboStack extends cdk.Stack {
           originRequestPolicy:
             cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          responseHeadersPolicy: cabecerasDeSeguridad,
         },
       },
     });
+
+    // Alarmas. La cuenta tiene un tope de 10 ejecuciones concurrentes (no admite reservar
+    // concurrencia), así que el gasto por abuso se vigila aquí en vez de limitarlo.
+    const avisos = new sns.Topic(this, 'Alertas');
+    if (props.correoAlertas) {
+      avisos.addSubscription(new subscriptions.EmailSubscription(props.correoAlertas));
+    }
+    const accionAviso = new cwActions.SnsAction(avisos);
+    const erroresApi = new cloudwatch.Alarm(this, 'ErroresApi', {
+      alarmDescription: 'La Lambda de la API terminó con error (fallo no controlado o timeout).',
+      metric: apiFn.metricErrors({ period: cdk.Duration.minutes(5), statistic: 'Sum' }),
+      threshold: 5,
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+    erroresApi.addAlarmAction(accionAviso);
+    const volumenApi = new cloudwatch.Alarm(this, 'VolumenApi', {
+      alarmDescription:
+        'Más de 600 llamadas a la API en una hora: uso inusual o abuso (cada mensaje del chat puede costar Bedrock y Polly).',
+      metric: apiFn.metricInvocations({ period: cdk.Duration.hours(1), statistic: 'Sum' }),
+      threshold: 600,
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+    volumenApi.addAlarmAction(accionAviso);
 
     new s3deploy.BucketDeployment(this, 'DeployWeb', {
       sources: [s3deploy.Source.asset(props.webDistPath)],
