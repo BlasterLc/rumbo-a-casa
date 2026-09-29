@@ -38,6 +38,19 @@ describe('PantallaDocumentos', () => {
     expect(screen.getByText(/Todavía no calificas para ningún programa/)).toBeInTheDocument();
   });
 
+  it('sin programas no muestra el aviso de que no hay que subir nada', () => {
+    mockSesion();
+    renderPantalla(<PantallaDocumentos />, { ruta: '/documentos' });
+    expect(screen.queryByText('No tienes que subir nada')).not.toBeInTheDocument();
+  });
+
+  it('explica que no hay que subir documentos, solo saber qué juntar', () => {
+    mockSesion({ plan: [{ programa: 'DS49', documentos: [{ nombre: 'Tu cédula' }], fuente: 'x' }] });
+    renderPantalla(<PantallaDocumentos />, { ruta: '/documentos' });
+    expect(screen.getByText('No tienes que subir nada')).toBeInTheDocument();
+    expect(screen.getByText(/Esta es solo una lista de los papeles que vas a necesitar/)).toBeInTheDocument();
+  });
+
   it('agrupa los documentos de cada programa elegible por separado', () => {
     mockSesion({
       plan: [

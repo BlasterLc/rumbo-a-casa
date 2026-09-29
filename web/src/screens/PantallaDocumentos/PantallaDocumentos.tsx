@@ -1,9 +1,10 @@
-import { Typography } from '@mui/material';
+import { Alert, AlertTitle, Typography } from '@mui/material';
 import { AppShell } from '../../components/templates/AppShell/AppShell';
 import {
   ChecklistDocumentos,
   type DocumentoChecklist,
 } from '../../components/organisms/ChecklistDocumentos/ChecklistDocumentos';
+import { Icono } from '../../components/atoms/Icono/Icono';
 import { Columnas } from '../../components/molecules/Columnas/Columnas';
 import { useSesion } from '../../state/SesionContext';
 import { useT } from '../../i18n/LocaleContext';
@@ -25,6 +26,10 @@ export function PantallaDocumentos() {
 
   return (
     <AppShell titulo={t.pantallas.documentos.titulo} destino="documentos">
+      <Alert severity="info" icon={<Icono nombre="info" />} sx={{ mb: 'var(--space-5)', alignItems: 'flex-start' }}>
+        <AlertTitle>{t.pantallas.documentos.explicacionTitulo}</AlertTitle>
+        {t.pantallas.documentos.explicacion}
+      </Alert>
       <Columnas espacioFila={{ xs: '20px', md: 'var(--space-6)' }} espacioColumna="var(--space-7)">
         {plan.map((p) => {
           const items: DocumentoChecklist[] = p.documentos.map((d) => ({
