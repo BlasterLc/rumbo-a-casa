@@ -75,7 +75,6 @@ export const es: DiccionarioTextos = {
       titulo: 'Averigua a qué subsidio de vivienda puedes postular',
       bajada: 'Cuéntanos de tu familia en unos 5 minutos.',
       empezar: 'Empezar',
-      prefieroHablar: 'Prefiero hablar',
       seguirDondeQuedaste: 'Seguir donde quedaste',
       empezarDeNuevo: 'Empezar de nuevo',
       fraseConfianza:

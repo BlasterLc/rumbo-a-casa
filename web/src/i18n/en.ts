@@ -75,7 +75,6 @@ export const en: DiccionarioTextos = {
       titulo: 'Find out which housing subsidy you can apply for',
       bajada: 'Tell us about your family in about 5 minutes.',
       empezar: 'Start',
-      prefieroHablar: "I'd rather talk",
       seguirDondeQuedaste: 'Continue where you left off',
       empezarDeNuevo: 'Start over',
       fraseConfianza:

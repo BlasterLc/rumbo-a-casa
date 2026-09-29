@@ -85,7 +85,6 @@ export interface DiccionarioTextos {
       titulo: string;
       bajada: string;
       empezar: string;
-      prefieroHablar: string;
       seguirDondeQuedaste: string;
       empezarDeNuevo: string;
       fraseConfianza: string;
