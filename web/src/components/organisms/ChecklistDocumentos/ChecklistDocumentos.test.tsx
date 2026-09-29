@@ -38,4 +38,20 @@ describe('ChecklistDocumentos', () => {
     renderConIdioma(<ChecklistDocumentos items={items} />);
     expect(screen.getByText(/La app no guarda tus documentos/)).toBeInTheDocument();
   });
+
+  it('cada documento tiene una casilla con la etiqueta visible "Ya lo tengo guardado"', () => {
+    renderConIdioma(<ChecklistDocumentos items={items} />);
+    expect(screen.getAllByText('Ya lo tengo guardado')).toHaveLength(3);
+  });
+
+  it('explica en una línea para qué sirve la casilla', () => {
+    renderConIdioma(<ChecklistDocumentos items={items} />);
+    expect(screen.getByText(/Marca cada papel cuando ya lo tengas guardado/)).toBeInTheDocument();
+  });
+
+  it('el nombre accesible de la casilla incluye el documento', () => {
+    renderConIdioma(<ChecklistDocumentos items={items} />);
+    expect(screen.getByRole('checkbox', { name: /Cartola Hogar/ })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: /Tu cédula/ })).toBeChecked();
+  });
 });

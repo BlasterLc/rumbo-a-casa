@@ -80,7 +80,7 @@ describe('PantallaPlan', () => {
       ],
     });
     renderPantalla('/plan/DS49');
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Tu cédula' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /Tu cédula/ }));
     expect(marcarDocumento).toHaveBeenCalledWith('DS49:Tu cédula', true);
   });
 

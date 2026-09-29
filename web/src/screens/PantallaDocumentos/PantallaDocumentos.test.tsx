@@ -55,7 +55,7 @@ describe('PantallaDocumentos', () => {
       plan: [{ programa: 'DS49', documentos: [{ nombre: 'Tu cédula' }], fuente: 'x' }],
     });
     renderPantalla(<PantallaDocumentos />, { ruta: '/documentos' });
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Tu cédula' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /Tu cédula/ }));
     expect(marcarDocumento).toHaveBeenCalledWith('DS49:Tu cédula', true);
   });
 });
@@ -96,7 +96,7 @@ describe('PantallaDocumentos en escritorio', () => {
       plan: [{ programa: 'DS49', documentos: [{ nombre: 'Tu cédula' }], fuente: 'x' }],
     });
     renderPantalla(<PantallaDocumentos />, { ruta: '/documentos' });
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Tu cédula' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /Tu cédula/ }));
     expect(marcarDocumento).toHaveBeenCalledWith('DS49:Tu cédula', true);
   });
 });

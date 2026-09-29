@@ -1,6 +1,5 @@
-import { List, ListItem, ListItemIcon, ListItemText, Checkbox, Typography, LinearProgress, Stack } from '@mui/material';
+import { List, ListItem, ListItemText, Checkbox, FormControlLabel, Typography, LinearProgress, Stack } from '@mui/material';
 import { type as typeTokens, spacePx } from '../../../theme/tokens';
-import { Icono } from '../../atoms/Icono/Icono';
 import { useT } from '../../../i18n/LocaleContext';
 
 export interface DocumentoChecklist {
@@ -57,26 +56,18 @@ export function ChecklistDocumentos({ programa, items, onToggle }: ChecklistDocu
           }}
         />
       </Stack>
+      <Typography sx={{ fontSize: '14px', color: 'var(--ink-muted)' }}>{t.organisms.checklistDocumentos.ayuda}</Typography>
       <List sx={{ backgroundColor: 'var(--surface-sunken)', borderRadius: 'var(--radius-md)', p: 0.5 }}>
         {items.map((item, indice) => {
           const vencePronto = !item.listo && Boolean(item.vence);
           return (
             <ListItem key={item.nombre} sx={{ alignItems: 'flex-start' }}>
-              <ListItemIcon sx={{ minWidth: 'var(--size-touch)' }}>
-                <Checkbox
-                  checked={Boolean(item.listo)}
-                  onChange={() => onToggle?.(indice)}
-                  icon={<Icono nombre="menos" />}
-                  checkedIcon={<Icono nombre="check" />}
-                  inputProps={{ 'aria-label': item.nombre }}
-                  sx={{ color: 'var(--border-strong)', '&.Mui-checked': { color: 'var(--success)' } }}
-                />
-              </ListItemIcon>
               <ListItemText
                 primary={item.nombre}
                 primaryTypographyProps={{
                   sx: { fontFamily: typeTokens['body-strong'].fontFamily, fontWeight: typeTokens['body-strong'].fontWeight, fontSize: typeTokens['body-strong'].fontSize, color: 'var(--ink-strong)' },
                 }}
+                secondaryTypographyProps={{ component: 'div' }}
                 secondary={
                   <>
                     {item.oficial && (
@@ -98,6 +89,25 @@ export function ChecklistDocumentos({ programa, items, onToggle }: ChecklistDocu
                         {t.organisms.checklistDocumentos.vence(item.vence!)}
                       </Typography>
                     )}
+                    <FormControlLabel
+                      sx={{ display: 'flex', mx: 0, mt: 0.5, minHeight: 'var(--size-touch)', alignItems: 'center' }}
+                      control={
+                        <Checkbox
+                          checked={Boolean(item.listo)}
+                          onChange={() => onToggle?.(indice)}
+                          inputProps={{ 'aria-label': `${t.organisms.checklistDocumentos.yaLoTengo} — ${item.nombre}` }}
+                          sx={{ color: 'var(--border-strong)', '&.Mui-checked': { color: 'var(--success)' } }}
+                        />
+                      }
+                      label={
+                        <Typography
+                          component="span"
+                          sx={{ fontSize: '15px', fontWeight: 600, color: item.listo ? 'var(--ink-success)' : 'var(--ink-strong)' }}
+                        >
+                          {t.organisms.checklistDocumentos.yaLoTengo}
+                        </Typography>
+                      }
+                    />
                   </>
                 }
               />
