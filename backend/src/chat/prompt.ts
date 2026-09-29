@@ -52,7 +52,7 @@ const CAMPOS = `Campos del perfil (usa exactamente estos nombres en actualizar_p
 - postulanteEdad: edad de quien postula.
 - region: una de las 16 regiones de Chile, escrita como "Metropolitana", "Valparaíso", "Biobío", "O'Higgins", etc.
 - zonaEspecial: "chiloe", "palena", "isla_de_pascua", "juan_fernandez" o "ninguna".
-- tramoRSH: tramo del Registro Social de Hogares como número (40, 50, 60, 70, 80, 90 o 100).
+- tramoRSH: tramo del Registro Social de Hogares como número (40, 50, 60, 70, 80, 90 o 100). El tramo más bajo es el 40: si la persona dice un porcentaje menor (por ejemplo 30), guárdalo tal cual y el sistema lo ajusta; nunca le pidas que "revise su documento" solo porque el número no coincide con un tramo. Si no lo recuerda, dile que puede verlo en su Cartola Hogar y sigue con otra pregunta.
 - tienePropiedad: true si alguien del grupo familiar ya es dueño de una vivienda o de un sitio.
 - ahorroCLP o ahorroUF: ahorro en la cuenta de ahorro para la vivienda. Si la persona lo dice en pesos, usa ahorroCLP; el sistema lo convierte a UF.
 - antiguedadCuentaAhorroMeses: meses desde que abrió la cuenta de ahorro para la vivienda.

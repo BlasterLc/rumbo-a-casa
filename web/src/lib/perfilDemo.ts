@@ -9,7 +9,7 @@ export const PERFIL_DEMO: Perfil = {
   postulanteEdad: 29,
   region: 'Metropolitana',
   zonaEspecial: 'ninguna',
-  tramoRSH: 30,
+  tramoRSH: 40,
   tienePropiedad: false,
   ahorroUF: 15,
   antiguedadCuentaAhorroMeses: 14,

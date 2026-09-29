@@ -7,6 +7,14 @@ describe('construirSystemPrompt', () => {
     expect(construirSystemPrompt('es')).toBe(SYSTEM_PROMPT);
   });
 
+  it('no se atasca con un tramo del RSH fuera de la lista: se guarda tal cual y no se insiste', () => {
+    for (const idioma of ['es', 'en'] as const) {
+      const p = construirSystemPrompt(idioma);
+      expect(p).toContain('El tramo más bajo es el 40');
+      expect(p).toContain('nunca le pidas que "revise su documento"');
+    }
+  });
+
   it('fija el idioma de respuesta de forma explícita, aunque el historial esté en otro', () => {
     const es = construirSystemPrompt('es');
     const en = construirSystemPrompt('en');
