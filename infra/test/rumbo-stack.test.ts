@@ -107,6 +107,17 @@ describe('RumboStack', () => {
     });
   });
 
+  it('permite a la Lambda sintetizar voz con Polly', () => {
+    const t = sintetizar();
+    t.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: Match.arrayWith([
+          Match.objectLike({ Action: 'polly:SynthesizeSpeech', Effect: 'Allow', Resource: '*' }),
+        ]),
+      },
+    });
+  });
+
   it('da a la Lambda permisos de lectura y escritura en la tabla', () => {
     const t = sintetizar();
     t.hasResourceProperties('AWS::IAM::Policy', {

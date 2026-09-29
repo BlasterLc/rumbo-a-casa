@@ -59,6 +59,8 @@ export class RumboStack extends cdk.Stack {
         ],
       }),
     );
+    // Voz de "Escuchar" (POST /api/voz). SynthesizeSpeech no admite permisos por recurso salvo léxicos.
+    apiFn.addToRolePolicy(new iam.PolicyStatement({ actions: ['polly:SynthesizeSpeech'], resources: ['*'] }));
     const apiUrl = apiFn.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
     });
