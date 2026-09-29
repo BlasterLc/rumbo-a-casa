@@ -23,3 +23,6 @@ export const PERFIL_DEMO: Perfil = {
   subsidioPrevio: 'ninguno',
   objetivo: 'comprar',
 };
+
+/** Folio ficticio del modo demo: deja el seguimiento con una postulación de ejemplo ya enviada. */
+export const FOLIO_DEMO = 'DEMO-2026-0001234';
