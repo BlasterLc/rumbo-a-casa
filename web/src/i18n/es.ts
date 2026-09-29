@@ -145,6 +145,7 @@ export const es: DiccionarioTextos = {
       preguntaFolio: '¿Cuál es tu número de folio?',
       ayudaFolio: 'Lo entrega el sitio del MINVU al terminar tu postulación.',
       guardarFolio: 'Guardar folio',
+      folioGuardado: (folio) => `Folio guardado: ${folio}`,
       notaEstado: 'El estado no se consulta solo: tú marcas la etapa y nosotros te recordamos lo que falta.',
     },
   },

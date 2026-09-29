@@ -145,6 +145,7 @@ export const en: DiccionarioTextos = {
       preguntaFolio: "What's your file number?",
       ayudaFolio: 'The MINVU site gives it to you when you finish applying.',
       guardarFolio: 'Save file number',
+      folioGuardado: (folio) => `File number saved: ${folio}`,
       notaEstado: "The status isn't checked automatically: you mark the stage and we remind you what's left.",
     },
   },

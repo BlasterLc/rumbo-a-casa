@@ -159,6 +159,7 @@ export interface DiccionarioTextos {
       preguntaFolio: string;
       ayudaFolio: string;
       guardarFolio: string;
+      folioGuardado: (folio: string) => string;
       notaEstado: string;
     };
   };
