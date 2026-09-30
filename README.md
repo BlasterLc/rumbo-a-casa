@@ -1,3 +1,5 @@
+
+
 <p align="center">
   <img src="web/public/marca/rumbo-simbolo.svg" alt="Rumbo a Casa logo" width="72" />
 </p>
@@ -9,6 +11,12 @@
 <p align="center">
   <strong>Which housing subsidy fits your family, and the exact papers to bring.</strong><br />
   An assistant that guides Chilean families through four state housing subsidies, with a deterministic rules engine that cites the decree behind every answer.
+  
+
+https://github.com/user-attachments/assets/187125dc-3cef-44d8-b37d-617a950f89b6
+
+
+  
 </p>
 
 <p align="center">
