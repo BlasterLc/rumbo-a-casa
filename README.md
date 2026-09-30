@@ -74,7 +74,7 @@ Browser ──► CloudFront ──┬─► S3 (single-page app)
 | **AWS Lambda** | Function URL behind CloudFront at `/api/*`. Runs the chat loop, rules engine, paper checklist, voice and demo. |
 | **Amazon Bedrock** | Claude Haiku 4.5 through a cross-region inference profile, with a shared time budget per message. |
 | **Amazon Polly** | Generative voices (Lupe for Spanish, Ruth for English), capped at 1,500 characters per request. |
-| **Amazon DynamoDB** | Session profile and history, expiring after 30 days. It stores no code and no identity data. |
+| **Amazon DynamoDB** | Session profile and chat history, kept for 30 days after the last message. The chat is free text: the assistant is instructed never to ask for RUT or Clave Única, but nothing filters what a person chooses to type. |
 | **AWS CDK** | The whole stack as code, in `us-east-1`. |
 
 ### API
