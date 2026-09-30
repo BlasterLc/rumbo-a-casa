@@ -320,3 +320,97 @@ describe('errores de POST /api/chat según el idioma', () => {
     expect(sesion.historial).toHaveLength(4);
   });
 });
+
+
+describe('tope global de llamadas', () => {
+  const peticionChat = (mensaje = 'hola') =>
+    ({
+      rawPath: '/api/chat',
+      requestContext: { http: { method: 'POST' } },
+      body: JSON.stringify({ sessionId: randomUUID(), mensaje }),
+    }) as unknown as APIGatewayProxyEventV2;
+  const peticionVoz = () =>
+    ({
+      rawPath: '/api/voz',
+      requestContext: { http: { method: 'POST' } },
+      body: JSON.stringify({ texto: 'Hola', idioma: 'es' }),
+    }) as unknown as APIGatewayProxyEventV2;
+  const limiteQueRechaza = () => ({ permitir: vi.fn().mockResolvedValue(false) });
+  const limiteQueDeja = () => ({ permitir: vi.fn().mockResolvedValue(true) });
+
+  it('chat: si el tope global se agotó responde 429 sin leer la sesión ni llamar a Bedrock', async () => {
+    const repositorio = new RepositorioEnMemoria();
+    const obtener = vi.spyOn(repositorio, 'obtener');
+    const invocar = vi.fn();
+    const limite = limiteQueRechaza();
+    const res = await crearHandler(() => ({ repositorio, invocar, modelId: 'm', limite }))(peticionChat());
+
+    expect(res.statusCode).toBe(429);
+    const cuerpo = JSON.parse(res.body as string);
+    expect(cuerpo.error).toBe('asistente_no_disponible');
+    expect(cuerpo.mensaje).toMatch(/mucha gente|demo/i);
+    expect(limite.permitir).toHaveBeenCalledWith('chat');
+    expect(obtener).not.toHaveBeenCalled();
+    expect(invocar).not.toHaveBeenCalled();
+  });
+
+  it('chat: el mensaje del 429 respeta el idioma', async () => {
+    const limite = limiteQueRechaza();
+    const evento = {
+      rawPath: '/api/chat',
+      requestContext: { http: { method: 'POST' } },
+      body: JSON.stringify({ sessionId: randomUUID(), mensaje: 'hi', idioma: 'en' }),
+    } as unknown as APIGatewayProxyEventV2;
+    const res = await crearHandler(() => ({ repositorio: new RepositorioEnMemoria(), invocar: vi.fn(), modelId: 'm', limite }))(evento);
+    expect(res.statusCode).toBe(429);
+    expect(JSON.parse(res.body as string).mensaje).toMatch(/busy|demo/i);
+  });
+
+  it('chat: una solicitud inválida se rechaza con 400 sin gastar cupo del tope', async () => {
+    const limite = limiteQueDeja();
+    const evento = { rawPath: '/api/chat', requestContext: { http: { method: 'POST' } }, body: '{}' } as unknown as APIGatewayProxyEventV2;
+    const res = await crearHandler(() => ({ repositorio: new RepositorioEnMemoria(), invocar: vi.fn(), modelId: 'm', limite }))(evento);
+    expect(res.statusCode).toBe(400);
+    expect(limite.permitir).not.toHaveBeenCalled();
+  });
+
+  it('chat: con cupo disponible atiende normalmente', async () => {
+    const limite = limiteQueDeja();
+    const invocar = vi.fn().mockResolvedValue(respuestaTexto('¡Hola!'));
+    const res = await crearHandler(() => ({ repositorio: new RepositorioEnMemoria(), invocar, modelId: 'm', limite }))(peticionChat());
+    expect(res.statusCode).toBe(200);
+    expect(limite.permitir).toHaveBeenCalledWith('chat');
+  });
+
+  it('voz: si el tope global se agotó responde 429 sin llamar a Polly', async () => {
+    const sintetizar = vi.fn();
+    const limite = limiteQueRechaza();
+    const res = await crearHandler(
+      () => {
+        throw new Error('voz no pide dependencias de chat');
+      },
+      () => sintetizar,
+      () => limite,
+    )(peticionVoz());
+
+    expect(res.statusCode).toBe(429);
+    expect(JSON.parse(res.body as string).error).toBe('voz_saturada');
+    expect(limite.permitir).toHaveBeenCalledWith('voz');
+    expect(sintetizar).not.toHaveBeenCalled();
+  });
+
+  it('voz: una solicitud inválida se rechaza con 400 sin gastar cupo', async () => {
+    const limite = limiteQueDeja();
+    const evento = { rawPath: '/api/voz', requestContext: { http: { method: 'POST' } }, body: '{}' } as unknown as APIGatewayProxyEventV2;
+    const res = await crearHandler(() => { throw new Error('x'); }, () => vi.fn(), () => limite)(evento);
+    expect(res.statusCode).toBe(400);
+    expect(limite.permitir).not.toHaveBeenCalled();
+  });
+
+  it('voz: con cupo disponible sintetiza normalmente', async () => {
+    const sintetizar = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3]));
+    const res = await crearHandler(() => { throw new Error('x'); }, () => sintetizar, () => limiteQueDeja())(peticionVoz());
+    expect(res.statusCode).toBe(200);
+    expect(sintetizar).toHaveBeenCalled();
+  });
+});

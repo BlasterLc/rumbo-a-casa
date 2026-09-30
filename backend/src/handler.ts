@@ -14,6 +14,7 @@ import { generarPlanPapeles } from './chat/papeles';
 import { construirDemo } from './chat/demo';
 import { SolicitudVoz, crearSintetizadorPolly, type Sintetizar } from './chat/voz';
 import { RepositorioDynamo, type RepositorioSesiones } from './chat/sesion-repositorio';
+import { LimiteDynamo, SIN_LIMITE, type LimiteGlobal } from './chat/limite-global';
 
 export const MAX_MENSAJES_POR_SESION = 40;
 export const MODELO_POR_DEFECTO = 'us.anthropic.claude-haiku-4-5-20251001-v1:0';
@@ -28,6 +29,8 @@ export interface DependenciasChat {
   invocar: InvocarConverse;
   modelId: string;
   presupuestoMs?: number;
+  /** Tope global de llamadas. Si no se inyecta, no hay tope (los tests). */
+  limite?: LimiteGlobal;
 }
 
 type Resultado = APIGatewayProxyStructuredResultV2;
@@ -58,6 +61,12 @@ async function atenderChat(event: APIGatewayProxyEventV2, deps: DependenciasChat
   const solicitud = SolicitudChat.safeParse(leerCuerpo(event));
   if (!solicitud.success) return json(400, { error: 'solicitud_invalida' });
   const { sessionId, mensaje, idioma } = solicitud.data;
+
+  // Antes de leer la sesión o llamar a Bedrock: el tope cuenta cada intento, también los que fallan.
+  // Reutiliza el código `asistente_no_disponible` para que la pantalla ofrezca el modo demo.
+  if (deps.limite && !(await deps.limite.permitir('chat'))) {
+    return json(429, { error: 'asistente_no_disponible', mensaje: MENSAJES_CHAT[idioma].servicioSaturado });
+  }
 
   const sesion = await deps.repositorio.obtener(sessionId);
   if (sesion.mensajes >= MAX_MENSAJES_POR_SESION) {
@@ -104,9 +113,16 @@ async function atenderChat(event: APIGatewayProxyEventV2, deps: DependenciasChat
   });
 }
 
-async function atenderVoz(event: APIGatewayProxyEventV2, sintetizar: Sintetizar): Promise<Resultado> {
+async function atenderVoz(
+  event: APIGatewayProxyEventV2,
+  sintetizar: Sintetizar,
+  limite: LimiteGlobal,
+): Promise<Resultado> {
   const solicitud = SolicitudVoz.safeParse(leerCuerpo(event));
   if (!solicitud.success) return json(400, { error: 'solicitud_invalida' });
+  // La voz de Polly cobra por carácter: sin este tope, cualquiera podría gastar el presupuesto.
+  // El cliente cae a la voz del navegador cuando /api/voz no responde bien.
+  if (!(await limite.permitir('voz'))) return json(429, { error: 'voz_saturada' });
   try {
     const audio = await sintetizar(solicitud.data.texto, solicitud.data.idioma);
     return json(200, { audio: Buffer.from(audio).toString('base64'), formato: 'mp3' });
@@ -125,6 +141,7 @@ function obtenerSintetizadorReal(): Sintetizar {
 export function crearHandler(
   obtenerDependencias: () => DependenciasChat,
   obtenerSintetizador: () => Sintetizar = obtenerSintetizadorReal,
+  obtenerLimite: () => LimiteGlobal = obtenerLimiteReal,
 ) {
   return async (event: APIGatewayProxyEventV2): Promise<Resultado> => {
     if (event.rawPath === '/api/hello') {
@@ -154,10 +171,28 @@ export function crearHandler(
       if (event.requestContext?.http?.method !== 'POST') {
         return json(405, { error: 'metodo_no_permitido' });
       }
-      return atenderVoz(event, obtenerSintetizador());
+      return atenderVoz(event, obtenerSintetizador(), obtenerLimite());
     }
     return json(404, { error: 'not_found' });
   };
+}
+
+let dynamoReal: DynamoDBDocumentClient | undefined;
+function obtenerDynamo(): DynamoDBDocumentClient {
+  dynamoReal ??= DynamoDBDocumentClient.from(new DynamoDBClient({}), {
+    marshallOptions: { removeUndefinedValues: true },
+  });
+  return dynamoReal;
+}
+
+let limiteReal: LimiteGlobal | undefined;
+function obtenerLimiteReal(): LimiteGlobal {
+  if (!limiteReal) {
+    const tabla = process.env.TABLA_SESIONES;
+    // Sin tabla configurada (tests, ejecución local) no hay contadores: el chat ya exige la tabla por su cuenta.
+    limiteReal = tabla ? new LimiteDynamo(obtenerDynamo(), tabla) : SIN_LIMITE;
+  }
+  return limiteReal;
 }
 
 let dependenciasReales: DependenciasChat | undefined;
@@ -176,11 +211,9 @@ function crearDependenciasReales(): DependenciasChat {
       requestHandler: { requestTimeout: 20_000 },
       maxAttempts: 2,
     });
-    const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
-      marshallOptions: { removeUndefinedValues: true },
-    });
     dependenciasReales = {
-      repositorio: new RepositorioDynamo(dynamo, tabla),
+      repositorio: new RepositorioDynamo(obtenerDynamo(), tabla),
+      limite: obtenerLimiteReal(),
       invocar: (input, opciones) => bedrock.send(new ConverseCommand(input), opciones),
       modelId: process.env.MODEL_ID ?? MODELO_POR_DEFECTO,
     };
