@@ -100,6 +100,7 @@ export function PantallaEntrevista() {
       titulo={t.pantallas.entrevista.modoDemoTitulo}
       accion={t.pantallas.entrevista.salirModoDemo}
       onAccion={borrarDatos}
+      accionAbajo
     >
       {t.pantallas.entrevista.modoDemoAviso}
     </Alerta>
