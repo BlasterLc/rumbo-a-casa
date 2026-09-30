@@ -37,11 +37,46 @@ describe('construirDemo', () => {
   });
 
   it('resultados y plan salen del motor de reglas real, no están escritos a mano', () => {
+    const porPrograma = <T extends { programa: string }>(xs: T[]) =>
+      [...xs].sort((a, b) => a.programa.localeCompare(b.programa));
     for (const paso of construirDemo().pasos) {
       const esperados = evaluarTodosLosProgramas(paso.perfil);
-      expect(paso.resultados).toEqual(esperados);
-      expect(paso.plan).toEqual(generarPlanPapeles(esperados));
+      expect(porPrograma(paso.resultados)).toEqual(porPrograma(esperados));
+      expect(porPrograma(paso.plan)).toEqual(porPrograma(generarPlanPapeles(esperados)));
     }
+  });
+
+  it('en cada paso los programas a los que aplica van primero y el que no aplica al final', () => {
+    const RANGO = { elegible: 0, falta_dato: 1, no_elegible: 2 } as const;
+    for (const paso of construirDemo().pasos) {
+      const rangos = paso.resultados.map((r) => RANGO[r.estado]);
+      expect(rangos).toEqual([...rangos].sort((a, b) => a - b));
+    }
+    const ultimo = construirDemo().pasos.at(-1)!;
+    expect(ultimo.resultados.map((r) => r.programa)).toEqual(['DS49', 'DS19', 'DS52', 'DS1']);
+    expect(ultimo.plan.map((p) => p.programa)).toEqual(['DS49', 'DS19', 'DS52']);
+  });
+
+  it('la conclusión nombra los programas que aplican antes del que no aplica', () => {
+    const texto = construirDemo().pasos.at(-1)!.respuesta;
+    const pos = (s: string) => texto.indexOf(s);
+    expect(pos('Calificas a DS49')).toBeGreaterThanOrEqual(0);
+    expect(pos('Calificas a DS49')).toBeLessThan(pos('Calificas a DS19'));
+    expect(pos('Calificas a DS19')).toBeLessThan(pos('Calificas a DS52'));
+    expect(pos('Calificas a DS52')).toBeLessThan(pos('No calificas a DS1'));
+  });
+
+  it('en inglés: mismos veredictos, mismo orden y sin texto en español', () => {
+    const es = construirDemo('es').pasos.at(-1)!;
+    const en = construirDemo('en').pasos.at(-1)!;
+    expect(en.resultados.map((r) => [r.programa, r.estado])).toEqual(
+      es.resultados.map((r) => [r.programa, r.estado]),
+    );
+    expect(en.respuesta).toMatch(/You qualify for DS49/);
+    expect(en.respuesta).toMatch(/You don't qualify for DS1/);
+    expect(en.respuesta).toContain('Serviu');
+    expect(en.respuesta).not.toMatch(/Calificas/);
+    expect(construirDemo('en').pasos).toHaveLength(construirDemo('es').pasos.length);
   });
 
   it('al principio no se puede decidir nada: los 4 programas piden datos', () => {
