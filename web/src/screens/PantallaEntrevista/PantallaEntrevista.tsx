@@ -29,7 +29,7 @@ export function PantallaEntrevista() {
   const t = useT();
   const escritorio = useEscritorio();
   const [borrador, setBorrador] = useState('');
-  const registroRef = useRef<HTMLDivElement>(null);
+  const finRef = useRef<HTMLDivElement>(null);
   const [panelAbierto, setPanelAbierto] = useState(true);
 
   const mensajeValido = borrador.trim().length > 0 && borrador.length <= LIMITE_MENSAJE;
@@ -41,10 +41,9 @@ export function PantallaEntrevista() {
     void enviarTurno(texto);
   };
 
-  // En escritorio el registro tiene scroll propio: al llegar un mensaje se baja al último.
+  // En escritorio solo hace scroll la página: al llegar un mensaje se baja hasta el final de la conversación.
   useEffect(() => {
-    const registro = registroRef.current;
-    if (escritorio && registro) registro.scrollTop = registro.scrollHeight;
+    if (escritorio) finRef.current?.scrollIntoView?.({ block: 'end' });
   }, [escritorio, transcript.length, eventos.length, cargando]);
 
   const indicador = (orientacion: 'horizontal' | 'vertical') => (
@@ -135,7 +134,7 @@ export function PantallaEntrevista() {
 
   if (escritorio) {
     return (
-      <AppShell titulo={t.pantallas.entrevista.titulo} destino="hablar" anchoCompleto>
+      <AppShell titulo={t.pantallas.entrevista.titulo} destino="hablar" anchoCompleto tituloVisible={false}>
         {/* Entre 900 px (donde arranca el sidebar de escritorio) y 1200 px no hay ancho para un
             aside fijo de 340 px sin ahogar el chat: la columna del avance se apila debajo hasta
             `lg` (1200 px) y recién ahí se separa en dos columnas. */}
@@ -153,50 +152,43 @@ export function PantallaEntrevista() {
               lg: panelAbierto ? 'minmax(0, 1fr) 340px' : 'minmax(0, 1fr)',
             },
             columnGap: { lg: 'var(--space-7)' },
-            rowGap: 'var(--space-5)',
+            rowGap: 'var(--space-4)',
             alignItems: 'start',
           }}
         >
           <Stack
             spacing={2}
             sx={{
-              height: 'max(480px, calc(100dvh - var(--size-header) - 240px))',
-              minHeight: 0,
               width: '100%',
               maxWidth: 760,
               mx: 'auto',
             }}
           >
             <Stack
-              ref={registroRef}
               role="log"
               aria-label={t.pantallas.entrevista.etiquetaConversacion}
               spacing={2}
-              sx={{
-                flex: 1,
-                minHeight: 0,
-                overflowY: 'auto',
-                pr: 1,
-                '& > *': { flexShrink: 0 },
-              }}
+              sx={{ pr: 1 }}
             >
               {conversacion(false)}
             </Stack>
+            <Box ref={finRef} />
             {alerta}
             {/* En demo no hay campo de mensaje: el aviso se va al panel del avance, debajo de los
-                pasos, y la conversación ocupa todo el alto de su columna. */}
+                pasos, y la conversación crece libre con el scroll de la página. */}
             {!esDemo && (
-              <Box
-                sx={{
-                  flex: 'none',
-                  p: 1.5,
-                  backgroundColor: 'var(--surface-raised)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-lg)',
-                  boxShadow: 'var(--shadow-md)',
-                }}
-              >
-                {campo}
+              <Box sx={{ position: 'sticky', bottom: 0, pb: 'var(--space-4)', backgroundColor: 'var(--surface-base)' }}>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    backgroundColor: 'var(--surface-raised)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-lg)',
+                    boxShadow: 'var(--shadow-md)',
+                  }}
+                >
+                  {campo}
+                </Box>
               </Box>
             )}
           </Stack>
@@ -204,17 +196,18 @@ export function PantallaEntrevista() {
             <Stack
               component="aside"
               aria-label={t.pantallas.entrevista.etiquetaAvance}
-              spacing={3}
+              spacing={2}
               sx={{
                 position: { lg: 'sticky' },
                 top: { lg: 'calc(var(--size-header) + var(--space-5))' },
-                maxHeight: { lg: 'calc(100dvh - var(--size-header) - var(--space-7))' },
-                overflowY: { lg: 'auto' },
+                // Si la ventana es muy baja el panel no cabe: solo entonces tiene su propio scroll.
+                maxHeight: { lg: 'calc(100dvh - var(--size-header) - var(--space-5) - var(--space-4))' },
+                '@media (max-height: 700px)': { overflowY: 'auto' },
               }}
             >
               <Box
                 sx={{
-                  p: 'var(--space-5)',
+                  p: 'var(--space-3) var(--space-4)',
                   backgroundColor: 'var(--surface-raised)',
                   border: '1px solid var(--border)',
                   borderRadius: 'var(--radius-lg)',
@@ -224,7 +217,13 @@ export function PantallaEntrevista() {
                 {indicador('vertical')}
               </Box>
               {esDemo && avisoDemo}
-              {sellos.length > 0 && <Stack spacing={1.5}>{sellos}</Stack>}
+              {eventos.length > 0 && (
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  {eventos.map((evento) => (
+                    <SelloElegibilidad key={evento.id} estado={mapEstado(evento.estado)} programa={evento.programa} compacto />
+                  ))}
+                </Stack>
+              )}
             </Stack>
           )}
         </Box>

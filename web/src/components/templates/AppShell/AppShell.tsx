@@ -56,7 +56,7 @@ export function AppShell({ titulo, destino, avisos = 0, atras = false, tituloVis
           />
           <Box
             component="main"
-            sx={{ flex: 1, minWidth: 0, width: '100%', maxWidth: anchoCompleto ? 'none' : sizePx['size-page'], mx: 'auto', px: 'var(--space-6)', pb: 'var(--space-8)' }}
+            sx={{ flex: 1, minWidth: 0, width: '100%', maxWidth: anchoCompleto ? 'none' : sizePx['size-page'], mx: 'auto', px: 'var(--space-6)', pb: anchoCompleto ? 'var(--space-4)' : 'var(--space-8)' }}
           >
             {atras && (
               <Boton
