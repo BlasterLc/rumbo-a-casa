@@ -5,7 +5,7 @@ import { LocaleProvider } from '../i18n/LocaleContext';
 import { SesionProvider, useSesion } from './SesionContext';
 import * as chatClient from '../api/chatClient';
 import { PERFIL_DESCONOCIDO } from '../types/dominio';
-import { PERFIL_DEMO, FOLIO_DEMO } from '../lib/perfilDemo';
+import { FOLIO_DEMO } from '../lib/perfilDemo';
 import type { ResultadoPrograma } from '../types/dominio';
 
 function resultado(programa: ResultadoPrograma['programa'], estado: ResultadoPrograma['estado']): ResultadoPrograma {
@@ -28,7 +28,8 @@ function Sonda() {
       <div data-testid="error">{s.error?.codigo ?? ''}</div>
       <button onClick={() => s.enviarTurno('Hola')}>enviar</button>
       <button onClick={() => s.borrarDatos()}>borrar</button>
-      <button onClick={() => s.activarDemo(PERFIL_DEMO)}>demo</button>
+      <button onClick={() => s.activarDemo()}>demo</button>
+      <pre data-testid="estado-json">{JSON.stringify({ transcript: s.transcript, eventos: s.eventos, resultados: s.resultados })}</pre>
       <div data-testid="folio">{s.seguimiento.folio ?? ''}</div>
       <div data-testid="etapa">{s.seguimiento.etapa}</div>
       <div data-testid="docs-listos">{Object.values(s.documentosListos).filter(Boolean).length}</div>
@@ -160,6 +161,32 @@ describe('SesionProvider', () => {
     const programas = Number(screen.getByTestId('programas-plan').textContent);
     expect(programas).toBeGreaterThan(0);
     expect(screen.getByTestId('docs-listos')).toHaveTextContent(String(programas));
+  });
+
+
+  const estadoJson = () => JSON.parse(screen.getByTestId('estado-json').textContent ?? '{}');
+
+  it('el modo demo deja la conversación completa: aviso, y luego cada mensaje de la familia con su respuesta', async () => {
+    conProveedores();
+    await userEvent.click(screen.getByRole('button', { name: 'demo' }));
+    const { transcript, resultados } = estadoJson();
+    expect(transcript.map((t: { autor: string }) => t.autor)).toEqual([
+      'agente', 'persona', 'agente', 'persona', 'agente', 'persona', 'agente', 'persona', 'agente',
+    ]);
+    expect(transcript[1].texto).toMatch(/familia de 4 en Santiago/);
+    expect(transcript.at(-1).texto).toMatch(/No calificas a DS1/);
+    expect(resultados.map((r: { programa: string }) => r.programa)).toEqual(['DS49', 'DS19', 'DS52', 'DS1']);
+    const ids = transcript.map((t: { id: string }) => t.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('activar el demo dos veces no repite los sellos ni la conversación', async () => {
+    conProveedores();
+    await userEvent.click(screen.getByRole('button', { name: 'demo' }));
+    await userEvent.click(screen.getByRole('button', { name: 'demo' }));
+    const { eventos, transcript } = estadoJson();
+    expect(eventos).toHaveLength(4);
+    expect(transcript).toHaveLength(9);
   });
 
   it('si localStorage lanza (modo privado), la sesión sigue funcionando en memoria', () => {

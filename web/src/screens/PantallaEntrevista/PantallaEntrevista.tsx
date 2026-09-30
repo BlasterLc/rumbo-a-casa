@@ -13,7 +13,6 @@ import { useSesion } from '../../state/SesionContext';
 import { useT } from '../../i18n/LocaleContext';
 import { useEscritorio } from '../../lib/useEscritorio';
 import { mapEstado } from '../../lib/estado';
-import { PERFIL_DEMO } from '../../lib/perfilDemo';
 import { GRUPOS_ENTREVISTA, pasoActivo } from './pasos';
 
 const LIMITE_MENSAJE = 2000;
@@ -84,7 +83,7 @@ export function PantallaEntrevista() {
     <Alerta
       severity={error.codigo === 'limite_mensajes' ? 'warning' : 'error'}
       accion={error.codigo === 'asistente_no_disponible' ? t.pantallas.entrevista.probarModoDemo : undefined}
-      onAccion={() => activarDemo(PERFIL_DEMO)}
+      onAccion={() => activarDemo()}
     >
       {error.mensaje ?? t.pantallas.entrevista.errorGenerico}
     </Alerta>

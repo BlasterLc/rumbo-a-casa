@@ -14,6 +14,7 @@ export {
   IDIOMA_POR_DEFECTO,
 } from '@rumbo/backend/rules-engine';
 export { generarPlanPapeles } from '@rumbo/backend/chat/papeles';
+export { construirDemo } from '@rumbo/backend/chat/demo';
 
 import type { Perfil } from '@rumbo/backend/rules-engine';
 
