@@ -47,7 +47,9 @@ function normalizarTramoRSH(valor: unknown): unknown {
   return Math.max(40, Math.ceil(valor / 10) * 10);
 }
 
-const esCampoPerfil = (campo: string): campo is keyof Perfil => campo in PerfilSchema.shape;
+// Object.hasOwn y no `in`: este último también acepta claves heredadas (constructor, toString) y
+// PerfilSchema.shape[campo] dejaría de ser un esquema.
+const esCampoPerfil = (campo: string): campo is keyof Perfil => Object.hasOwn(PerfilSchema.shape, campo);
 
 export function aplicarCambios(perfil: Perfil, cambios: Record<string, unknown>): ResultadoCambios {
   const nuevo: Record<string, unknown> = { ...perfil };

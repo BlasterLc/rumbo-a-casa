@@ -68,6 +68,15 @@ describe('aplicarCambios', () => {
     expect(r.rechazados.map((x) => x.campo)).toEqual(['region']);
   });
 
+  it('trata las claves heredadas del objeto (constructor, toString, __proto__) como campos desconocidos', () => {
+    const cambios = JSON.parse('{"constructor": 1, "toString": 2, "__proto__": 3, "hasOwnProperty": 4}');
+    const r = aplicarCambios(PERFIL_VACIO, cambios);
+    expect(r.aceptados).toEqual([]);
+    expect(r.rechazados.map((x) => x.campo).sort()).toEqual(['__proto__', 'constructor', 'hasOwnProperty', 'toString']);
+    expect(r.rechazados.every((x) => x.error === 'Campo desconocido.')).toBe(true);
+    expect(r.perfil).toEqual(PERFIL_VACIO);
+  });
+
   it('rechaza campos que no existen en el perfil', () => {
     const r = aplicarCambios(PERFIL_VACIO, { rut: '11.111.111-1' });
     expect(r.rechazados).toEqual([{ campo: 'rut', error: 'Campo desconocido.' }]);
