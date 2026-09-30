@@ -25,11 +25,11 @@
 </p>
 
 <p align="center">
-  <a href="docs/video/rumbo-a-casa.mp4"><img src="docs/video/rumbo-a-casa-poster.jpg" alt="Watch the 25-second video: Four housing subsidies. Which one fits your family?" width="820" /></a>
+  <a href="https://www.youtube.com/watch?v=X4tJJVOv-VI"><img src="docs/video/rumbo-a-casa-poster.jpg" alt="Watch the 25-second video: Four housing subsidies. Which one fits your family?" width="820" /></a>
 </p>
 
 <p align="center">
-  <a href="docs/video/rumbo-a-casa.mp4"><strong>▶ Watch the 25-second video</strong></a> · the real app, from the landing page to the papers to bring
+  <a href="https://www.youtube.com/watch?v=X4tJJVOv-VI"><strong>▶ Watch the 25-second video</strong></a> · the real app, from the landing page to the papers to bring
 </p>
 
 > **AWS Zero to Shipped hackathon** · Category: Social Good · Track: Community
