@@ -84,7 +84,7 @@ export const es: DiccionarioTextos = {
       seguirDondeQuedaste: 'Seguir donde quedaste',
       empezarDeNuevo: 'Empezar de nuevo',
       fraseConfianza:
-        'Herramienta independiente, no oficial. Nunca te pediremos tu Clave Única. Puedes borrar tus datos cuando quieras.',
+        'Herramienta independiente, no oficial. Nunca te pediremos tu Clave Única. Puedes borrar tus datos de este navegador cuando quieras.',
       roles: {
         eyebrow: 'Cómo trabajamos contigo',
         titulo: 'Cada quien hace su parte, sin sorpresas',
@@ -108,7 +108,7 @@ export const es: DiccionarioTextos = {
             'Reúnes los documentos que te indicamos.',
             'Aprietas el botón final en el MINVU, con tu Clave Única.',
           ],
-          aviso: 'Nunca pedimos tu Clave Única. Puedes borrar tus datos cuando quieras.',
+          aviso: 'Nunca pedimos tu Clave Única. Puedes borrar tus datos de este navegador cuando quieras.',
         },
       },
       faq: {

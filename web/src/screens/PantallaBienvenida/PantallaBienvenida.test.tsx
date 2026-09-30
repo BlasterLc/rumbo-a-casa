@@ -88,7 +88,7 @@ describe('PantallaBienvenida', () => {
     renderPantalla();
     expect(
       screen.getByText(
-        'Herramienta independiente, no oficial. Nunca te pediremos tu Clave Única. Puedes borrar tus datos cuando quieras.',
+        'Herramienta independiente, no oficial. Nunca te pediremos tu Clave Única. Puedes borrar tus datos de este navegador cuando quieras.',
       ),
     ).toBeInTheDocument();
   });

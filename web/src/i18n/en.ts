@@ -84,7 +84,7 @@ export const en: DiccionarioTextos = {
       seguirDondeQuedaste: 'Continue where you left off',
       empezarDeNuevo: 'Start over',
       fraseConfianza:
-        'Independent tool, not official. We will never ask for your Clave Única. You can delete your data whenever you want.',
+        'Independent tool, not official. We will never ask for your Clave Única. You can delete your data from this browser whenever you want.',
       roles: {
         eyebrow: 'How we work with you',
         titulo: 'Everyone does their part, no surprises',
@@ -108,7 +108,7 @@ export const en: DiccionarioTextos = {
             'Gather the documents we tell you about.',
             'Press the final button on the MINVU site, with your Clave Única.',
           ],
-          aviso: 'We never ask for your Clave Única. You can delete your data whenever you want.',
+          aviso: 'We never ask for your Clave Única. You can delete your data from this browser whenever you want.',
         },
       },
       faq: {
