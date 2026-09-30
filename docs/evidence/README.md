@@ -14,7 +14,7 @@ Verified 2026-09-22: `GET /` returns 200. `GET /api/hello` returns `{"message":"
 ## Proof of coding agent connection
 
 - **CloudTrail:** `docs/evidence/cloudtrail-createstack.json` holds `CreateChangeSet`, `ExecuteChangeSet` and `DeleteStack` events on the `RumboACasa` stack, from the IAM user `aws-cdk-augus` (the identity used to deploy through the CDK deployment role), with MFA. Source IP and account ID are redacted; only non-sensitive fields were kept.
-- **Screenshots** (from a teammate): `deploy-terminal.png` (the `cdk deploy` log completing the `RumboACasa` stack, cropped so the Stack ARN and account ID are not shown) and `site-live.png` (the site loading in a browser from the CloudFront URL).
+- **Screenshots** (from a teammate): `deploy-terminal.png` (the `cdk deploy` log completing the `RumboACasa` stack, cropped so the Stack ARN and account ID are not shown) and `site-live.png` (the live site loading from the CloudFront URL; retaken on 2026-09-29 from a clean headless browser, because the original showed the early placeholder page).
 
 ## Coding agent connected to AWS from the developer's terminal (2026-09-24)
 
