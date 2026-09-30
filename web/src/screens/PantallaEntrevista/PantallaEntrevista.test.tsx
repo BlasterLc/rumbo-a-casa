@@ -259,6 +259,27 @@ describe('PantallaEntrevista en escritorio', () => {
     expect(cssActual()).toMatch(regla);
   });
 
+  it('el panel del avance se puede ocultar y volver a mostrar para darle todo el ancho a la conversación', async () => {
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    expect(screen.getByRole('complementary', { name: 'Avance de la entrevista' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Ocultar avance' }));
+    expect(screen.queryByRole('complementary', { name: 'Avance de la entrevista' })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Mostrar avance' }));
+    expect(screen.getByRole('complementary', { name: 'Avance de la entrevista' })).toBeInTheDocument();
+  });
+
+  it('en modo demo el aviso queda en el panel lateral, bajo los pasos, y no bajo la conversación', async () => {
+    vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({ ok: false, status: 503, codigo: 'asistente_no_disponible' });
+    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    await userEvent.type(screen.getByLabelText('Escribe tu respuesta'), 'Hola');
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Probar modo demo' }));
+    const panel = screen.getByRole('complementary', { name: 'Avance de la entrevista' });
+    expect(await screen.findByText('Estás en modo demo')).toBeInTheDocument();
+    expect(panel).toContainElement(screen.getByText('Estás en modo demo'));
+    expect(screen.getByRole('log', { name: 'Conversación' })).not.toContainElement(screen.getByText('Estás en modo demo'));
+  });
+
   it('el campo de texto queda fuera del registro, anclado bajo la conversación', () => {
     renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
     const registro = screen.getByRole('log', { name: 'Conversación' });

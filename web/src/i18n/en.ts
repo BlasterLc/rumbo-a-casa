@@ -173,6 +173,8 @@ export const en: DiccionarioTextos = {
       errorGenerico: 'Something went wrong. Try again in a moment.',
       etiquetaConversacion: 'Conversation',
       etiquetaAvance: 'Interview progress',
+      ocultarAvance: 'Hide progress',
+      mostrarAvance: 'Show progress',
     },
     resultado: {
       titulo: 'Your result',
