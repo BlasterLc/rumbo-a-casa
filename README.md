@@ -28,10 +28,6 @@
 </p>
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=X4tJJVOv-VI"><img src="docs/video/rumbo-a-casa-poster.jpg" alt="Watch the 25-second video: Four housing subsidies. Which one fits your family?" width="820" /></a>
-</p>
-
-<p align="center">
 
 https://github.com/user-attachments/assets/187125dc-3cef-44d8-b37d-617a950f89b6
 
