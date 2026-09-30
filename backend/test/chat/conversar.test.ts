@@ -130,6 +130,59 @@ describe('conversar', () => {
     expect(salida.historial.at(-1)).toEqual({ role: 'assistant', content: [{ text: 'Déjame anotarlo.' }] });
   });
 
+  const respuestaHerramientaConTexto = (texto: string, nombre: string, input: unknown) =>
+    ({
+      stopReason: 'tool_use',
+      output: {
+        message: {
+          role: 'assistant',
+          content: [{ text: texto }, { toolUse: { toolUseId: 'tu-1', name: nombre, input } }],
+        },
+      },
+    }) as unknown as Awaited<ReturnType<typeof respuestaTexto>>;
+
+  it('no promueve a respuesta un texto previo a la herramienta que afirma un veredicto: reintenta pidiendo usar los resultados', async () => {
+    const invocar = vi
+      .fn()
+      .mockResolvedValueOnce(respuestaHerramientaConTexto('Perfecto, calificas a DS49.', 'actualizar_perfil', { tienePropiedad: false }))
+      .mockResolvedValueOnce(vacia)
+      .mockResolvedValueOnce(respuestaTexto('Todavía me faltan datos para revisar tus programas: ¿cuál es tu tramo del RSH?'));
+    const salida = await conversar(invocar, MODELO, entrada('Somos 4 y no tenemos casa'));
+
+    expect(invocar).toHaveBeenCalledTimes(3);
+    expect(salida.respuesta).toBe('Todavía me faltan datos para revisar tus programas: ¿cuál es tu tramo del RSH?');
+    expect(JSON.stringify(salida.historial)).not.toContain('calificas a DS49');
+
+    // El reintento ya no repite los mismos mensajes: el último turno de usuario lleva un aviso de texto.
+    const mensajesReintento = invocar.mock.calls[2][0].messages as Message[];
+    const ultimo = mensajesReintento.at(-1)!;
+    expect(ultimo.role).toBe('user');
+    expect(ultimo.content!.some((b) => 'toolResult' in b)).toBe(true);
+    expect(ultimo.content!.some((b) => typeof b.text === 'string' && b.text.length > 0)).toBe(true);
+  });
+
+  it('si tras descartar un veredicto sin comprobar el modelo sigue callando, usa el respaldo y no filtra el veredicto', async () => {
+    const invocar = vi
+      .fn()
+      .mockResolvedValueOnce(respuestaHerramientaConTexto('No calificas a DS1.', 'actualizar_perfil', { tienePropiedad: true }))
+      .mockResolvedValue(vacia);
+    const salida = await conversar(invocar, MODELO, entrada('Tengo casa'));
+
+    expect(salida.respuesta).toBe(RESPUESTA_RESPALDO);
+    expect(JSON.stringify(salida.historial)).not.toContain('No calificas');
+  });
+
+  it('también descarta el veredicto previo a la herramienta en inglés', async () => {
+    const invocar = vi
+      .fn()
+      .mockResolvedValueOnce(respuestaHerramientaConTexto('Great news, you qualify for DS49.', 'actualizar_perfil', { tienePropiedad: false }))
+      .mockResolvedValue(vacia);
+    const salida = await conversar(invocar, MODELO, { ...entrada('We rent'), idioma: 'en' });
+
+    expect(salida.respuesta).toBe(MENSAJES_CHAT.en.respaldo);
+    expect(salida.respuesta).not.toMatch(/qualify/i);
+  });
+
   it('si no hay texto en ningún turno, reintenta una vez y usa el texto de la segunda vez', async () => {
     const invocar = vi.fn().mockResolvedValueOnce(vacia).mockResolvedValueOnce(respuestaTexto('¡Hola! ¿En qué región vives?'));
     const salida = await conversar(invocar, MODELO, entrada('hola'));

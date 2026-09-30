@@ -17,6 +17,10 @@ export type InvocarConverse = (
 export const MAX_VUELTAS_HERRAMIENTAS = 6;
 const REINTENTOS_RESPUESTA_VACIA = 1;
 
+// El texto que el modelo escribe junto a una herramienta se escribe antes de conocer su resultado.
+// Si habla de calificar o de elegibilidad, es un veredicto que el motor todavía no comprobó.
+const HABLA_DE_VEREDICTO = /calific|elegib|qualif|eligib/i;
+
 // Se mantiene exportada por compatibilidad: es la respuesta de respaldo en español.
 export const RESPUESTA_RESPALDO = MENSAJES_CHAT.es.respaldo;
 
@@ -70,9 +74,19 @@ export async function conversar(
       // A veces el modelo escribe su respuesta, llama a una herramienta y luego cierra el turno sin
       // texto (`end_turn` con contenido vacío): lo que ya escribió antes de la herramienta es su
       // respuesta, así que se usa. Reintentar con los mismos mensajes no sirve, sale vacío igual.
-      const texto = textoDe(contenido) || textosPrevios.join('\n\n');
+      const previo = textosPrevios.join('\n\n');
+      // Solo se aprovecha el texto previo si no afirma un veredicto: eso lo decide el motor, no el modelo.
+      const texto = textoDe(contenido) || (HABLA_DE_VEREDICTO.test(previo) ? '' : previo);
       if (!texto && reintentosVacios < REINTENTOS_RESPUESTA_VACIA) {
         reintentosVacios++;
+        // Reintentar con los mismos mensajes sale vacío igual: se le recuerda que conteste con los resultados.
+        const ultimo = enCurso.at(-1);
+        if (ultimo?.role === 'user' && ultimo.content?.some((bloque) => bloque.toolResult)) {
+          enCurso[enCurso.length - 1] = {
+            ...ultimo,
+            content: [...(ultimo.content ?? []), { text: MENSAJES_CHAT[idioma].recordatorioResponder }],
+          };
+        }
         continue;
       }
       const respuesta = texto || respaldo;
@@ -85,7 +99,12 @@ export async function conversar(
 
     const textoPrevio = textoDe(contenido);
     if (textoPrevio) textosPrevios.push(textoPrevio);
-    enCurso.push({ role: 'assistant', content: contenido });
+    // El bloque de la herramienta se conserva; el texto que afirma un veredicto no comprobado se quita
+    // del turno para que no quede en el historial ni ancle al modelo en los turnos siguientes.
+    enCurso.push({
+      role: 'assistant',
+      content: contenido.filter((bloque) => !(bloque.text && HABLA_DE_VEREDICTO.test(bloque.text))),
+    });
     const resultados = pedidos.map(({ toolUse }): ContentBlock => {
       const r = ejecutarHerramienta(toolUse?.name ?? '', toolUse?.input, perfil, idioma);
       perfil = r.perfil;
