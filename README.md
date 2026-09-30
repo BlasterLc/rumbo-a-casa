@@ -12,11 +12,6 @@
   <strong>Which housing subsidy fits your family, and the exact papers to bring.</strong><br />
   An assistant that guides Chilean families through four state housing subsidies, with a deterministic rules engine that cites the decree behind every answer.
   
-
-https://github.com/user-attachments/assets/187125dc-3cef-44d8-b37d-617a950f89b6
-
-
-  
 </p>
 
 <p align="center">
@@ -37,8 +32,12 @@ https://github.com/user-attachments/assets/187125dc-3cef-44d8-b37d-617a950f89b6
 </p>
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=X4tJJVOv-VI"><strong>▶ Watch the 25-second video</strong></a> · the real app, from the landing page to the papers to bring
+
+https://github.com/user-attachments/assets/187125dc-3cef-44d8-b37d-617a950f89b6
+
 </p>
+
+<p align="center"><sub>Also on <a href="https://www.youtube.com/watch?v=X4tJJVOv-VI">YouTube</a> · the real app, from the landing page to the papers to bring</sub></p>
 
 > **AWS Zero to Shipped hackathon** · Category: Social Good · Track: Community
 
