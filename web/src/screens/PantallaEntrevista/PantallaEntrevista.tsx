@@ -13,7 +13,6 @@ import { useSesion } from '../../state/SesionContext';
 import { useT } from '../../i18n/LocaleContext';
 import { useEscritorio } from '../../lib/useEscritorio';
 import { mapEstado } from '../../lib/estado';
-import { PERFIL_DEMO } from '../../lib/perfilDemo';
 import { GRUPOS_ENTREVISTA, pasoActivo } from './pasos';
 
 const LIMITE_MENSAJE = 2000;
@@ -30,7 +29,8 @@ export function PantallaEntrevista() {
   const t = useT();
   const escritorio = useEscritorio();
   const [borrador, setBorrador] = useState('');
-  const registroRef = useRef<HTMLDivElement>(null);
+  const finRef = useRef<HTMLDivElement>(null);
+  const [panelAbierto, setPanelAbierto] = useState(true);
 
   const mensajeValido = borrador.trim().length > 0 && borrador.length <= LIMITE_MENSAJE;
 
@@ -41,10 +41,9 @@ export function PantallaEntrevista() {
     void enviarTurno(texto);
   };
 
-  // En escritorio el registro tiene scroll propio: al llegar un mensaje se baja al último.
+  // En escritorio solo hace scroll la página: al llegar un mensaje se baja hasta el final de la conversación.
   useEffect(() => {
-    const registro = registroRef.current;
-    if (escritorio && registro) registro.scrollTop = registro.scrollHeight;
+    if (escritorio) finRef.current?.scrollIntoView?.({ block: 'end' });
   }, [escritorio, transcript.length, eventos.length, cargando]);
 
   const indicador = (orientacion: 'horizontal' | 'vertical') => (
@@ -55,7 +54,12 @@ export function PantallaEntrevista() {
     />
   );
 
-  const conversacion = (
+  // En escritorio los sellos viven en el panel lateral; en móvil van dentro de la conversación.
+  const sellos = eventos.map((evento) => (
+    <SelloElegibilidad key={evento.id} estado={mapEstado(evento.estado)} programa={evento.programa} />
+  ));
+
+  const conversacion = (conSellos: boolean) => (
     <>
       {transcript.length === 0 && (
         <BurbujaChat autor="agente" escuchable textoHablado={t.pantallas.entrevista.mensajeBienvenida}>
@@ -73,9 +77,7 @@ export function PantallaEntrevista() {
           {turno.autor === 'agente' ? <TextoConNegritas texto={turno.texto} /> : turno.texto}
         </BurbujaChat>
       ))}
-      {eventos.map((evento) => (
-        <SelloElegibilidad key={evento.id} estado={mapEstado(evento.estado)} programa={evento.programa} />
-      ))}
+      {conSellos && sellos}
       {cargando && <Pensando>{t.pantallas.entrevista.pensando}</Pensando>}
     </>
   );
@@ -84,7 +86,7 @@ export function PantallaEntrevista() {
     <Alerta
       severity={error.codigo === 'limite_mensajes' ? 'warning' : 'error'}
       accion={error.codigo === 'asistente_no_disponible' ? t.pantallas.entrevista.probarModoDemo : undefined}
-      onAccion={() => activarDemo(PERFIL_DEMO)}
+      onAccion={() => activarDemo()}
     >
       {error.mensaje ?? t.pantallas.entrevista.errorGenerico}
     </Alerta>
@@ -98,6 +100,7 @@ export function PantallaEntrevista() {
       titulo={t.pantallas.entrevista.modoDemoTitulo}
       accion={t.pantallas.entrevista.salirModoDemo}
       onAccion={borrarDatos}
+      accionAbajo
     >
       {t.pantallas.entrevista.modoDemoAviso}
     </Alerta>
@@ -121,9 +124,7 @@ export function PantallaEntrevista() {
           pregunta={t.pantallas.entrevista.preguntaMensaje}
           value={borrador}
           onChange={(e) => setBorrador(e.target.value)}
-          error={
-            borrador.length > LIMITE_MENSAJE ? t.pantallas.entrevista.limiteCaracteres(LIMITE_MENSAJE) : undefined
-          }
+          error={borrador.length > LIMITE_MENSAJE ? t.pantallas.entrevista.limiteCaracteres(LIMITE_MENSAJE) : undefined}
         />
       </Box>
       <Boton type="submit" loading={cargando} disabled={!mensajeValido}>
@@ -134,62 +135,105 @@ export function PantallaEntrevista() {
 
   if (escritorio) {
     return (
-      <AppShell titulo={t.pantallas.entrevista.titulo} destino="hablar">
+      <AppShell titulo={t.pantallas.entrevista.titulo} destino="hablar" anchoCompleto tituloVisible={false}>
         {/* Entre 900 px (donde arranca el sidebar de escritorio) y 1200 px no hay ancho para un
             aside fijo de 340 px sin ahogar el chat: la columna del avance se apila debajo hasta
             `lg` (1200 px) y recién ahí se separa en dos columnas. */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+          <Boton variant="text" onClick={() => setPanelAbierto((abierto) => !abierto)} aria-expanded={panelAbierto}>
+            {panelAbierto ? t.pantallas.entrevista.ocultarAvance : t.pantallas.entrevista.mostrarAvance}
+          </Boton>
+        </Box>
         <Box
           sx={{
             display: 'grid',
             width: '100%',
-            gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: 'minmax(0, 1fr) 340px' },
+            gridTemplateColumns: {
+              xs: 'minmax(0, 1fr)',
+              lg: panelAbierto ? 'minmax(0, 1fr) 340px' : 'minmax(0, 1fr)',
+            },
             columnGap: { lg: 'var(--space-7)' },
-            rowGap: 'var(--space-5)',
+            rowGap: 'var(--space-4)',
             alignItems: 'start',
           }}
         >
-          <Stack spacing={2} sx={{ height: 'max(480px, calc(100dvh - var(--size-header) - 240px))', minHeight: 0 }}>
+          <Stack
+            spacing={2}
+            sx={{
+              width: '100%',
+              maxWidth: 760,
+              mx: 'auto',
+            }}
+          >
             <Stack
-              ref={registroRef}
               role="log"
               aria-label={t.pantallas.entrevista.etiquetaConversacion}
               spacing={2}
-              sx={{ flex: 1, minHeight: 0, overflowY: 'auto', pr: 1, '& > *': { flexShrink: 0 } }}
+              sx={{ pr: 1 }}
             >
-              {conversacion}
+              {conversacion(false)}
             </Stack>
+            <Box ref={finRef} />
             {alerta}
-            <Box
+            {/* En demo no hay campo de mensaje: el aviso se va al panel del avance, debajo de los
+                pasos, y la conversación crece libre con el scroll de la página. */}
+            {!esDemo && (
+              <Box sx={{ position: 'sticky', bottom: 0, pb: 'var(--space-4)', backgroundColor: 'var(--surface-base)' }}>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    backgroundColor: 'var(--surface-raised)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-lg)',
+                    boxShadow: 'var(--shadow-md)',
+                  }}
+                >
+                  {campo}
+                </Box>
+              </Box>
+            )}
+          </Stack>
+          {panelAbierto && (
+            <Stack
+              component="aside"
+              aria-label={t.pantallas.entrevista.etiquetaAvance}
+              spacing={2}
               sx={{
-                flex: 'none',
-                p: 1.5,
-                backgroundColor: 'var(--surface-raised)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-lg)',
-                boxShadow: 'var(--shadow-md)',
+                position: { lg: 'sticky' },
+                top: { lg: 'calc(var(--size-header) + var(--space-5))' },
+                // Si la ventana es muy baja el panel no cabe: solo entonces tiene su propio scroll.
+                maxHeight: { lg: 'calc(100dvh - var(--size-header) - var(--space-5) - var(--space-4))' },
+                '@media (max-height: 700px)': { overflowY: 'auto' },
               }}
             >
-              {campo}
-            </Box>
-          </Stack>
-          <Stack
-            component="aside"
-            aria-label={t.pantallas.entrevista.etiquetaAvance}
-            spacing={3}
-            sx={{ position: { lg: 'sticky' }, top: { lg: 'calc(var(--size-header) + var(--space-5))' } }}
-          >
-            <Box
-              sx={{
-                p: 'var(--space-5)',
-                backgroundColor: 'var(--surface-raised)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-lg)',
-                boxShadow: 'var(--shadow-sm)',
-              }}
-            >
-              {indicador('vertical')}
-            </Box>
-          </Stack>
+              <Box
+                sx={{
+                  p: 'var(--space-3) var(--space-4)',
+                  backgroundColor: 'var(--surface-raised)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-lg)',
+                  boxShadow: 'var(--shadow-sm)',
+                }}
+              >
+                {indicador('vertical')}
+              </Box>
+              {esDemo && avisoDemo}
+              {eventos.length > 0 && (
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                    gap: 1,
+                    '& .MuiChip-root': { width: '100%' },
+                  }}
+                >
+                  {eventos.map((evento) => (
+                    <SelloElegibilidad key={evento.id} estado={mapEstado(evento.estado)} programa={evento.programa} compacto />
+                  ))}
+                </Box>
+              )}
+            </Stack>
+          )}
         </Box>
       </AppShell>
     );
@@ -199,9 +243,16 @@ export function PantallaEntrevista() {
     <AppShell titulo={t.pantallas.entrevista.titulo} destino="hablar">
       <Stack spacing={3}>
         {indicador('horizontal')}
-        <Stack spacing={2}>{conversacion}</Stack>
+        <Stack spacing={2}>{conversacion(true)}</Stack>
         {alerta}
-        <Box sx={{ position: 'sticky', bottom: 'var(--size-touch)', backgroundColor: 'var(--surface-raised)', pt: 2 }}>
+        <Box
+          sx={{
+            position: 'sticky',
+            bottom: 'var(--size-touch)',
+            backgroundColor: 'var(--surface-raised)',
+            pt: 2,
+          }}
+        >
           {campo}
         </Box>
       </Stack>

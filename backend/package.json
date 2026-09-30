@@ -4,7 +4,8 @@
   "type": "module",
   "exports": {
     "./rules-engine": "./src/rules-engine/index.ts",
-    "./chat/papeles": "./src/chat/papeles.ts"
+    "./chat/papeles": "./src/chat/papeles.ts",
+    "./chat/demo": "./src/chat/demo.ts"
   },
   "scripts": {
     "test": "vitest run"

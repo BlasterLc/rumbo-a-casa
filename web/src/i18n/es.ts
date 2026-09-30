@@ -173,6 +173,8 @@ export const es: DiccionarioTextos = {
       errorGenerico: 'Algo no funcionó. Intenta de nuevo en un momento.',
       etiquetaConversacion: 'Conversación',
       etiquetaAvance: 'Avance de la entrevista',
+      ocultarAvance: 'Ocultar avance',
+      mostrarAvance: 'Mostrar avance',
     },
     resultado: {
       titulo: 'Tu resultado',

@@ -27,6 +27,8 @@ export interface AppShellProps {
   /** Solo escritorio: con `false` no se dibuja el `h1`, porque el contenido ya trae su propio
    * título (el hero de Resultado). En móvil el título vive siempre en la cabecera. */
   tituloVisible?: boolean;
+  /** Solo escritorio: el contenido usa todo el ancho disponible en vez de la columna de 1120 px (la conversación). */
+  anchoCompleto?: boolean;
   children: ReactNode;
 }
 
@@ -37,7 +39,7 @@ export interface AppShellProps {
  * destinos a la izquierda del contenido, que llega hasta 1120 px con el título como `h1` y, si
  * `atras`, un botón "Volver" encima.
  */
-export function AppShell({ titulo, destino, avisos = 0, atras = false, tituloVisible = true, children }: AppShellProps) {
+export function AppShell({ titulo, destino, avisos = 0, atras = false, tituloVisible = true, anchoCompleto = false, children }: AppShellProps) {
   const navigate = useNavigate();
   const escritorio = useEscritorio();
   const t = useT();
@@ -54,7 +56,7 @@ export function AppShell({ titulo, destino, avisos = 0, atras = false, tituloVis
           />
           <Box
             component="main"
-            sx={{ flex: 1, minWidth: 0, width: '100%', maxWidth: sizePx['size-page'], mx: 'auto', px: 'var(--space-6)', pb: 'var(--space-8)' }}
+            sx={{ flex: 1, minWidth: 0, width: '100%', maxWidth: anchoCompleto ? 'none' : sizePx['size-page'], mx: 'auto', px: 'var(--space-6)', pb: anchoCompleto ? 'var(--space-4)' : 'var(--space-8)' }}
           >
             {atras && (
               <Boton

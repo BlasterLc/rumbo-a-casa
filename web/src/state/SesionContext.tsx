@@ -4,8 +4,8 @@ import { useIdioma, useT } from '../i18n/LocaleContext';
 import { FOLIO_DEMO } from '../lib/perfilDemo';
 import {
   PERFIL_DESCONOCIDO,
-  evaluarTodosLosProgramas,
-  generarPlanPapeles,
+  construirDemo,
+  type Demo,
   type Perfil,
   type ResultadoPrograma,
   type PlanPrograma,
@@ -18,6 +18,7 @@ export interface TurnoChat {
   autor: 'agente' | 'persona';
   texto: string;
   dictado?: boolean;
+  demo?: boolean;
 }
 
 export interface EventoSello {
@@ -84,7 +85,7 @@ export interface SesionContextValue extends EstadoSesion {
   cargando: boolean;
   error?: ChatError;
   enviarTurno: (mensaje: string) => Promise<void>;
-  activarDemo: (perfilDemo: Perfil) => void;
+  activarDemo: () => void;
   marcarDocumento: (clave: string, listo: boolean) => void;
   marcarEtapa: (etapa: EstadoSeguimiento['etapa']) => void;
   guardarFolio: (folio: string) => void;
@@ -138,13 +139,41 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const activarDemo = (perfilDemo: Perfil) => {
-    const resultados = evaluarTodosLosProgramas(perfilDemo, idioma);
-    const plan = generarPlanPapeles(resultados, idioma);
+  // La conversación ficticia va marcada (`demo`): al reactivar o al cambiar de idioma se reemplaza en
+  // vez de repetirse, y los turnos reales previos (si el demo se ofreció tras un error del asistente)
+  // se conservan.
+  const turnosDemo = (demo: Demo): TurnoChat[] => [
+    { id: crearId(), autor: 'agente', texto: t.pantallas.entrevista.mensajeDemoActivado, demo: true },
+    ...demo.pasos.flatMap((paso): TurnoChat[] => [
+      { id: crearId(), autor: 'persona', texto: paso.usuario, demo: true },
+      { id: crearId(), autor: 'agente', texto: paso.respuesta, demo: true },
+    ]),
+  ];
+
+  // Los textos del demo se generan en el idioma activo: si este cambia con el demo puesto, se regeneran.
+  useEffect(() => {
+    setEstado((prev) => {
+      if (!prev.esDemo) return prev;
+      const demo = construirDemo(idioma);
+      const { perfil, resultados, plan } = demo.pasos[demo.pasos.length - 1];
+      return {
+        ...prev,
+        perfil,
+        resultados,
+        plan,
+        transcript: [...prev.transcript.filter((turno) => !turno.demo), ...turnosDemo(demo)],
+      };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idioma]);
+
+  const activarDemo = () => {
+    const demo = construirDemo(idioma);
+    const { perfil, resultados, plan } = demo.pasos[demo.pasos.length - 1];
     setEstado((prev) => ({
       ...prev,
       esDemo: true,
-      perfil: perfilDemo,
+      perfil,
       resultados,
       plan,
       // Demo de punta a punta: un documento por programa ya listo y una postulación de ejemplo
@@ -156,10 +185,7 @@ export function SesionProvider({ children }: { children: ReactNode }) {
       eventos: resultados
         .filter((r) => r.estado !== 'falta_dato')
         .map((r) => ({ id: crearId(), programa: r.programa, estado: r.estado })),
-      transcript: [
-        ...prev.transcript,
-        { id: crearId(), autor: 'agente', texto: t.pantallas.entrevista.mensajeDemoActivado },
-      ],
+      transcript: [...prev.transcript.filter((turno) => !turno.demo), ...turnosDemo(demo)],
     }));
     setError(undefined);
   };

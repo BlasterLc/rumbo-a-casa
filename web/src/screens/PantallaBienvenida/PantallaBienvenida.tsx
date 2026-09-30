@@ -11,7 +11,6 @@ import { Boton } from '../../components/atoms/Boton/Boton';
 import { SelectorIdioma } from '../../components/atoms/SelectorIdioma/SelectorIdioma';
 import { useSesion } from '../../state/SesionContext';
 import { useT } from '../../i18n/LocaleContext';
-import { PERFIL_DEMO } from '../../lib/perfilDemo';
 import { type as typeTokens, sizePx } from '../../theme/tokens';
 
 const PROGRAMAS = ['DS49', 'DS1', 'DS19', 'DS52'];
@@ -65,7 +64,7 @@ function BotonesBienvenida({ sobreAzul = false }: { sobreAzul?: boolean }) {
         color="secondary"
         sx={secundario}
         onClick={() => {
-          activarDemo(PERFIL_DEMO);
+          activarDemo();
           navigate('/resultado');
         }}
       >

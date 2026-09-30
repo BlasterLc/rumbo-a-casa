@@ -140,6 +140,8 @@ export interface DiccionarioTextos {
       etiquetaConversacion: string;
       /** Nombre accesible del panel lateral con el avance (escritorio). */
       etiquetaAvance: string;
+      ocultarAvance: string;
+      mostrarAvance: string;
     };
     resultado: {
       titulo: string;

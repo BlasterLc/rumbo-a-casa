@@ -209,13 +209,13 @@ describe('PantallaEntrevista en escritorio', () => {
     control.restaurar();
     vi.restoreAllMocks();
     window.localStorage.clear();
-    // Quita el `scrollHeight` falso que define un test de abajo, aunque ese test falle a mitad.
-    delete (HTMLElement.prototype as unknown as Record<string, unknown>).scrollHeight;
+    // Quita el `scrollIntoView` falso que define un test de abajo, aunque ese test falle a mitad.
+    delete (HTMLElement.prototype as unknown as Record<string, unknown>).scrollIntoView;
   });
 
-  it('el título es el h1 y el avance vive en un panel lateral vertical, no sobre el chat', () => {
+  it('no repite el título "Hablemos" y el avance vive en un panel lateral vertical, no sobre el chat', () => {
     const { container } = renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
-    expect(screen.getByRole('heading', { level: 1, name: 'Hablemos' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Hablemos' })).not.toBeInTheDocument();
     const lateral = screen.getByRole('complementary', { name: 'Avance de la entrevista' });
     expect(lateral).toHaveTextContent(/PASO 1 DE 5/i);
     expect(container.querySelector('.MuiStepper-vertical')).toBeInTheDocument();
@@ -227,14 +227,16 @@ describe('PantallaEntrevista en escritorio', () => {
     expect(screen.queryByText(/Herramienta independiente, no oficial/)).not.toBeInTheDocument();
   });
 
-  it('la conversación es un registro con scroll propio', () => {
+  it('la conversación no tiene scroll propio: el scroll es el de la página', () => {
     renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
     const registro = screen.getByRole('log', { name: 'Conversación' });
-    expect(registro).toHaveStyle({ overflowY: 'auto' });
+    expect(registro).not.toHaveStyle({ overflowY: 'auto' });
+    expect(registro).not.toHaveStyle({ overflowY: 'scroll' });
   });
 
-  it('al llegar mensajes, el registro baja al último aunque la conversación sea larga', async () => {
-    Object.defineProperty(HTMLElement.prototype, 'scrollHeight', { configurable: true, get: () => 4321 });
+  it('al llegar mensajes, la página baja hasta el final de la conversación', async () => {
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: scrollIntoView });
     vi.spyOn(chatClient, 'enviarMensaje').mockResolvedValue({
       ok: true,
       respuesta: 'Anotado, ¿y tu ahorro?',
@@ -243,20 +245,11 @@ describe('PantallaEntrevista en escritorio', () => {
       plan: [],
     });
     renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
+    scrollIntoView.mockClear();
     await userEvent.type(screen.getByLabelText('Escribe tu respuesta'), 'Somos cuatro');
     await userEvent.click(screen.getByRole('button', { name: 'Enviar' }));
     await screen.findByText('Anotado, ¿y tu ahorro?');
-    expect(screen.getByRole('log', { name: 'Conversación' }).scrollTop).toBe(4321);
-  });
-
-  it('los mensajes del registro no se encogen al desplazarse: nada baja de su alto natural (48 px de los sellos)', () => {
-    renderPantalla(<PantallaEntrevista />, { ruta: '/hablar' });
-    const registro = screen.getByRole('log', { name: 'Conversación' });
-    // Emotion emite la regla de `& > *` como `.css-xxxx-MuiStack-root>*{...}`, con la clase del propio registro.
-    const clase = Array.from(registro.classList).find((c) => c.startsWith('css-'));
-    expect(clase).toBeDefined();
-    const regla = new RegExp(`\\.${clase}>\\*\\{[^}]*(?<![-\\w])flex-shrink:\\s*0`);
-    expect(cssActual()).toMatch(regla);
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'end' });
   });
 
   it('el campo de texto queda fuera del registro, anclado bajo la conversación', () => {
