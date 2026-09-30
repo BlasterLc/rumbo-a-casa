@@ -4,6 +4,8 @@
 
 <h1 align="center">Rumbo a Casa</h1>
 
+<p align="center"><em>Heading home is always the right decision.</em></p>
+
 <p align="center">
   <strong>Which housing subsidy fits your family, and the exact papers to bring.</strong><br />
   An assistant that guides Chilean families through four state housing subsidies, with a deterministic rules engine that cites the decree behind every answer.
@@ -16,14 +18,18 @@
 </p>
 
 <p align="center">
-  <img alt="Tests" src="https://img.shields.io/badge/tests-668%20passing-1f7a4d" />
+  <img alt="Tests" src="https://img.shields.io/badge/tests-705%20passing-1f7a4d" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-1b4d8f" />
   <img alt="AWS" src="https://img.shields.io/badge/AWS-CloudFront%20%C2%B7%20Lambda%20%C2%B7%20Bedrock%20%C2%B7%20DynamoDB%20%C2%B7%20Polly-b5542e" />
   <img alt="Languages" src="https://img.shields.io/badge/UI-Espa%C3%B1ol%20%C2%B7%20English-555" />
 </p>
 
 <p align="center">
-  <img src="docs/images/home-desktop.png" alt="Rumbo a Casa home page on desktop" width="820" />
+  <a href="docs/video/rumbo-a-casa.mp4"><img src="docs/video/rumbo-a-casa-poster.jpg" alt="Watch the 25-second video: Four housing subsidies. Which one fits your family?" width="820" /></a>
+</p>
+
+<p align="center">
+  <a href="docs/video/rumbo-a-casa.mp4"><strong>▶ Watch the 25-second video</strong></a> · the real app, from the landing page to the papers to bring
 </p>
 
 > **AWS Zero to Shipped hackathon** · Category: Social Good · Track: Community
@@ -39,6 +45,10 @@ In Chile, a family that wants to buy or rent a home with state help faces severa
 3. **Builds the plan**: the papers to bring for each program the family qualifies for, taken from the official application forms, plus a step-by-step path and reminders.
 4. **Reads answers aloud** with Amazon Polly (Spanish and English voices).
 
+<p align="center">
+  <img src="docs/images/home-desktop.png" alt="Rumbo a Casa home page on desktop" width="820" />
+</p>
+
 <table>
   <tr>
     <td width="66%"><img src="docs/images/result-desktop.png" alt="Result screen on desktop: qualifies for 3 programs, each with its cited source" /></td>
@@ -53,7 +63,7 @@ An LLM should not decide whether a family is entitled to a state benefit. So **t
 - The rules live in a plain TypeScript **rules engine** ([`backend/src/rules-engine/`](backend/src/rules-engine)) with no AWS or model dependency, and a test enforces that it stays browser-safe. Every rule cites its source. Sources and figures are collected in [`docs/programas-subsidio.md`](docs/programas-subsidio.md).
 - The model (Claude Haiku 4.5 on Amazon Bedrock, Converse API with tool use) only asks natural questions, understands messy answers and explains results. It fills a validated family profile through three tools (`actualizar_perfil`, `evaluar_elegibilidad`, `generar_plan`). Anything the Zod schema rejects is discarded and asked again.
 - When data is missing, the engine says exactly which fields are missing (`falta_dato`) instead of guessing.
-- The system prompt forbids announcing a verdict that was not returned by `evaluar_elegibilidad` in the same turn.
+- The system prompt forbids announcing a verdict that was not returned by `evaluar_elegibilidad` in the same turn, and the chat loop never uses text written before a tool call as the reply when that text talks about qualifying.
 - The assistant never asks for a Clave Única, RUT, full name, address or bank details.
 
 The same input always produces the same verdict, and the verdicts are covered by tests, including the edge cases (income at the limit, RSH bracket changes, unknown answers).
@@ -112,7 +122,7 @@ npm test                 # backend, infra and web suites; no AWS calls
 npm run dev -w web       # web app on http://localhost:5173 (no backend behind /api)
 ```
 
-The backend suite (362 tests) runs against fakes, the infra suite (10 tests) checks the synthesized stack, and the web suite (296 tests) covers components, screens and the desktop layout. `web/e2e/flujo-demo.mjs` drives the full flow in a real browser with Playwright.
+The backend suite (382 tests) runs against fakes, the infra suite (14 tests) checks the synthesized stack, and the web suite (309 tests) covers components, screens and the desktop layout. `web/e2e/flujo-demo.mjs` drives the full flow in a real browser with Playwright.
 
 ## Deploy
 
@@ -130,6 +140,7 @@ Development was done with Claude Code connected to the AWS account, through the 
 
 Rumbo a Casa is an orientation tool. It does not replace MINVU, Serviu or a social worker, and every result points to its official source. The last step, applying, is always done by the family on the official site.
 
+- The API has no login, so spend is capped by volume for the whole site (not per person): the chat allows 20 calls per minute and 1,500 per day, and the voice 10 per minute and 300 per day. When a cap is reached the chat suggests the demo mode and the voice falls back to the browser voice.
 - The DS52 figures are those of the Metropolitan Region call; outside it they may vary by region or commune, and the result says so.
 - For the province of Palena and the regions of Aysén, Magallanes and Antártica, MINVU publishes no fixed DS49 housing-price cap and points to its own simulator instead.
 - The language model can occasionally mix formal and informal address in Spanish. Verdicts are not affected, because they come from the rules engine.
