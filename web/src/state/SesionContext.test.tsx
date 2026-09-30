@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { LocaleProvider } from '../i18n/LocaleContext';
+import { LocaleProvider, useIdioma } from '../i18n/LocaleContext';
 import { SesionProvider, useSesion } from './SesionContext';
 import * as chatClient from '../api/chatClient';
 import { PERFIL_DESCONOCIDO } from '../types/dominio';
@@ -21,6 +21,7 @@ const LOS_4_FALTA_DATO: ResultadoPrograma[] = [
 
 function Sonda() {
   const s = useSesion();
+  const { cambiarIdioma } = useIdioma();
   return (
     <div>
       <div data-testid="transcript-length">{s.transcript.length}</div>
@@ -28,6 +29,8 @@ function Sonda() {
       <div data-testid="error">{s.error?.codigo ?? ''}</div>
       <button onClick={() => s.enviarTurno('Hola')}>enviar</button>
       <button onClick={() => s.borrarDatos()}>borrar</button>
+      <button onClick={() => cambiarIdioma('en')}>en</button>
+      <button onClick={() => cambiarIdioma('es')}>es</button>
       <button onClick={() => s.activarDemo()}>demo</button>
       <pre data-testid="estado-json">{JSON.stringify({ transcript: s.transcript, eventos: s.eventos, resultados: s.resultados })}</pre>
       <div data-testid="folio">{s.seguimiento.folio ?? ''}</div>
@@ -187,6 +190,19 @@ describe('SesionProvider', () => {
     const { eventos, transcript } = estadoJson();
     expect(eventos).toHaveLength(4);
     expect(transcript).toHaveLength(9);
+  });
+
+  it('si cambias de idioma con el demo activo, la conversación y los resultados pasan al nuevo idioma', async () => {
+    conProveedores();
+    await userEvent.click(screen.getByRole('button', { name: 'demo' }));
+    await userEvent.click(screen.getByRole('button', { name: 'en' }));
+    const { transcript, resultados } = estadoJson();
+    expect(transcript[1].texto).toMatch(/family of 4 in Santiago/);
+    expect(transcript.at(-1).texto).toMatch(/You don't qualify for DS1/);
+    expect(resultados.find((r: { programa: string }) => r.programa === 'DS1').motivo).not.toMatch(/No alcanza el ahorro/);
+    expect(transcript).toHaveLength(9);
+    await userEvent.click(screen.getByRole('button', { name: 'es' }));
+    expect(estadoJson().transcript.at(-1).texto).toMatch(/No calificas a DS1/);
   });
 
   it('si localStorage lanza (modo privado), la sesión sigue funcionando en memoria', () => {
