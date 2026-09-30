@@ -219,11 +219,18 @@ export function PantallaEntrevista() {
               </Box>
               {esDemo && avisoDemo}
               {eventos.length > 0 && (
-                <Stack direction="row" flexWrap="wrap" gap={1}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                    gap: 1,
+                    '& .MuiChip-root': { width: '100%' },
+                  }}
+                >
                   {eventos.map((evento) => (
                     <SelloElegibilidad key={evento.id} estado={mapEstado(evento.estado)} programa={evento.programa} compacto />
                   ))}
-                </Stack>
+                </Box>
               )}
             </Stack>
           )}
