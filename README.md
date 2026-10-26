@@ -35,7 +35,7 @@ https://github.com/user-attachments/assets/187125dc-3cef-44d8-b37d-617a950f89b6
 
 <p align="center"><sub>Also on <a href="https://www.youtube.com/watch?v=X4tJJVOv-VI">YouTube</a> · the real app, from the landing page to the papers to bring</sub></p>
 
-> **AWS Zero to Shipped hackathon** · Category: Social Good · Track: Community
+> 🏆 **Winner, Social Good category · AWS Zero to Shipped hackathon** · Track: Community · [Winners announcement](https://builder.aws.com/build/hackathons/e83e84e5-4f4c-383b-bbe9-4a15ac195d55/zero-to-shipped?tab=winners)
 
 ## The problem
 
